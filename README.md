@@ -31,9 +31,13 @@ Notificaciones y recordatorios.
 Chat entre participantes.
 Valoraciones de eventos.
 Calendario deportivo personal.
-Autores
+
+Autores:
+
 Iñaki Marín
+
 Carlos Martín
+
 César Pérez
 
 Estado del proyecto: En fase de diseño y desarrollo.
