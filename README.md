@@ -26,19 +26,23 @@ La aplicación utilizará la ubicación del usuario, con su permiso, para recome
 
 Los eventos cuya fecha haya pasado dejarán de aparecer en la lista de eventos activos.
 
-Posibles mejoras futuras
-Notificaciones y recordatorios.
-Chat entre participantes.
-Valoraciones de eventos.
-Calendario deportivo personal.
+Posibles mejoras futuras:
+
+-Notificaciones y recordatorios.
+
+-Chat entre participantes.
+
+-Valoraciones de eventos.
+
+-Calendario deportivo personal.
 
 Autores:
 
-Iñaki Marín
+-Iñaki Marín
 
-Carlos Martín
+-Carlos Martín
 
-César Pérez
+-César Pérez
 
 Estado del proyecto: En fase de diseño y desarrollo.
 
