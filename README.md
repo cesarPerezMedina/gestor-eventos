@@ -4,49 +4,49 @@ Encuentra. Organiza. Juega.
 
 Aplicación diseñada para crear, buscar y gestionar eventos deportivos, conectando a personas de una misma zona para practicar deporte juntas.
 
-Funcionalidades principales
+Funcionalidades principales:
 
--Registro e inicio de sesión: creación de cuentas y recuperación de contraseñas.
+    - Registro e inicio de sesión: creación de cuentas y recuperación de contraseñas.
 
--Crear eventos: organizar actividades deportivas indicando nombre, descripción, fecha, hora, ubicación y número de participantes.
+    - Crear eventos: organizar actividades deportivas indicando nombre, descripción, fecha, hora, ubicación y número de participantes.
+ 
+    - Buscar eventos: encontrar eventos públicos por nombre o proximidad.
 
--Buscar eventos: encontrar eventos públicos por nombre o proximidad.
+    - Mis eventos: consultar, abandonar o eliminar eventos.
 
--Mis eventos: consultar, abandonar o eliminar eventos.
+    - Invitaciones: aceptar o rechazar invitaciones a eventos.
 
--Invitaciones: aceptar o rechazar invitaciones a eventos.
+    - Amigos: añadir usuarios mediante su ID o nombre de usuario.
 
--Amigos: añadir usuarios mediante su ID o nombre de usuario.
+    - Ajustes: personalizar el tema claro u oscuro y el tamaño del texto.
 
--Ajustes: personalizar el tema claro u oscuro y el tamaño del texto.
+    - Cerrar sesión: salir de la cuenta.
 
--Cerrar sesión: salir de la cuenta.
+Deportes disponibles:
 
-Deportes disponibles
-
-Fútbol, baloncesto, tenis, pádel, atletismo y otras disciplinas deportivas.
+    -Fútbol, baloncesto, tenis, pádel, atletismo y otras disciplinas deportivas.
 
 Tipos de eventos:
 
--Públicos: visibles en las búsquedas y recomendaciones de eventos cercanos.
+    -Públicos: visibles en las búsquedas y recomendaciones de eventos cercanos.
 
--Privados: accesibles mediante invitación o autorización.
+    -Privados: accesibles mediante invitación o autorización.
 
 Ubicación y gestión:
 
--La aplicación utilizará la ubicación del usuario, con su permiso, para recomendar eventos públicos cercanos. Cada evento podrá incluir una dirección o un punto seleccionado en un mapa.
+    -La aplicación utilizará la ubicación del usuario, con su permiso, para recomendar eventos públicos cercanos. Cada evento podrá incluir una dirección o un punto seleccionado en un mapa.
 
--Los eventos cuya fecha haya pasado dejarán de aparecer en la lista de eventos activos.
+    -Los eventos cuya fecha haya pasado dejarán de aparecer en la lista de eventos activos.
 
 Posibles mejoras futuras:
 
--Notificaciones y recordatorios.
+    -Notificaciones y recordatorios.
 
--Chat entre participantes.
+    -Chat entre participantes.
 
--Valoraciones de eventos.
+    -Valoraciones de eventos.
 
--Calendario deportivo personal.
+    -Calendario deportivo personal.
 
 Autores:
 
