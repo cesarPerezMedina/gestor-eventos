@@ -48,6 +48,9 @@ dependencies {
     implementation(libs.androidx.compose.ui.graphics)
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
+    implementation("androidx.navigation:navigation-compose:2.9.0")// y ka de runtime que nos permite que la pnatalla se actualice sola cuando cambien los datos
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.9.0")//estas tres lienas lo que hacen es descargar las librias para poder usar las en nuestra app
+    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.9.0")// en este caso son tres la de navegacion que nos permite movernos entre pantallas, la del viewmodel que nos permite guardar y gestionar loas datos de la pantalla
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
