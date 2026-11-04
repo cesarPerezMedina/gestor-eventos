@@ -13,4 +13,11 @@ interface UsuarioDao {
 
     @Query("SELECT * FROM usuarios WHERE id = :id")
     suspend fun buscarPorId(id: Long): Usuario?
+
+    // --- Issue 14: recuperar contraseña ---
+    @Query("SELECT * FROM usuarios WHERE correo = :correo COLLATE NOCASE LIMIT 1")
+    suspend fun buscarPorCorreo(correo: String): Usuario?
+
+    @Query("UPDATE usuarios SET claveHash = :claveHash WHERE id = :id")
+    suspend fun actualizarClave(id: Long, claveHash: String)
 }
