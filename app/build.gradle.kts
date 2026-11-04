@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.ksp)
 }
 
 android {
@@ -40,17 +41,25 @@ android {
 }
 
 dependencies {
+    // Base de Android y Compose
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
+    implementation(libs.androidx.lifecycle.runtime.compose)
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.activity.compose)
+    implementation(libs.androidx.navigation.compose)
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.ui.graphics)
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
-    implementation("androidx.navigation:navigation-compose:2.9.0")// y ka de runtime que nos permite que la pnatalla se actualice sola cuando cambien los datos
-    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.9.0")//estas tres lienas lo que hacen es descargar las librias para poder usar las en nuestra app
-    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.9.0")// en este caso son tres la de navegacion que nos permite movernos entre pantallas, la del viewmodel que nos permite guardar y gestionar loas datos de la pantalla
+
+    // Base de datos local: Room (el procesador genera el código con KSP)
+    implementation(libs.androidx.room.runtime)
+    implementation(libs.androidx.room.ktx)
+    ksp(libs.androidx.room.compiler)
+
+    // Tests
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
