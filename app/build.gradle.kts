@@ -7,7 +7,7 @@ plugins {
 android {
     namespace = "com.example.gestordeeventos"
     compileSdk {
-        version = release(36) {
+        version = release(37) {
             minorApiLevel = 1
         }
     }
