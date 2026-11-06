@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">gestorDeEventos</string>
+
+    <string name="accion_crear_evento">Create event</string>
+    <string name="accion_buscar">Search</string>
+    <string name="accion_cancelar">Cancel</string>
+
+    <string name="deporte_futbol">Football</string>
+    <string name="deporte_baloncesto">Basketball</string>
+    <string name="deporte_tenis">Tennis</string>
+    <string name="deporte_padel">Padel</string>
+    <string name="deporte_atletismo">Athletics</string>
+    <string name="deporte_otros">Other</string>
+
+    <string name="lema_app">Find. Organize. Play.</string>
+    <string name="saludo">Hello, %1$s!</string>
+    <string name="campo_nombre_evento">Event name</string>
+
+    <string name="preview_titulo_seccion">Section title</string>
+    <string name="preview_texto_cuerpo">Body text: padel match tomorrow at 6:00 PM at the sports centre.</string>
+    <string name="preview_texto_secundario">Secondary text</string>
+    <string name="preview_evento_titulo">Basketball game</string>
+    <string name="preview_evento_detalle">Saturday · 5:30 PM · 6/10 participants</string>
+</resources>

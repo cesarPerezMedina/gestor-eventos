@@ -1,58 +1,92 @@
 package com.example.gestordeeventos.ui.theme
 
-import android.app.Activity
-import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.dynamicDarkColorScheme
-import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Density
 
-private val DarkColorScheme = darkColorScheme(
-    primary = Purple80,
-    secondary = PurpleGrey80,
-    tertiary = Pink80
+private val EsquemaClaro = lightColorScheme(
+    primary = VerdePrimario,
+    onPrimary = VerdeSobrePrimario,
+    primaryContainer = VerdeContenedor,
+    onPrimaryContainer = VerdeSobreContenedor,
+    secondary = AmbarSecundario,
+    onSecondary = AmbarSobreSecundario,
+    secondaryContainer = AmbarContenedor,
+    onSecondaryContainer = AmbarSobreContenedor,
+    tertiary = AzulTerciario,
+    onTertiary = AzulSobreTerciario,
+    tertiaryContainer = AzulContenedor,
+    onTertiaryContainer = AzulSobreContenedor,
+    background = FondoClaro,
+    onBackground = TextoClaro,
+    surface = SuperficieClara,
+    onSurface = TextoClaro,
+    surfaceVariant = SuperficieVariantClara,
+    onSurfaceVariant = TextoSecundarioClaro,
+    outline = BordeClaro,
+    error = ErrorClaro,
+    onError = SobreErrorClaro,
+    errorContainer = ErrorContenedorClaro,
+    onErrorContainer = SobreErrorContenedorClaro
 )
 
-private val LightColorScheme = lightColorScheme(
-    primary = Purple40,
-    secondary = PurpleGrey40,
-    tertiary = Pink40
-
-    /* Other default colors to override
-    background = Color(0xFFFFFBFE),
-    surface = Color(0xFFFFFBFE),
-    onPrimary = Color.White,
-    onSecondary = Color.White,
-    onTertiary = Color.White,
-    onBackground = Color(0xFF1C1B1F),
-    onSurface = Color(0xFF1C1B1F),
-    */
+private val EsquemaOscuro = darkColorScheme(
+    primary = VerdePrimarioOscuro,
+    onPrimary = VerdeSobrePrimarioOscuro,
+    primaryContainer = VerdeContenedorOscuro,
+    onPrimaryContainer = VerdeSobreContenedorOscuro,
+    secondary = AmbarSecundarioOscuro,
+    onSecondary = AmbarSobreSecundarioOscuro,
+    secondaryContainer = AmbarContenedorOscuro,
+    onSecondaryContainer = AmbarSobreContenedorOscuro,
+    tertiary = AzulTerciarioOscuro,
+    onTertiary = AzulSobreTerciarioOscuro,
+    tertiaryContainer = AzulContenedorOscuro,
+    onTertiaryContainer = AzulSobreContenedorOscuro,
+    background = FondoOscuro,
+    onBackground = TextoOscuro,
+    surface = SuperficieOscura,
+    onSurface = TextoOscuro,
+    surfaceVariant = SuperficieVariantOscura,
+    onSurfaceVariant = TextoSecundarioOscuro,
+    outline = BordeOscuro,
+    error = ErrorOscuro,
+    onError = SobreErrorOscuro,
+    errorContainer = ErrorContenedorOscuro,
+    onErrorContainer = SobreErrorContenedorOscuro
 )
 
+/**
+ * Tema global de la app. Envuelve TODA la interfaz (ver MainActivity).
+ *
+ * @param darkTheme   true = oscuro, false = claro. Por defecto sigue al sistema.
+ *                    Cuando AjustesRepositorio.temaOscuro tenga valor, pásalo aquí.
+ * @param escalaTexto multiplicador del tamaño de texto (1.0 = normal), pensado para
+ *                    el ajuste de accesibilidad de AjustesRepositorio.escalaTexto.
+ */
 @Composable
 fun GestorDeEventosTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    // Dynamic color is available on Android 12+
-    dynamicColor: Boolean = true,
+    escalaTexto: Float = 1f,
     content: @Composable () -> Unit
 ) {
-    val colorScheme = when {
-        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-            val context = LocalContext.current
-            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-        }
-
-        darkTheme -> DarkColorScheme
-        else -> LightColorScheme
-    }
-
-    MaterialTheme(
-        colorScheme = colorScheme,
-        typography = Typography,
-        content = content
+    val densidad = LocalDensity.current
+    val densidadEscalada = Density(
+        density = densidad.density,
+        fontScale = densidad.fontScale * escalaTexto
     )
+
+    CompositionLocalProvider(LocalDensity provides densidadEscalada) {
+        MaterialTheme(
+            colorScheme = if (darkTheme) EsquemaOscuro else EsquemaClaro,
+            typography = Typography,
+            shapes = Formas,
+            content = content
+        )
+    }
 }
