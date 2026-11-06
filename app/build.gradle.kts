@@ -2,6 +2,8 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.ksp)
+    id("org.jlleitschuh.gradle.ktlint") version "14.0.1"
+    id("io.gitlab.arturbosch.detekt") version "1.23.8"
 }
 
 android {
