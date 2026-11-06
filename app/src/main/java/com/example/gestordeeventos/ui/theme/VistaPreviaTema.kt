@@ -21,6 +21,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 
+
 /**
  * Catálogo visual del sistema de diseño: sirve para comprobar de un vistazo
  * colores, tipografías, formas y componentes en modo claro y oscuro.

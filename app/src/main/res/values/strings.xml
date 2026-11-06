@@ -1,3 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">gestorDeEventos</string>
+    <string name="app_name" translatable="false">gestorDeEventos</string>
+
+    <!-- Acciones comunes -->
+    <string name="accion_crear_evento">Crear evento</string>
+    <string name="accion_buscar">Buscar</string>
+    <string name="accion_cancelar">Cancelar</string>
+
+    <!-- Deportes -->
+    <string name="deporte_futbol">Fútbol</string>
+    <string name="deporte_baloncesto">Baloncesto</string>
+    <string name="deporte_tenis">Tenis</string>
+    <string name="deporte_padel">Pádel</string>
+    <string name="deporte_atletismo">Atletismo</string>
+    <string name="deporte_otros">Otros</string>
+
+    <!-- Textos generales -->
+    <string name="lema_app">Encuentra. Organiza. Juega.</string>
+    <string name="saludo">¡Hola, %1$s!</string>
+    <string name="campo_nombre_evento">Nombre del evento</string>
+
+    <!-- Catálogo de diseño (solo vista previa) -->
+    <string name="preview_titulo_seccion">Título de sección</string>
+    <string name="preview_texto_cuerpo">Texto de cuerpo: partido de pádel mañana a las 18:00 en el polideportivo.</string>
+    <string name="preview_texto_secundario">Texto secundario</string>
+    <string name="preview_evento_titulo">Partido de baloncesto</string>
+    <string name="preview_evento_detalle">Sábado · 17:30 · 6/10 participantes</string>
 </resources>
