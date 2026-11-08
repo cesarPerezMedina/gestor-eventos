@@ -52,6 +52,21 @@ La guía completa está en [`docs/BASE_DE_DATOS.md`](docs/BASE_DE_DATOS.md).
 
 > Los datos son locales: dos dispositivos distintos no comparten usuarios ni eventos.
 
+## Novedades: inicio de sesión (Issue 10)
+
+La lógica del inicio de sesión ya está implementada sobre la base de datos local. La pantalla de Login (Issue 9) solo tiene que conectarse a ella.
+
+- **Correo o nombre de usuario:** se puede entrar con cualquiera de los dos, sin distinguir mayúsculas.
+- **Contraseñas con hash:** la contraseña nunca se guarda en texto plano. Se guarda un hash PBKDF2 con una sal aleatoria (`util/ClaveHash.kt`), y el login comprueba la contraseña contra ese hash.
+- **Mensaje único de error:** si el usuario no existe o la contraseña es incorrecta se muestra el mismo mensaje, para no revelar qué usuarios están registrados.
+- **`LoginViewModel`:** guarda lo que escribe el usuario, valida que no haya campos vacíos, muestra el estado de carga y los errores, y avisa cuando la sesión se ha iniciado.
+- **Mensajes en español e inglés** (`strings_auth.xml`).
+- **Pruebas automáticas:** `ClaveHashTest`, `AuthRepositorioTest` y `LoginViewModelTest` se ejecutan sin emulador. `UsuarioDaoTest` comprueba la consulta SQL y necesita emulador o móvil.
+
+La guía con un ejemplo para conectar la pantalla está en [`docs/AUTENTICACION.md`](docs/AUTENTICACION.md).
+
+> Hasta que esté el registro (Issue 13), la tabla de usuarios está vacía y no se puede iniciar sesión en la app real.
+
 ## Tecnologías
 
 | Área | Tecnología |
@@ -61,6 +76,7 @@ La guía completa está en [`docs/BASE_DE_DATOS.md`](docs/BASE_DE_DATOS.md).
 | Arquitectura | MVVM por capas (`ui`, `data`, `navegacion`, `util`) |
 | Navegación | Navigation Compose |
 | Base de datos local | Room (con KSP) |
+| Seguridad de contraseñas | Hash PBKDF2 con sal (`ClaveHash`) |
 | Versiones | Centralizadas en `gradle/libs.versions.toml` |
 | Compatibilidad | Android 10 (API 29) o superior |
 
@@ -75,7 +91,7 @@ app/src/main/java/com/example/gestordeeventos/
     localizacion/   Ubicación del dispositivo
   navegacion/       Rutas y navegación entre pantallas
   ui/               Pantallas, ViewModels, componentes y tema
-  util/             Utilidades (fechas, distancias...)
+  util/             Utilidades (ClaveHash, validaciones, permisos, fechas, distancias...)
 docs/               Documentación técnica
 ```
 
