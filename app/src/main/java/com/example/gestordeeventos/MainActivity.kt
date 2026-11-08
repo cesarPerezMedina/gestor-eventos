@@ -11,6 +11,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import com.example.gestordeeventos.ui.auth.LoginScreen
 import com.example.gestordeeventos.ui.theme.GestorDeEventosTheme
 
 class MainActivity : ComponentActivity() {
@@ -19,12 +20,11 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             GestorDeEventosTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
-                    )
-                }
+                LoginScreen(
+                    onLoginClick = { email, password -> },
+                    onForgotPasswordClick = { },
+                    onRegisterClick = { },
+                )
             }
         }
     }
