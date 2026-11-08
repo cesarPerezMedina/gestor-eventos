@@ -6,6 +6,8 @@ import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.example.gestordeeventos.data.local.AppDatabase
+import com.example.gestordeeventos.data.model.Amigo
+import com.example.gestordeeventos.data.model.Amistad
 import com.example.gestordeeventos.data.model.Deporte
 import com.example.gestordeeventos.data.model.Evento
 import com.example.gestordeeventos.data.model.Participacion
@@ -13,8 +15,10 @@ import com.example.gestordeeventos.data.model.Usuario
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -76,5 +80,72 @@ class AppDatabaseTest {
 
         assertNull(db.eventoDao().buscarPorId(eventoId))
         assertEquals(0, db.participacionDao().contarDeEvento(eventoId))
+    }
+
+    @Test
+    fun guardaUnaAmistadYAmbosUsuariosSonAmigos() = runBlocking {
+        val ana = db.usuarioDao().insertar(usuarioDePrueba("ana_23"))
+        val luis = db.usuarioDao().insertar(usuarioDePrueba("luis_7"))
+
+        db.amistadDao().insertar(Amistad.entre(luis, ana))
+
+        assertTrue(db.amistadDao().sonAmigos(ana, luis))
+        assertTrue(db.amistadDao().sonAmigos(luis, ana))
+        assertEquals(listOf(Amigo(luis, "luis_7")), db.amistadDao().listarAmigos(ana))
+        assertEquals(listOf(Amigo(ana, "ana_23")), db.amistadDao().listarAmigos(luis))
+    }
+
+    @Test
+    fun noDuplicaUnaAmistadAunqueSeGuardeEnOrdenInverso() = runBlocking {
+        val ana = db.usuarioDao().insertar(usuarioDePrueba("ana_23"))
+        val luis = db.usuarioDao().insertar(usuarioDePrueba("luis_7"))
+
+        db.amistadDao().insertar(Amistad.entre(ana, luis))
+        val segunda = db.amistadDao().insertar(Amistad.entre(luis, ana))
+
+        assertEquals(-1L, segunda)
+        assertEquals(1, db.amistadDao().contarAmigos(ana))
+    }
+
+    @Test
+    fun listaLosAmigosOrdenadosPorNombreDeUsuario() = runBlocking {
+        val ana = db.usuarioDao().insertar(usuarioDePrueba("ana_23"))
+        val zoe = db.usuarioDao().insertar(usuarioDePrueba("zoe"))
+        val bea = db.usuarioDao().insertar(usuarioDePrueba("bea"))
+        db.amistadDao().insertar(Amistad.entre(ana, zoe))
+        db.amistadDao().insertar(Amistad.entre(bea, ana))
+
+        val nombres = db.amistadDao().listarAmigos(ana).map { it.nombreUsuario }
+
+        assertEquals(listOf("bea", "zoe"), nombres)
+    }
+
+    @Test
+    fun eliminaUnaAmistadEnCualquierOrden() = runBlocking {
+        val ana = db.usuarioDao().insertar(usuarioDePrueba("ana_23"))
+        val luis = db.usuarioDao().insertar(usuarioDePrueba("luis_7"))
+        db.amistadDao().insertar(Amistad.entre(ana, luis))
+
+        val borradas = db.amistadDao().eliminar(luis, ana)
+
+        assertEquals(1, borradas)
+        assertFalse(db.amistadDao().sonAmigos(ana, luis))
+    }
+
+    @Test
+    fun alBorrarUnUsuarioSeBorranSusAmistades() = runBlocking {
+        val ana = db.usuarioDao().insertar(usuarioDePrueba("ana_23"))
+        val luis = db.usuarioDao().insertar(usuarioDePrueba("luis_7"))
+        db.amistadDao().insertar(Amistad.entre(ana, luis))
+
+        db.openHelper.writableDatabase.execSQL("DELETE FROM usuarios WHERE id = $ana")
+
+        assertEquals(0, db.amistadDao().contarAmigos(luis))
+    }
+
+    @Test(expected = SQLiteConstraintException::class)
+    fun noPermiteUnaAmistadConUnUsuarioQueNoExiste(): Unit = runBlocking {
+        val ana = db.usuarioDao().insertar(usuarioDePrueba("ana_23"))
+        db.amistadDao().insertar(Amistad.entre(ana, 9_999L))
     }
 }
