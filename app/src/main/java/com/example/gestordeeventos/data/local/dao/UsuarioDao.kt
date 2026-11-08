@@ -13,4 +13,14 @@ interface UsuarioDao {
 
     @Query("SELECT * FROM usuarios WHERE id = :id")
     suspend fun buscarPorId(id: Long): Usuario?
+
+    /**
+     * Busca un usuario por su correo o por su nombre de usuario, sin distinguir mayúsculas
+     * (es lo que se escribe en el campo único del login). Devuelve null si no existe.
+     */
+    @Query(
+        "SELECT * FROM usuarios WHERE correo = :identificador COLLATE NOCASE " +
+            "OR nombreUsuario = :identificador COLLATE NOCASE LIMIT 1"
+    )
+    suspend fun buscarPorCorreoONombreUsuario(identificador: String): Usuario?
 }
