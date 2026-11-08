@@ -2,14 +2,22 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.ksp)
+    id("org.jlleitschuh.gradle.ktlint") version "14.0.1"
+    id("io.gitlab.arturbosch.detekt") version "1.23.8"
+}
+ktlint {
+    android.set(true)
+}
+
+detekt {
+    buildUponDefaultConfig = true
+    config.setFrom(file("$rootDir/config/detekt/detekt.yml"))
 }
 
 android {
     namespace = "com.example.gestordeeventos"
     compileSdk {
-        version = release(37) {
-            minorApiLevel = 1
-        }
+        version = release(37)
     }
 
     defaultConfig {
@@ -37,6 +45,12 @@ android {
     }
     buildFeatures {
         compose = true
+    }
+    lint {
+        abortOnError = true
+        warningsAsErrors = false
+        htmlReport = true
+        disable += "MissingTranslation"
     }
 }
 
@@ -68,3 +82,4 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
 }
+
