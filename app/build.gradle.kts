@@ -17,9 +17,7 @@ detekt {
 android {
     namespace = "com.example.gestordeeventos"
     compileSdk {
-        version = release(37) {
-            minorApiLevel = 1
-        }
+        version = release(37)
     }
 
     defaultConfig {
