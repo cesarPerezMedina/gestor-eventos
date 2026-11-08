@@ -1,0 +1,28 @@
+package com.example.gestordeeventos
+
+import com.example.gestordeeventos.data.local.dao.UsuarioDao
+import com.example.gestordeeventos.data.model.Usuario
+
+/** DAO falso en memoria para probar repositorios y ViewModels sin base de datos ni emulador. */
+class FakeUsuarioDao : UsuarioDao {
+    private val usuarios = mutableListOf<Usuario>()
+
+    /** Si no es null, las búsquedas lanzan este error (para probar fallos inesperados). */
+    var fallo: Throwable? = null
+
+    override suspend fun insertar(usuario: Usuario): Long {
+        val id = usuarios.size + 1L
+        usuarios += usuario.copy(id = id)
+        return id
+    }
+
+    override suspend fun buscarPorId(id: Long): Usuario? = usuarios.firstOrNull { it.id == id }
+
+    override suspend fun buscarPorCorreoONombreUsuario(identificador: String): Usuario? {
+        fallo?.let { throw it }
+        return usuarios.firstOrNull {
+            it.correo.equals(identificador, ignoreCase = true) ||
+                it.nombreUsuario.equals(identificador, ignoreCase = true)
+        }
+    }
+}
