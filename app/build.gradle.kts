@@ -2,6 +2,16 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.ksp)
+    id("org.jlleitschuh.gradle.ktlint") version "14.0.1"
+    id("io.gitlab.arturbosch.detekt") version "1.23.8"
+}
+ktlint {
+    android.set(true)
+}
+
+detekt {
+    buildUponDefaultConfig = true
+    config.setFrom(file("$rootDir/config/detekt/detekt.yml"))
 }
 
 android {
@@ -36,6 +46,12 @@ android {
     buildFeatures {
         compose = true
     }
+    lint {
+        abortOnError = true
+        warningsAsErrors = false
+        htmlReport = true
+        disable += "MissingTranslation"
+    }
 }
 
 dependencies {
@@ -66,3 +82,4 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
 }
+
