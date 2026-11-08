@@ -21,11 +21,31 @@ object ValidadorRegistro {
 
     const val LONGITUD_MINIMA_PASSWORD = 8
     const val LONGITUD_MAXIMA_CORREO = 254
+    const val LONGITUD_MINIMA_NOMBRE_USUARIO = 3
+    const val LONGITUD_MAXIMA_NOMBRE_USUARIO = 20
+
+    private val REGEX_NOMBRE_USUARIO = Regex("^[A-Za-z0-9_]+$")
 
     private val REGEX_CORREO = Regex(
         "^[A-Za-z0-9._%+-]+@[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?" +
             "(?:\\.[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?)*\\.[A-Za-z]{2,}$"
     )
+
+    /** Nombre de usuario (Issue 13): de 3 a 20 caracteres, solo letras, números y guion bajo. */
+    fun validarNombreUsuario(nombreUsuario: String): ResultadoValidacion {
+        val valor = nombreUsuario.trim()
+        return when {
+            valor.isEmpty() ->
+                ResultadoValidacion.Error("El nombre de usuario es obligatorio")
+            valor.length !in LONGITUD_MINIMA_NOMBRE_USUARIO..LONGITUD_MAXIMA_NOMBRE_USUARIO ->
+                ResultadoValidacion.Error(
+                    "Debe tener entre $LONGITUD_MINIMA_NOMBRE_USUARIO y $LONGITUD_MAXIMA_NOMBRE_USUARIO caracteres"
+                )
+            !REGEX_NOMBRE_USUARIO.matches(valor) ->
+                ResultadoValidacion.Error("Solo puede contener letras, números y guion bajo (_)")
+            else -> ResultadoValidacion.Valido
+        }
+    }
 
     fun validarCorreo(correo: String): ResultadoValidacion {
         val valor = correo.trim()

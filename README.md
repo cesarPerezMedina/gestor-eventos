@@ -65,7 +65,18 @@ La lógica del inicio de sesión ya está implementada sobre la base de datos lo
 
 La guía con un ejemplo para conectar la pantalla está en [`docs/AUTENTICACION.md`](docs/AUTENTICACION.md).
 
-> Hasta que esté el registro (Issue 13), la tabla de usuarios está vacía y no se puede iniciar sesión en la app real.
+## Novedades: registro de usuarios (Issue 13)
+
+La lógica del registro ya guarda usuarios en la base de datos local. La pantalla de Registro (Issue 11) solo tiene que conectarse a ella.
+
+- **Nombre de usuario:** de 3 a 20 caracteres, solo letras, números y guion bajo (`ValidadorRegistro.validarNombreUsuario`).
+- **Sin duplicados:** no se permite un correo ni un nombre de usuario ya registrado (sin distinguir mayúsculas).
+- **Correo normalizado:** se guarda en minúsculas y sin espacios.
+- **Contraseña segura:** solo se guarda su hash PBKDF2, nunca en texto plano.
+- **`RegistroViewModel`:** valida todos los campos, muestra el error en el campo correcto, controla la carga y avisa cuando el registro termina.
+- **Pruebas automáticas:** `ValidadorNombreUsuarioTest`, `AuthRepositorioRegistroTest` y `RegistroViewModelTest` (sin emulador); `UsuarioDaoTest` ampliado (con emulador).
+
+Tras registrarse, ya se puede iniciar sesión con ese usuario. Ejemplo de conexión en [`docs/AUTENTICACION.md`](docs/AUTENTICACION.md).
 
 ## Tecnologías
 

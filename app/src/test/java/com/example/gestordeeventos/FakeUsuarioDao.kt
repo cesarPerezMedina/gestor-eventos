@@ -10,6 +10,9 @@ class FakeUsuarioDao : UsuarioDao {
     /** Si no es null, las búsquedas lanzan este error (para probar fallos inesperados). */
     var fallo: Throwable? = null
 
+    /** Usuarios guardados, para comprobar qué se ha insertado. */
+    val guardados: List<Usuario> get() = usuarios
+
     override suspend fun insertar(usuario: Usuario): Long {
         val id = usuarios.size + 1L
         usuarios += usuario.copy(id = id)
@@ -24,5 +27,15 @@ class FakeUsuarioDao : UsuarioDao {
             it.correo.equals(identificador, ignoreCase = true) ||
                 it.nombreUsuario.equals(identificador, ignoreCase = true)
         }
+    }
+
+    override suspend fun existeCorreo(correo: String): Boolean {
+        fallo?.let { throw it }
+        return usuarios.any { it.correo.equals(correo, ignoreCase = true) }
+    }
+
+    override suspend fun existeNombreUsuario(nombreUsuario: String): Boolean {
+        fallo?.let { throw it }
+        return usuarios.any { it.nombreUsuario.equals(nombreUsuario, ignoreCase = true) }
     }
 }
