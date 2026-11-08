@@ -1,15 +1,18 @@
 # Autenticación local (Issues 10 y 13)
 
-El inicio de sesión funciona con la base de datos local (Room), sin servidor. Esta guía describe la parte del
-**inicio de sesión (Issue 10)**; la de registro (Issue 13) se añade en su propia Issue.
+El inicio de sesión funciona con la base de datos local (Room), sin servidor. Esta guía cubre el
+**inicio de sesión (Issue 10)** y el **registro de usuarios (Issue 13)**.
 
 ## Piezas
 
 ```
 util/ClaveHash.kt                    Convierte contraseñas en hash y las comprueba
-data/local/dao/UsuarioDao.kt         buscarPorCorreoONombreUsuario(...)
+util/ValidadorRegistro.kt            Validación de nombre de usuario, correo y contraseña
+data/local/dao/UsuarioDao.kt         buscarPorCorreoONombreUsuario(...), existeCorreo(...), existeNombreUsuario(...)
 data/repositorio/AuthRepositorio.kt  iniciarSesion(...) -> ResultadoLogin
+                                     registrar(...) -> ResultadoRegistro
 ui/auth/LoginViewModel.kt            Estado y lógica de la pantalla de login
+ui/auth/RegistroViewModel.kt         Estado y lógica de la pantalla de registro
 res/values*/strings_auth.xml         Mensajes de error (español e inglés)
 ```
 
@@ -65,11 +68,56 @@ fun LoginScreen(onSesionIniciada: (Long) -> Unit, viewModel: LoginViewModel = vi
 `LoginViewModel` recibe un `texto: (Int) -> String` para convertir ids de `strings.xml` en texto sin necesitar un
 `Context`. La `Factory` ya lo prepara con la base de datos y el contexto de la aplicación.
 
+## Registro de usuarios (Issue 13)
+
+`AuthRepositorio.registrar(nombreUsuario, correo, clave)` crea la cuenta en la base de datos local:
+
+1. Normaliza los datos: quita espacios al nombre y guarda el correo en minúsculas.
+2. Comprueba que el correo y el nombre de usuario no existan ya (sin distinguir mayúsculas).
+3. Calcula el hash PBKDF2 de la contraseña (fuera del hilo principal) y guarda el usuario.
+
+Devuelve `ResultadoRegistro.Exito(usuario)`, `CorreoEnUso` o `NombreUsuarioEnUso`. Además, la tabla tiene índices
+únicos en `correo` y `nombreUsuario` como segunda barrera.
+
+Reglas del **nombre de usuario** (`ValidadorRegistro.validarNombreUsuario`): de 3 a 20 caracteres, solo letras sin
+tilde, números y guion bajo. El correo y la contraseña usan las reglas de la Issue 12.
+
+`RegistroViewModel` valida los cuatro campos a la vez (cada uno muestra su propio error), evita envíos dobles,
+traduce `CorreoEnUso` / `NombreUsuarioEnUso` a un error en el campo correspondiente, vacía las contraseñas al
+terminar y pone `registroCompletado = true` para que la pantalla navegue.
+
+### Cómo conectarlo desde `RegistroScreen` (Issue 11)
+
+```kotlin
+@Composable
+fun RegistroScreen(
+    onRegistrado: () -> Unit,
+    viewModel: RegistroViewModel = viewModel(factory = RegistroViewModel.Factory)
+) {
+    val estado by viewModel.estado.collectAsStateWithLifecycle()
+
+    LaunchedEffect(estado.registroCompletado) {
+        if (estado.registroCompletado) onRegistrado()
+    }
+
+    // Un campo por cada valor: nombreUsuario, correo, clave, confirmacion
+    OutlinedTextField(
+        value = estado.nombreUsuario,
+        onValueChange = viewModel::onNombreUsuarioChange,
+        isError = estado.errorNombreUsuario != null,
+        supportingText = { estado.errorNombreUsuario?.let { Text(it) } },
+    )
+    // Igual con onCorreoChange / onClaveChange / onConfirmacionChange y sus errorXxx
+    // estado.errorGeneral: mensaje general; estado.cargando: desactivar el botón
+
+    Button(onClick = viewModel::registrar, enabled = !estado.cargando) { /* ... */ }
+}
+```
+
 ## Qué NO hace todavía
 
 - **Recordar la sesión** al cerrar la app: Issue 16.
-- **Registrar usuarios:** Issue 13. Hasta entonces la tabla de usuarios está vacía y ningún login puede tener éxito
-  en la app real (los tests sí crean usuarios de prueba).
+- **Las pantallas** de login y registro (Issues 9 y 11): esta parte solo incluye la lógica que usarán.
 - **Cerrar sesión:** Issue 17.
 
 ## Pruebas
@@ -79,6 +127,9 @@ fun LoginScreen(onSesionIniciada: (Long) -> Unit, viewModel: LoginViewModel = vi
 | `ClaveHashTest` | El hash no contiene la clave, es distinto cada vez y se verifica bien | Local (sin emulador) |
 | `AuthRepositorioTest` | Login por correo o nombre, mayúsculas, espacios, clave incorrecta, usuario inexistente | Local |
 | `LoginViewModelTest` | Campos vacíos, errores, éxito, clave incorrecta, fallo inesperado | Local |
-| `UsuarioDaoTest` | La consulta SQL real (sin distinguir mayúsculas) | Emulador o móvil |
+| `ValidadorNombreUsuarioTest` | Longitud, caracteres permitidos y espacios del nombre de usuario | Local |
+| `AuthRepositorioRegistroTest` | Registro, hash, correo normalizado, duplicados, login tras registrarse | Local |
+| `RegistroViewModelTest` | Errores por campo, éxito, duplicados, fallo inesperado | Local |
+| `UsuarioDaoTest` | Las consultas SQL reales de login y de existencia (sin distinguir mayúsculas) | Emulador o móvil |
 
 Los tests locales se ejecutan con el botón verde junto a cada clase, o con `./gradlew testDebugUnitTest`.

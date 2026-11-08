@@ -16,6 +16,13 @@ sealed class ResultadoLogin {
     data object CredencialesIncorrectas : ResultadoLogin()
 }
 
+/** Resultado de intentar registrar un usuario nuevo. */
+sealed class ResultadoRegistro {
+    data class Exito(val usuario: Usuario) : ResultadoRegistro()
+    data object CorreoEnUso : ResultadoRegistro()
+    data object NombreUsuarioEnUso : ResultadoRegistro()
+}
+
 /**
  * Operaciones de autenticación sobre la base de datos local.
  * [dispatcher] es donde se calcula el hash (costoso); en los tests se sustituye por uno de pruebas.
@@ -32,6 +39,25 @@ class AuthRepositorio(
             usuario == null -> ResultadoLogin.CredencialesIncorrectas
             withContext(dispatcher) { ClaveHash.verificar(clave, usuario.claveHash) } -> ResultadoLogin.Exito(usuario)
             else -> ResultadoLogin.CredencialesIncorrectas
+        }
+    }
+
+    /**
+     * Registra un usuario nuevo (Issue 13). Los datos deben llegar ya validados (ver `ValidadorRegistro`).
+     * El correo se guarda en minúsculas y sin espacios; la contraseña se guarda solo como hash.
+     * Si el correo o el nombre de usuario ya existen (sin distinguir mayúsculas), no se guarda nada.
+     */
+    suspend fun registrar(nombreUsuario: String, correo: String, clave: String): ResultadoRegistro {
+        val nombre = nombreUsuario.trim()
+        val correoNormalizado = correo.trim().lowercase()
+        return when {
+            usuarioDao.existeCorreo(correoNormalizado) -> ResultadoRegistro.CorreoEnUso
+            usuarioDao.existeNombreUsuario(nombre) -> ResultadoRegistro.NombreUsuarioEnUso
+            else -> {
+                val claveHash = withContext(dispatcher) { ClaveHash.generar(clave) }
+                val nuevo = Usuario(nombreUsuario = nombre, correo = correoNormalizado, claveHash = claveHash)
+                ResultadoRegistro.Exito(nuevo.copy(id = usuarioDao.insertar(nuevo)))
+            }
         }
     }
 }

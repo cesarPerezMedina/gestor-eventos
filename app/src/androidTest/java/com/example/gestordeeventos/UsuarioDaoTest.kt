@@ -9,7 +9,9 @@ import com.example.gestordeeventos.data.model.Usuario
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -47,5 +49,17 @@ class UsuarioDaoTest {
     @Test
     fun devuelveNullSiNoExiste() = runBlocking {
         assertNull(db.usuarioDao().buscarPorCorreoONombreUsuario("nadie"))
+    }
+
+    @Test
+    fun existeCorreoSinDistinguirMayusculas() = runBlocking {
+        assertTrue(db.usuarioDao().existeCorreo("ANA@correo.com"))
+        assertFalse(db.usuarioDao().existeCorreo("otra@correo.com"))
+    }
+
+    @Test
+    fun existeNombreUsuarioSinDistinguirMayusculas() = runBlocking {
+        assertTrue(db.usuarioDao().existeNombreUsuario("ana_23"))
+        assertFalse(db.usuarioDao().existeNombreUsuario("otra_ana"))
     }
 }
