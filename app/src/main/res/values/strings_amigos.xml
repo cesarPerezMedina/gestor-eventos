@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Pestaña Amigos (Issue 28) -->
+    <string name="amigos_titulo">Amigos</string>
+    <string name="amigos_buscar_hint">Buscar por ID o nombre de usuario</string>
+    <string name="amigos_seccion">Mis amigos (%1$d)</string>
+    <string name="amigos_vacio_titulo">Aún no tienes amigos</string>
+    <string name="amigos_vacio_texto">Busca a otros usuarios por su ID o nombre de usuario y añádelos para organizar eventos juntos.</string>
+    <string name="amigos_vacio_boton">Buscar usuarios</string>
+
+    <!-- Fila de usuario -->
+    <string name="usuario_nombre">@%1$s</string>
+    <string name="usuario_id">ID: %1$d</string>
+</resources>
