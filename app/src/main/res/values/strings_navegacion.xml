@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Pestañas de la barra de navegación inferior -->
+    <string name="nav_mis_eventos">Mis eventos</string>
+    <string name="nav_buscar">Buscar</string>
+    <string name="nav_crear">Crear</string>
+    <string name="nav_amigos">Amigos</string>
+    <string name="nav_ajustes">Ajustes</string>
+
+    <string name="evento_detalle_titulo">Evento %1$d</string>
+</resources>
