@@ -78,6 +78,17 @@ La lógica del registro ya guarda usuarios en la base de datos local. La pantall
 
 Tras registrarse, ya se puede iniciar sesión con ese usuario. Ejemplo de conexión en [`docs/AUTENTICACION.md`](docs/AUTENTICACION.md).
 
+## Novedades: sesión recordada (Issue 16)
+
+La app ya puede recordar quién ha iniciado sesión, aunque se cierre y se vuelva a abrir.
+
+- **`SesionRepositorio`:** guarda solo el ID del usuario (nunca la contraseña) en las preferencias del móvil, sin librerías nuevas.
+- **Sesión válida:** al arrancar, `usuarioActual()` comprueba que el usuario siga existiendo en la base de datos; si no, borra la sesión.
+- **Cerrar sesión:** `cerrar()` ya está disponible para el botón de la Issue 17.
+- **Pruebas automáticas:** `SesionRepositorioTest`, sin emulador.
+
+Cómo conectarlo a la navegación y al login está en [`docs/AUTENTICACION.md`](docs/AUTENTICACION.md).
+
 ## Tecnologías
 
 | Área | Tecnología |
