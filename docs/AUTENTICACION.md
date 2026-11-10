@@ -1,12 +1,13 @@
 # Autenticación local (Issues 10 y 13)
 
 El inicio de sesión funciona con la base de datos local (Room), sin servidor. Esta guía cubre el
-**inicio de sesión (Issue 10)** y el **registro de usuarios (Issue 13)**.
+**inicio de sesión (Issue 10)**, el **registro de usuarios (Issue 13)** y la **sesión recordada (Issue 16)**.
 
 ## Piezas
 
 ```
 util/ClaveHash.kt                    Convierte contraseñas en hash y las comprueba
+data/repositorio/SesionRepositorio.kt  iniciar(id), usuarioActual(), cerrar() (sesión que sobrevive al cierre de la app)
 util/ValidadorRegistro.kt            Validación de nombre de usuario, correo y contraseña
 data/local/dao/UsuarioDao.kt         buscarPorCorreoONombreUsuario(...), existeCorreo(...), existeNombreUsuario(...)
 data/repositorio/AuthRepositorio.kt  iniciarSesion(...) -> ResultadoLogin
@@ -114,11 +115,52 @@ fun RegistroScreen(
 }
 ```
 
+## Sesión recordada (Issue 16)
+
+`SesionRepositorio` guarda **solo el ID** del usuario con la sesión iniciada, para que al cerrar y volver a abrir la
+app no haya que escribir otra vez el correo y la contraseña. El ID se guarda en un archivo de preferencias del móvil
+(`sesion`, a través de `AlmacenSesionPreferencias`); no hace falta ninguna librería nueva. La contraseña nunca se guarda.
+
+| Función | Qué hace |
+|---|---|
+| `iniciar(usuarioId)` | Recuerda a ese usuario. Se llama tras un login o registro correcto. |
+| `usuarioActual()` | Devuelve el usuario de la sesión guardada, o `null` si no hay. Si el ID ya no existe en la base de datos (por ejemplo, se recreó), borra la sesión y devuelve `null`. |
+| `haySesionGuardada()` | `true` si hay un ID guardado (no comprueba que el usuario exista). |
+| `cerrar()` | Olvida la sesión. Es lo que usará el botón de cerrar sesión (Issue 17). |
+
+`AlmacenSesion` es una interfaz: los tests usan una versión en memoria y no necesitan emulador.
+
+### Cómo conectarlo
+
+Al iniciar sesión correctamente (en el `LaunchedEffect` del login):
+
+```kotlin
+val sesion = remember { SesionRepositorio.crear(context) }
+LaunchedEffect(estado.usuarioId) {
+    estado.usuarioId?.let { id ->
+        sesion.iniciar(id)
+        onSesionIniciada(id)
+    }
+}
+```
+
+Al arrancar la app (en `AppNavHost`), decidir la pantalla inicial una sola vez:
+
+```kotlin
+var inicio by remember { mutableStateOf<String?>(null) }
+LaunchedEffect(Unit) {
+    // Ruta.Principal: la pantalla del menú principal, cuando exista
+    inicio = if (sesion.usuarioActual() != null) Ruta.Principal.ruta else Ruta.Login.ruta
+}
+inicio?.let { NavHost(navController = navController, startDestination = it) { /* rutas */ } }
+```
+
+`usuarioActual()` es una función `suspend` (consulta la base de datos), por eso se llama desde `LaunchedEffect`.
+
 ## Qué NO hace todavía
 
-- **Recordar la sesión** al cerrar la app: Issue 16.
 - **Las pantallas** de login y registro (Issues 9 y 11): esta parte solo incluye la lógica que usarán.
-- **Cerrar sesión:** Issue 17.
+- **Conectar la sesión a la navegación** y **cerrar sesión** desde la interfaz (Issue 17): `SesionRepositorio.cerrar()` ya existe, falta el botón.
 
 ## Pruebas
 
@@ -130,6 +172,7 @@ fun RegistroScreen(
 | `ValidadorNombreUsuarioTest` | Longitud, caracteres permitidos y espacios del nombre de usuario | Local |
 | `AuthRepositorioRegistroTest` | Registro, hash, correo normalizado, duplicados, login tras registrarse | Local |
 | `RegistroViewModelTest` | Errores por campo, éxito, duplicados, fallo inesperado | Local |
+| `SesionRepositorioTest` | Guardar, recuperar, sustituir y cerrar la sesión; sesión de un usuario que ya no existe | Local |
 | `UsuarioDaoTest` | Las consultas SQL reales de login y de existencia (sin distinguir mayúsculas) | Emulador o móvil |
 
 Los tests locales se ejecutan con el botón verde junto a cada clase, o con `./gradlew testDebugUnitTest`.
