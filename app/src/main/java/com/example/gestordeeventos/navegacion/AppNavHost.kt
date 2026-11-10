@@ -12,12 +12,14 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.gestordeeventos.data.local.AppDatabase
+import com.example.gestordeeventos.ui.ajustes.AjustesScreen
 import com.example.gestordeeventos.ui.auth.AuthViewModel
 import com.example.gestordeeventos.ui.auth.AuthViewModelFactory
 import com.example.gestordeeventos.ui.auth.LoginScreen
 import com.example.gestordeeventos.ui.auth.RecuperarScreen
 import com.example.gestordeeventos.ui.auth.RegistroScreen
 import com.example.gestordeeventos.ui.auth.RestablecerScreen
+import com.example.gestordeeventos.util.SesionManager
 
 @Composable
 fun AppNavHost() {
@@ -30,6 +32,8 @@ fun AppNavHost() {
 
     // Recuerda el correo escrito en "Recuperar" para poder reenviar el código
     var correoRecuperar by remember { mutableStateOf("") }
+
+    val sesion = remember { SesionManager(context) }
 
     fun aviso(mensaje: String) {
         Toast.makeText(context, mensaje, Toast.LENGTH_SHORT).show()
@@ -85,5 +89,18 @@ fun AppNavHost() {
                 },
             )
         }
+        composable(Ruta.Ajustes.ruta) {
+            AjustesScreen(
+                onBackClick = { navController.popBackStack() },
+                onCerrarSesion = {
+                    sesion.cerrarSesion() // olvida al usuario guardado
+                    navController.navigate(Ruta.Login.ruta) {
+                        popUpTo(0) { inclusive = true } // borra el historial: "atrás" ya no vuelve a la app
+                    }
+                },
+            )
+        }
+
+
     }
 }

@@ -5,5 +5,7 @@ sealed class Ruta(val ruta: String) {
     data object Registro : Ruta("registro")
     data object Recuperar : Ruta("recuperar")
     data object Restablecer : Ruta("restablecer")
+    data object Ajustes : Ruta("ajustes")
+
 
 }
