@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Friends tab (Issue 28) -->
+    <string name="amigos_titulo">Friends</string>
+    <string name="amigos_buscar_hint">Search by ID or username</string>
+    <string name="amigos_seccion">My friends (%1$d)</string>
+    <string name="amigos_vacio_titulo">You have no friends yet</string>
+    <string name="amigos_vacio_texto">Search for other users by their ID or username and add them to organise events together.</string>
+    <string name="amigos_vacio_boton">Search users</string>
+
+    <!-- User row -->
+    <string name="usuario_nombre">@%1$s</string>
+    <string name="usuario_id">ID: %1$d</string>
+</resources>
