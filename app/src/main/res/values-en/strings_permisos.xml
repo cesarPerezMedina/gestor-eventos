@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Runtime permissions (Issue 24) -->
+    <string name="permiso_ubicacion_titulo">Location</string>
+    <string name="permiso_ubicacion_motivo">We use your location to recommend public events near you.</string>
+    <string name="permiso_notificaciones_titulo">Notifications</string>
+    <string name="permiso_notificaciones_motivo">We let you know about invitations and changes to your events.</string>
+    <string name="permiso_boton_conceder">Grant permission</string>
+    <string name="permiso_boton_ajustes">Open settings</string>
+    <string name="permiso_bloqueado">You turned this permission off. You can turn it on in the app settings.</string>
+</resources>
