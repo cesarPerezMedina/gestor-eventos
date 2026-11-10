@@ -7,6 +7,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.gestordeeventos.ui.auth.LoginScreen
 import com.example.gestordeeventos.ui.auth.RegistroScreen
 import com.example.gestordeeventos.ui.auth.RecuperarScreen
+import com.example.gestordeeventos.ui.auth.RestablecerScreen
 
 
 @Composable
@@ -34,6 +35,12 @@ fun AppNavHost() {
         composable(Ruta.Recuperar.ruta) {
             RecuperarScreen(
                 onSendClick = { correo -> /* AuthViewModel */ },
+                onBackClick = { navController.popBackStack() },
+            )
+        }
+        composable(Ruta.Restablecer.ruta) {
+            RestablecerScreen(
+                onSaveClick = { codigo, nueva, repetir -> /* AuthViewModel */ },
                 onBackClick = { navController.popBackStack() },
             )
         }
