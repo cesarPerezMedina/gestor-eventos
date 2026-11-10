@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Bottom navigation bar tabs -->
+    <string name="nav_mis_eventos">My events</string>
+    <string name="nav_buscar">Search</string>
+    <string name="nav_crear">Create</string>
+    <string name="nav_amigos">Friends</string>
+    <string name="nav_ajustes">Settings</string>
+
+    <string name="evento_detalle_titulo">Event %1$d</string>
+</resources>
