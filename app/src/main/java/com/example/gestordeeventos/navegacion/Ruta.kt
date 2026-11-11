@@ -6,6 +6,7 @@ sealed class Ruta(val ruta: String) {
     data object Recuperar : Ruta("recuperar")
     data object Restablecer : Ruta("restablecer")
     data object Ajustes : Ruta("ajustes")
+    data object Inicio : Ruta("inicio")
 
 
 }

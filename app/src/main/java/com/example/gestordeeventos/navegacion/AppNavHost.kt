@@ -20,6 +20,8 @@ import com.example.gestordeeventos.ui.auth.RecuperarScreen
 import com.example.gestordeeventos.ui.auth.RegistroScreen
 import com.example.gestordeeventos.ui.auth.RestablecerScreen
 import com.example.gestordeeventos.util.SesionManager
+import com.example.gestordeeventos.ui.inicio.InicioScreen
+
 
 @Composable
 fun AppNavHost() {
@@ -98,6 +100,12 @@ fun AppNavHost() {
                         popUpTo(0) { inclusive = true } // borra el historial: "atrás" ya no vuelve a la app
                     }
                 },
+            )
+        }
+        composable(Ruta.Inicio.ruta) {
+            InicioScreen(
+                nombreUsuario = "ana_23", // provisional, luego saldrá de la sesión
+                onAjustesClick = { navController.navigate(Ruta.Ajustes.ruta) },
             )
         }
 
