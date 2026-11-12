@@ -14,6 +14,12 @@ interface UsuarioDao {
     @Query("SELECT * FROM usuarios WHERE id = :id")
     suspend fun buscarPorId(id: Long): Usuario?
 
+    @Query("SELECT * FROM usuarios WHERE correo = :correo LIMIT 1")//Significa: “busca en la tabla de usuarios uno con este correo”. Devuelve el usuario si existe, o null (nada) si no. La usamos para saber si el correo que escribió la persona está registrado.
+    suspend fun buscarPorCorreo(correo: String): Usuario?
+  
+    @Query("UPDATE usuarios SET password = :nueva WHERE correo = :correo")// cambiar contraseña por esta
+    suspend fun cambiarContrasena(correo: String, nueva: String)
+
     /**
      * Busca un usuario por su correo o por su nombre de usuario, sin distinguir mayúsculas
      * (es lo que se escribe en el campo único del login). Devuelve null si no existe.
@@ -31,4 +37,5 @@ interface UsuarioDao {
     /** true si ya hay un usuario con ese nombre de usuario (sin distinguir mayúsculas). */
     @Query("SELECT EXISTS(SELECT 1 FROM usuarios WHERE nombreUsuario = :nombreUsuario COLLATE NOCASE)")
     suspend fun existeNombreUsuario(nombreUsuario: String): Boolean
+
 }

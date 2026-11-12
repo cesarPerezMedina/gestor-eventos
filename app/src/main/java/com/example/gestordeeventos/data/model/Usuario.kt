@@ -17,5 +17,5 @@ data class Usuario(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val nombreUsuario: String,
     val correo: String,
-    val claveHash: String
+    val password: String
 )
