@@ -4,6 +4,12 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
 
+/** Estados posibles de una amistad. */
+object EstadoAmistad {
+    const val PENDIENTE = "PENDIENTE" // solicitud enviada, falta que el otro la acepte
+    const val ACEPTADA = "ACEPTADA"   // ya sois amigos
+}
+
 /**
  * Tabla "amistades": cada fila es una pareja de usuarios que son amigos (relación muchos a muchos).
  *
@@ -34,12 +40,17 @@ import androidx.room.Index
     indices = [Index("amigoId")]
 )
 data class Amistad(
-    val usuarioId: Long,
-    val amigoId: Long
+    val usuarioId: Long = 0L,
+    val amigoId: Long = 0L,
+    val solicitante: String = "",
+    val destinatario: String = "",
+    val estado: String = EstadoAmistad.ACEPTADA
 ) {
     init {
-        require(usuarioId < amigoId) {
-            "usuarioId debe ser menor que amigoId; usa Amistad.entre(a, b) para crear la amistad"
+        if (usuarioId != 0L && amigoId != 0L) {
+            require(usuarioId < amigoId) {
+                "usuarioId debe ser menor que amigoId; usa Amistad.entre(a, b) para crear la amistad"
+            }
         }
     }
 
@@ -47,7 +58,13 @@ data class Amistad(
         /** Crea la amistad entre dos usuarios, sin importar el orden en que se pasen sus IDs. */
         fun entre(a: Long, b: Long): Amistad {
             require(a != b) { "Un usuario no puede ser amigo de sí mismo" }
-            return Amistad(usuarioId = minOf(a, b), amigoId = maxOf(a, b))
+            return Amistad(
+                usuarioId = minOf(a, b),
+                amigoId = maxOf(a, b),
+                solicitante = "",
+                destinatario = "",
+                estado = EstadoAmistad.ACEPTADA
+            )
         }
     }
 }
