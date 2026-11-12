@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Campos de participantes del evento (Issue 44) -->
+    <string name="participantes_minimo">Mínimo</string>
+    <string name="participantes_maximo">Máximo</string>
+    <string name="participantes_error_minimo_vacio">Indica el mínimo</string>
+    <string name="participantes_error_maximo_vacio">Indica el máximo</string>
+    <string name="participantes_error_rango">Entre %1$d y %2$d</string>
+    <string name="participantes_error_maximo_menor">No puede ser menor que el mínimo</string>
+</resources>
