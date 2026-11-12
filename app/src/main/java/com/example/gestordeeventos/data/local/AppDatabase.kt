@@ -4,10 +4,12 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import com.example.gestordeeventos.data.local.dao.AmistadDao
 import com.example.gestordeeventos.data.local.dao.EventoDao
 import com.example.gestordeeventos.data.local.dao.InvitacionDao
 import com.example.gestordeeventos.data.local.dao.ParticipacionDao
 import com.example.gestordeeventos.data.local.dao.UsuarioDao
+import com.example.gestordeeventos.data.model.Amistad
 import com.example.gestordeeventos.data.model.Evento
 import com.example.gestordeeventos.data.model.Invitacion
 import com.example.gestordeeventos.data.model.Participacion
@@ -21,8 +23,8 @@ import com.example.gestordeeventos.data.model.Usuario
  * subir `version` en 1.
  */
 @Database(
-    entities = [Usuario::class, Evento::class, Participacion::class, Invitacion::class],
-    version = 1,
+    entities = [Usuario::class, Evento::class, Participacion::class, Invitacion::class, Amistad::class],
+    version = 2,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -31,6 +33,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun eventoDao(): EventoDao
     abstract fun participacionDao(): ParticipacionDao
     abstract fun invitacionDao(): InvitacionDao
+    abstract fun amistadDao(): AmistadDao
 
     companion object {
         @Volatile
