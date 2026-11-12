@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Permisos en tiempo de ejecución (Issue 24) -->
+    <string name="permiso_ubicacion_titulo">Ubicación</string>
+    <string name="permiso_ubicacion_motivo">Usamos tu ubicación para recomendarte eventos públicos cercanos.</string>
+    <string name="permiso_notificaciones_titulo">Notificaciones</string>
+    <string name="permiso_notificaciones_motivo">Te avisamos de invitaciones y cambios en tus eventos.</string>
+    <string name="permiso_boton_conceder">Conceder permiso</string>
+    <string name="permiso_boton_ajustes">Abrir ajustes</string>
+    <string name="permiso_bloqueado">Has desactivado este permiso. Puedes activarlo en los ajustes de la aplicación.</string>
+</resources>
