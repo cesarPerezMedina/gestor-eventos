@@ -85,7 +85,7 @@ fun AppNavHost() {
     ) { innerPadding ->
         NavHost(
             navController = navController,
-            startDestination = Ruta.Login.ruta,
+            startDestination = Ruta.Amigos.ruta,
             modifier = Modifier.padding(bottom = innerPadding.calculateBottomPadding()),
         ) {
             // ---------- Acceso ----------
