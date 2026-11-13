@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -22,7 +21,6 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.ChatBubbleOutline
 import androidx.compose.material.icons.outlined.Flag
 import androidx.compose.material.icons.outlined.Group
@@ -36,7 +34,6 @@ import androidx.compose.material.icons.outlined.PersonSearch
 import androidx.compose.material.icons.outlined.QrCodeScanner
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.SportsTennis
-import androidx.compose.material.icons.outlined.Tune
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
@@ -83,10 +80,8 @@ private val AmiVerde = Color(0xFF22C55E)
 
 /** Tipo de búsqueda que se elige con los chips de la tarjeta "Añadir por ID o Usuario". */
 enum class FiltroBusqueda(val etiqueta: String, val ejemplo: String) {
-    TODOS("Todos", "Ej: carlos_m o #USI"),
-    NOMBRE("@Nombre", "Ej: carlos_m"),
-    ID_TAG("#ID Tag", "Ej: #EVA-0281"),
-    DEPORTE("Deporte", "Ej: pádel"),
+    NOMBRE("@Usuario", "Ej: carlos_m"),
+    ID_TAG("#ID", "Ej: #EVA-0281"),
 }
 
 data class InvitacionRecibida(
@@ -96,14 +91,6 @@ data class InvitacionRecibida(
     val de: String,
     val fecha: String,
     val lugar: String,
-)
-
-data class DeportistaSugerido(
-    val id: String,
-    val nombre: String,
-    val usuario: String,
-    val detalle: String,
-    val insignia: String,
 )
 
 data class AmigoItem(
@@ -120,11 +107,6 @@ val invitacionesDeEjemplo = listOf(
     InvitacionRecibida("2", "Partido amistoso tenis", "Amateur", "@ines_p", "Lunes 19:00", "Pistas Canal"),
 )
 
-val sugeridosDeEjemplo = listOf(
-    DeportistaSugerido("1", "Elena Vega", "@elena_run", "2 amigos en común", "94% afín"),
-    DeportistaSugerido("2", "David Romero", "@david_basket", "Liga Chamberí", "Capitán"),
-)
-
 val amigosDeEjemplo = listOf(
     AmigoItem("1", "carlos_m", "Pádel / Fútbol", "#4802", conectado = true),
     AmigoItem("2", "ines_p", "Tenis Individual", "#5512"),
@@ -137,7 +119,6 @@ fun AmigosScreen(
     modifier: Modifier = Modifier,
     miId: String = "#EVA-0281",
     invitaciones: List<InvitacionRecibida> = invitacionesDeEjemplo,
-    sugeridos: List<DeportistaSugerido> = sugeridosDeEjemplo,
     amigos: List<AmigoItem> = amigosDeEjemplo,
     onBuscarClick: (consulta: String, filtro: FiltroBusqueda) -> Unit = { _, _ -> },
     onEscanearQrClick: () -> Unit = {},
@@ -148,7 +129,6 @@ fun AmigosScreen(
     onVerTodasInvitacionesClick: () -> Unit = {},
     onAceptarInvitacion: (InvitacionRecibida) -> Unit = {},
     onRechazarInvitacion: (InvitacionRecibida) -> Unit = {},
-    onConectarClick: (DeportistaSugerido) -> Unit = {},
     onMensajeClick: (AmigoItem) -> Unit = {},
     onEliminarClick: (AmigoItem) -> Unit = {},
 ) {
@@ -262,38 +242,6 @@ fun AmigosScreen(
                     onRechazar = { onRechazarInvitacion(invitacion) },
                 )
                 Spacer(Modifier.height(12.dp))
-            }
-
-            Spacer(Modifier.height(10.dp))
-
-            // Deportistas sugeridos
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text("Deportistas sugeridos", color = AmiTinta, fontSize = 17.sp, fontWeight = FontWeight.ExtraBold)
-                    Text("Basado en tus deportes favoritos y nivel", color = AmiSubtitulo, fontSize = 12.sp)
-                }
-                Box(
-                    modifier = Modifier
-                        .size(38.dp)
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(AmiChip),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Icon(Icons.Outlined.Tune, contentDescription = "Filtrar", tint = AmiVioleta, modifier = Modifier.size(20.dp))
-                }
-            }
-            Spacer(Modifier.height(12.dp))
-            Row(
-                modifier = Modifier.horizontalScroll(rememberScrollState()),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-            ) {
-                sugeridos.forEach { sugerido ->
-                    TarjetaSugerido(sugerido) { onConectarClick(sugerido) }
-                }
             }
 
             Spacer(Modifier.height(24.dp))
@@ -633,69 +581,6 @@ private fun TarjetaInvitacion(
             ) {
                 Text("Aceptar", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
             }
-        }
-    }
-}
-
-@Composable
-private fun TarjetaSugerido(sugerido: DeportistaSugerido, onConectar: () -> Unit) {
-    Column(
-        modifier = Modifier
-            .width(176.dp)
-            .shadow(6.dp, RoundedCornerShape(20.dp), spotColor = Color(0x1A000000))
-            .clip(RoundedCornerShape(20.dp))
-            .background(Color.White)
-            .padding(14.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        Box(modifier = Modifier.fillMaxWidth()) {
-            Box(
-                modifier = Modifier
-                    .align(Alignment.Center)
-                    .size(64.dp)
-                    .clip(CircleShape)
-                    .background(AmiChip),
-                contentAlignment = Alignment.Center,
-            ) {
-                // Cuando haya foto de perfil, se sustituye la inicial por la imagen
-                Text(
-                    text = sugerido.nombre.take(1),
-                    color = AmiVioleta,
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.ExtraBold,
-                )
-            }
-            Text(
-                text = sugerido.insignia,
-                color = Color.White,
-                fontSize = 9.sp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .clip(RoundedCornerShape(50))
-                    .background(AmiBoton)
-                    .padding(horizontal = 7.dp, vertical = 3.dp),
-            )
-        }
-        Spacer(Modifier.height(10.dp))
-        Text(sugerido.nombre, color = AmiTinta, fontSize = 15.sp, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
-        Text(sugerido.usuario, color = AmiVioleta, fontSize = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
-        Spacer(Modifier.height(2.dp))
-        Text(sugerido.detalle, color = AmiSubtitulo, fontSize = 11.5.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
-        Spacer(Modifier.height(12.dp))
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(12.dp))
-                .background(AmiCampo)
-                .clickable(onClick = onConectar)
-                .padding(vertical = 10.dp),
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Icon(Icons.Outlined.Add, contentDescription = null, tint = AmiVioleta, modifier = Modifier.size(16.dp))
-            Spacer(Modifier.size(4.dp))
-            Text("Conectar", color = AmiVioleta, fontSize = 13.sp, fontWeight = FontWeight.Bold)
         }
     }
 }
