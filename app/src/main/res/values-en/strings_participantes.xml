@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Event participants fields (Issue 44) -->
+    <string name="participantes_minimo">Minimum</string>
+    <string name="participantes_maximo">Maximum</string>
+    <string name="participantes_error_minimo_vacio">Enter the minimum</string>
+    <string name="participantes_error_maximo_vacio">Enter the maximum</string>
+    <string name="participantes_error_rango">Between %1$d and %2$d</string>
+    <string name="participantes_error_maximo_menor">It can\'t be less than the minimum</string>
+</resources>
