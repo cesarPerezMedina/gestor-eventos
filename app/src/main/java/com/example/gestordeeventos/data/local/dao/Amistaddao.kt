@@ -6,6 +6,7 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import com.example.gestordeeventos.data.model.Amigo
 import com.example.gestordeeventos.data.model.Amistad
+import kotlinx.coroutines.flow.Flow
 
 /**
  * Consultas sobre "amistades". Las funciones que reciben dos IDs funcionan en cualquier orden,
@@ -89,4 +90,16 @@ interface AmistadDao {
             "WHERE (usuarioId = :a AND amigoId = :b) OR (usuarioId = :b AND amigoId = :a)"
     )
     suspend fun eliminar(a: Long, b: Long): Int
+
+
+    /** Amigos aceptados de un usuario (por correo). Room la vuelve a emitir cada vez que cambian las tablas. */
+    @Query(
+        "SELECT u.id AS id, u.nombreUsuario AS nombreUsuario FROM usuarios u " +
+            "INNER JOIN usuarios yo ON yo.correo = :miCorreo " +
+            "INNER JOIN amistades a ON " +
+            "((a.usuarioId = yo.id AND a.amigoId = u.id) OR (a.amigoId = yo.id AND a.usuarioId = u.id)) " +
+            "WHERE (a.estado = 'ACEPTADA' OR a.estado = '') " +
+            "ORDER BY u.nombreUsuario COLLATE NOCASE"
+    )
+    fun observarAmigos(miCorreo: String): Flow<List<Amigo>>
 }

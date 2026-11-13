@@ -31,15 +31,33 @@ import com.example.gestordeeventos.ui.crear.CrearEventoScreen
 import com.example.gestordeeventos.ui.evento.MisEventosScreen
 import com.example.gestordeeventos.ui.inicio.InicioScreen
 import com.example.gestordeeventos.util.SesionManager
+import com.example.gestordeeventos.ui.amigos.AmigosViewModel
+import com.example.gestordeeventos.ui.amigos.AmigosViewModelFactory
+import com.example.gestordeeventos.data.repositorio.AmistadRepositorio;
+import com.example.gestordeeventos.data.repositorio.SesionRepositorio
+
+
 
 @Composable
 fun AppNavHost() {
     val navController = rememberNavController()
     val context = LocalContext.current
 
+
     val dao = remember { AppDatabase.obtener(context).usuarioDao() }
     val authViewModel: AuthViewModel = viewModel(factory = AuthViewModelFactory(dao))
     val sesion = remember { SesionManager(context) }
+    val sesionRepositorio = remember { SesionRepositorio.crear(context) }
+    val amistadRepositorio = remember {
+        val db = AppDatabase.obtener(context)
+        AmistadRepositorio(db.usuarioDao(), db.amistadDao())
+    }
+    val amigosViewModel: AmigosViewModel = viewModel(
+        factory = AmigosViewModelFactory(
+            repositorio = amistadRepositorio,
+            miCorreo = { sesionRepositorio.usuarioActual()?.correo },   // AJUSTAR: ver abajo
+        )
+    )
 
     // Recuerda el correo escrito en "Recuperar" para poder reenviar el código
     var correoRecuperar by remember { mutableStateOf("") }
@@ -57,6 +75,7 @@ fun AppNavHost() {
         Ruta.Eventos.ruta,
         Ruta.Amigos.ruta,
     )
+
 
     fun irASeccion(ruta: String) {
         navController.navigate(ruta) {

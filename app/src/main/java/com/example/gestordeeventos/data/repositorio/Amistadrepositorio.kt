@@ -4,6 +4,8 @@ import com.example.gestordeeventos.data.local.dao.AmistadDao
 import com.example.gestordeeventos.data.local.dao.UsuarioDao
 import com.example.gestordeeventos.data.model.Amistad
 import com.example.gestordeeventos.data.model.EstadoAmistad
+import kotlinx.coroutines.flow.Flow
+import com.example.gestordeeventos.data.model.Amigo
 
 data class ResultadoAmistad(val ok: Boolean, val mensaje: String)
 
@@ -69,4 +71,8 @@ class AmistadRepositorio(
     /** Solicitudes pendientes que he recibido. */
     suspend fun solicitudesRecibidas(miCorreo: String): List<Amistad> =
         amistadDao.solicitudesRecibidas(miCorreo)
+
+    /** Amigos aceptados, siempre actualizados. */
+    fun observarAmigos(miCorreo: String): Flow<List<Amigo>> =
+        amistadDao.observarAmigos(miCorreo)
 }
