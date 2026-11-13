@@ -3,6 +3,7 @@ package com.example.gestordeeventos.ui.amigos
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.example.gestordeeventos.data.model.Amigo
 import com.example.gestordeeventos.data.repositorio.AmistadRepositorio
 import com.example.gestordeeventos.data.repositorio.ResultadoAmistad
 import kotlinx.coroutines.launch
@@ -12,7 +13,7 @@ import kotlinx.coroutines.launch
  */
 class AmigosViewModel(
     private val repositorio: AmistadRepositorio,
-    private val miCorreo: () -> String?,
+    private val miCorreo: suspend () -> String?,
 ) : ViewModel() {
 
     /** Botón "Añadir" y "+ Conectar": envía una solicitud pendiente. */
@@ -46,11 +47,23 @@ class AmigosViewModel(
         }
     }
 }
+/**
+ * Convierte un Amigo de Room (id + nombreUsuario) en lo que pinta la pantalla.
+ * La base de datos todavía no guarda deportes ni estado de conexión de los usuarios,
+ * así que esos dos campos llevan un valor fijo hasta que existan.
+ */
+private fun Amigo.aAmigoItem(): AmigoItem = AmigoItem(
+    id = id.toString(),
+    usuario = nombreUsuario,
+    deportes = "Amigo",
+    idTag = "#$id",
+    conectado = false,
+)
 
 // Hace falta para poder darle el repositorio al ViewModel
 class AmigosViewModelFactory(
     private val repositorio: AmistadRepositorio,
-    private val miCorreo: () -> String?,
+    private val miCorreo: suspend () -> String?,
 ) : ViewModelProvider.Factory {
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T =
