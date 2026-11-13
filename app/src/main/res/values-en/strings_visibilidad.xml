@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Event visibility selector (Issue 42) -->
+    <string name="visibilidad_publico">Public</string>
+    <string name="visibilidad_publico_descripcion">Anyone can find the event and join</string>
+    <string name="visibilidad_privado">Private</string>
+    <string name="visibilidad_privado_descripcion">Only the people you invite can join</string>
+</resources>

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Selector de visibilidad del evento (Issue 42) -->
+    <string name="visibilidad_publico">Público</string>
+    <string name="visibilidad_publico_descripcion">Cualquiera puede encontrar el evento y unirse</string>
+    <string name="visibilidad_privado">Privado</string>
+    <string name="visibilidad_privado_descripcion">Solo pueden unirse las personas que invites</string>
+</resources>
