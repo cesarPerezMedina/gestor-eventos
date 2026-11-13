@@ -90,6 +90,14 @@ interface AmistadDao {
             "WHERE (usuarioId = :a AND amigoId = :b) OR (usuarioId = :b AND amigoId = :a)"
     )
     suspend fun eliminar(a: Long, b: Long): Int
+    /** Marca la amistad como bloqueada por [yo]. Devuelve las filas cambiadas (0 si no existía). */
+    @Query(
+        "UPDATE amistades SET estado = 'BLOQUEADA', " +
+            "solicitante = (SELECT correo FROM usuarios WHERE id = :yo), " +
+            "destinatario = (SELECT correo FROM usuarios WHERE id = :amigo) " +
+            "WHERE (usuarioId = :yo AND amigoId = :amigo) OR (usuarioId = :amigo AND amigoId = :yo)"
+    )
+    suspend fun bloquear(yo: Long, amigo: Long): Int
 
 
     /** Amigos aceptados de un usuario (por correo). Room la vuelve a emitir cada vez que cambian las tablas. */

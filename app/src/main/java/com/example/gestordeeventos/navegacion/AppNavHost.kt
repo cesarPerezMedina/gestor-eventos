@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -173,6 +174,14 @@ fun AppNavHost() {
             // ---------- Otras pantallas (sin menú de abajo) ----------
             composable(Ruta.Crear.ruta) {
                 CrearEventoScreen(onBackClick = { navController.popBackStack() })
+            }
+            composable(Ruta.Amigos.ruta) {
+                val amigos by amigosViewModel.amigos.collectAsState()
+                AmigosScreen(
+                    amigos = amigos,
+                    onEliminarClick = { amigosViewModel.eliminarAmigo(it.id) { _, mensaje -> aviso(mensaje) } },
+                    onBloquearClick = { amigosViewModel.bloquearAmigo(it.id) { _, mensaje -> aviso(mensaje) } },
+                )
             }
 
             composable(Ruta.Ajustes.ruta) {
