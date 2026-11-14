@@ -119,4 +119,31 @@ class LoginViewModelTest {
         assertFalse(estado.cargando)
         assertFalse(estado.sesionIniciada)
     }
+
+    @Test
+    fun elAtajoConValoresCopiaLosCamposEIniciaSesion() {
+        viewModel.iniciarSesion("ana@correo.com", "Clave#2026")
+        val estado = viewModel.estado.value
+        assertTrue(estado.sesionIniciada)
+        assertNull(estado.errorGeneral)
+    }
+
+    @Test
+    fun elAtajoConCamposVaciosMuestraLosErrores() {
+        viewModel.iniciarSesion("", "")
+        val estado = viewModel.estado.value
+        assertNotNull(estado.errorIdentificador)
+        assertNotNull(estado.errorClave)
+        assertFalse(estado.sesionIniciada)
+    }
+
+    @Test
+    fun alCorregirLosCamposVaciosYReenviarDesaparecenLosErroresAnteriores() {
+        viewModel.iniciarSesion("", "")
+        viewModel.iniciarSesion("ana@correo.com", "Clave#2026")
+        val estado = viewModel.estado.value
+        assertNull(estado.errorIdentificador)
+        assertNull(estado.errorClave)
+        assertTrue(estado.sesionIniciada)
+    }
 }

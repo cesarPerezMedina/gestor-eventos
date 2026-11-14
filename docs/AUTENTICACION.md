@@ -1,7 +1,7 @@
 # Autenticación local (Issues 10 y 13)
 
 El inicio de sesión funciona con la base de datos local (Room), sin servidor. Esta guía cubre el
-**inicio de sesión (Issue 10)**, el **registro de usuarios (Issue 13)** y la **sesión recordada (Issue 16)**.
+**inicio de sesión (Issue 10)**, el **registro de usuarios (Issue 13)** la **sesión recordada (Issue 16)** y el **flujo completo conectado (Issue 20)**.
 
 ## Piezas
 
@@ -40,34 +40,11 @@ Por eso dos usuarios con la misma contraseña tienen valores distintos, y por es
 mirando la base de datos. El cálculo es lento a propósito (unas décimas de segundo), así que el repositorio lo hace
 fuera del hilo principal.
 
-## Cómo conectarlo desde `LoginScreen` (Issue 9)
+## Cómo se conecta el login
 
-```kotlin
-@Composable
-fun LoginScreen(onSesionIniciada: (Long) -> Unit, viewModel: LoginViewModel = viewModel(factory = LoginViewModel.Factory)) {
-    val estado by viewModel.estado.collectAsStateWithLifecycle()
-
-    LaunchedEffect(estado.usuarioId) {
-        estado.usuarioId?.let(onSesionIniciada)
-    }
-
-    OutlinedTextField(
-        value = estado.identificador,
-        onValueChange = viewModel::onIdentificadorChange,
-        isError = estado.errorIdentificador != null,
-        supportingText = { estado.errorIdentificador?.let { Text(it) } },
-        // ...
-    )
-    // Lo mismo con estado.clave / viewModel::onClaveChange / estado.errorClave
-    // estado.errorGeneral: mensaje general ("Correo, usuario o contraseña incorrectos")
-    // estado.cargando: desactivar el botón y mostrar un indicador
-
-    Button(onClick = viewModel::iniciarSesion, enabled = !estado.cargando) { /* ... */ }
-}
-```
-
+La pantalla `LoginScreen` ya está conectada a `LoginViewModel` en `AppNavHost` (ver «Flujo completo conectado»).
 `LoginViewModel` recibe un `texto: (Int) -> String` para convertir ids de `strings.xml` en texto sin necesitar un
-`Context`. La `Factory` ya lo prepara con la base de datos y el contexto de la aplicación.
+`Context`; su `Factory` ya lo prepara con la base de datos y el contexto de la aplicación.
 
 ## Registro de usuarios (Issue 13)
 
@@ -87,33 +64,7 @@ tilde, números y guion bajo. El correo y la contraseña usan las reglas de la I
 traduce `CorreoEnUso` / `NombreUsuarioEnUso` a un error en el campo correspondiente, vacía las contraseñas al
 terminar y pone `registroCompletado = true` para que la pantalla navegue.
 
-### Cómo conectarlo desde `RegistroScreen` (Issue 11)
-
-```kotlin
-@Composable
-fun RegistroScreen(
-    onRegistrado: () -> Unit,
-    viewModel: RegistroViewModel = viewModel(factory = RegistroViewModel.Factory)
-) {
-    val estado by viewModel.estado.collectAsStateWithLifecycle()
-
-    LaunchedEffect(estado.registroCompletado) {
-        if (estado.registroCompletado) onRegistrado()
-    }
-
-    // Un campo por cada valor: nombreUsuario, correo, clave, confirmacion
-    OutlinedTextField(
-        value = estado.nombreUsuario,
-        onValueChange = viewModel::onNombreUsuarioChange,
-        isError = estado.errorNombreUsuario != null,
-        supportingText = { estado.errorNombreUsuario?.let { Text(it) } },
-    )
-    // Igual con onCorreoChange / onClaveChange / onConfirmacionChange y sus errorXxx
-    // estado.errorGeneral: mensaje general; estado.cargando: desactivar el botón
-
-    Button(onClick = viewModel::registrar, enabled = !estado.cargando) { /* ... */ }
-}
-```
+`RegistroScreen` está conectada a `RegistroViewModel` en `AppNavHost`, igual que el login.
 
 ## Sesión recordada (Issue 16)
 
@@ -130,37 +81,51 @@ app no haya que escribir otra vez el correo y la contraseña. El ID se guarda en
 
 `AlmacenSesion` es una interfaz: los tests usan una versión en memoria y no necesitan emulador.
 
-### Cómo conectarlo
+Ya está conectada en `AppNavHost` (ver la sección siguiente).
 
-Al iniciar sesión correctamente (en el `LaunchedEffect` del login):
+## Flujo completo conectado (Issue 20)
 
-```kotlin
-val sesion = remember { SesionRepositorio.crear(context) }
-LaunchedEffect(estado.usuarioId) {
-    estado.usuarioId?.let { id ->
-        sesion.iniciar(id)
-        onSesionIniciada(id)
-    }
-}
+Las pantallas de Login y Registro ya usan sus ViewModels, y `AppNavHost` une todo:
+
+```
+Arranque ──► ¿hay sesión guardada y el usuario existe? ── sí ──► Inicio (con el menú de abajo)
+                         │ no
+                         ▼
+                       Login ──► credenciales correctas ──► guarda la sesión ──► Inicio
+                         │  └─► "Regístrate" ──► Registro ──► cuenta creada ──► vuelve a Login
+                         └────► "¿Has olvidado tu contraseña?" ──► Recuperar ──► Restablecer ──► Login (Issue 15)
 ```
 
-Al arrancar la app (en `AppNavHost`), decidir la pantalla inicial una sola vez:
+| Pieza | Qué hace |
+|---|---|
+| `AppNavHost` | Decide la pantalla inicial con `SesionRepositorio.usuarioActual()`, crea los ViewModels de Login y Registro y pasa a Inicio el nombre real del usuario. |
+| `LoginScreen` / `RegistroScreen` | Mantienen sus campos, pero aceptan un `estado` opcional (`LoginUiState` / `RegistroUiState`) para mostrar errores bajo cada campo, el error general y el estado de carga (botón desactivado). |
+| `LoginViewModel.iniciarSesion(identificador, clave)` | Atajo para pantallas que guardan sus propios campos: copia los valores, borra errores anteriores y lanza el login. Igual `RegistroViewModel.registrar(...)`. |
+| Cerrar sesión (Issue 17) | El botón de Ajustes llama a `SesionManager.cerrarSesion()` **y** a `SesionRepositorio.cerrar()`. Si solo se llamara a la primera, el ID de la sesión seguiría guardado y la app entraría sola al reabrir. |
 
-```kotlin
-var inicio by remember { mutableStateOf<String?>(null) }
-LaunchedEffect(Unit) {
-    // Ruta.Principal: la pantalla del menú principal, cuando exista
-    inicio = if (sesion.usuarioActual() != null) Ruta.Principal.ruta else Ruta.Login.ruta
-}
-inicio?.let { NavHost(navController = navController, startDestination = it) { /* rutas */ } }
-```
+Correcciones hechas al integrar:
 
-`usuarioActual()` es una función `suspend` (consulta la base de datos), por eso se llama desde `LaunchedEffect`.
+- **Errores obsoletos:** al reenviar un formulario ya corregido, los errores del intento anterior seguían en el estado.
+  Ahora se borran antes de cada envío.
+- **Restablecer contraseña:** `AuthViewModel` guardaba la contraseña nueva con SHA-256, un formato que el login no
+  reconoce, así que tras restablecerla no se podía iniciar sesión. Ahora usa `ClaveHash` (PBKDF2), igual que el registro.
+- **Pista de contraseña:** la pantalla de registro decía «Mínimo 8 caracteres, con letras y números», pero la regla real
+  exige además mayúscula, minúscula y símbolo. El texto ya coincide con `ValidadorRegistro`.
+
+Cómo probarlo a mano en el emulador:
+
+1. Abrir la app: aparece el Login. Pulsar «Iniciar sesión» con los campos vacíos: aparece un error bajo cada campo.
+2. «Regístrate» → crear una cuenta (por ejemplo `ana_23`, `ana@correo.com`, `Clave#2026`). Debe volver al Login.
+3. Repetir el registro con el mismo correo: error «Ya existe una cuenta con ese correo».
+4. Iniciar sesión con la cuenta nueva (con el correo o con el nombre de usuario): llega a Inicio con su nombre.
+5. Cerrar la app del todo y volver a abrirla: entra directo a Inicio.
+6. En Ajustes, «Cerrar sesión» y reabrir la app: aparece el Login.
+7. «¿Has olvidado tu contraseña?» → el código aparece en Logcat (filtro `Recuperar`) → restablecer → iniciar sesión con la nueva.
 
 ## Qué NO hace todavía
 
-- **Las pantallas** de login y registro (Issues 9 y 11): esta parte solo incluye la lógica que usarán.
-- **Conectar la sesión a la navegación** y **cerrar sesión** desde la interfaz (Issue 17): `SesionRepositorio.cerrar()` ya existe, falta el botón.
+- **Verificación real del correo:** el código de recuperación no se envía por email, se escribe en Logcat (simulado).
+- **Una sola sesión:** conviven `SesionRepositorio` (ID del usuario) y `SesionManager` (correo). Conviene unificarlas.
 
 ## Pruebas
 
@@ -168,10 +133,10 @@ inicio?.let { NavHost(navController = navController, startDestination = it) { /*
 |---|---|---|
 | `ClaveHashTest` | El hash no contiene la clave, es distinto cada vez y se verifica bien | Local (sin emulador) |
 | `AuthRepositorioTest` | Login por correo o nombre, mayúsculas, espacios, clave incorrecta, usuario inexistente | Local |
-| `LoginViewModelTest` | Campos vacíos, errores, éxito, clave incorrecta, fallo inesperado | Local |
+| `LoginViewModelTest` | Campos vacíos, errores, éxito, clave incorrecta, fallo inesperado, atajo y errores obsoletos | Local |
 | `ValidadorNombreUsuarioTest` | Longitud, caracteres permitidos y espacios del nombre de usuario | Local |
 | `AuthRepositorioRegistroTest` | Registro, hash, correo normalizado, duplicados, login tras registrarse | Local |
-| `RegistroViewModelTest` | Errores por campo, éxito, duplicados, fallo inesperado | Local |
+| `RegistroViewModelTest` | Errores por campo, éxito, duplicados, fallo inesperado, atajo y errores obsoletos | Local |
 | `SesionRepositorioTest` | Guardar, recuperar, sustituir y cerrar la sesión; sesión de un usuario que ya no existe | Local |
 | `UsuarioDaoTest` | Las consultas SQL reales de login y de existencia (sin distinguir mayúsculas) | Emulador o móvil |
 

@@ -55,6 +55,23 @@ class LoginViewModel(
         _estado.update { it.copy(clave = valor, errorClave = null, errorGeneral = null) }
     }
 
+    /**
+     * Atajo para pantallas que guardan sus propios campos (como `LoginScreen`): copia los valores al estado,
+     * borra los errores anteriores y lanza el inicio de sesión.
+     */
+    fun iniciarSesion(identificador: String, clave: String) {
+        _estado.update {
+            it.copy(
+                identificador = identificador,
+                clave = clave,
+                errorIdentificador = null,
+                errorClave = null,
+                errorGeneral = null
+            )
+        }
+        iniciarSesion()
+    }
+
     /** Se llama al pulsar "Iniciar sesión". Valida que no haya campos vacíos y comprueba las credenciales. */
     fun iniciarSesion() {
         val actual = _estado.value
@@ -68,7 +85,9 @@ class LoginViewModel(
         if (errorIdentificador != null || errorClave != null) {
             _estado.update { it.copy(errorIdentificador = errorIdentificador, errorClave = errorClave) }
         } else {
-            _estado.update { it.copy(cargando = true, errorGeneral = null) }
+            _estado.update {
+                it.copy(cargando = true, errorIdentificador = null, errorClave = null, errorGeneral = null)
+            }
             viewModelScope.launch { comprobarCredenciales(actual.identificador, actual.clave) }
         }
     }
