@@ -18,6 +18,8 @@ data class NuevoEvento(
     val maxJugadores: Int,
     val ubicacion: String,
     val invitadosIds: List<String>,
+    val tipoUbicacion: TipoUbicacion = TipoUbicacion.POLIDEPORTIVO,
+    val indicaciones: String = "",
 )
 
 /**
@@ -44,7 +46,8 @@ class CrearEventoViewModel(
                 publico = nuevo.publico,
                 minParticipantes = nuevo.minJugadores,
                 maxParticipantes = nuevo.maxJugadores,
-                direccion = nuevo.ubicacion,
+                // Evento solo tiene un campo de texto para el lugar: si hay indicaciones, van detrás
+                direccion = listOf(nuevo.ubicacion, nuevo.indicaciones).filter { it.isNotBlank() }.joinToString(" · "),
                 // PENDIENTE: la pantalla todavía no guarda fecha, hora ni coordenadas del mapa
                 fechaHora = System.currentTimeMillis(),
                 creadorId = yo,
