@@ -1,5 +1,6 @@
 package com.example.gestordeeventos.ui.crear
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -44,6 +45,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -52,13 +54,22 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.gestordeeventos.data.localizacion.GeocodificadorProvider
+import com.example.gestordeeventos.data.localizacion.LocalizacionProvider
+import com.example.gestordeeventos.data.localizacion.ResultadoUbicacion
+import com.example.gestordeeventos.data.localizacion.Ubicacion
 import com.example.gestordeeventos.data.model.Deporte
+import com.example.gestordeeventos.ui.componentes.rememberSolicitudPermiso
+import com.example.gestordeeventos.util.EstadoPermiso
+import com.example.gestordeeventos.util.PermisoApp
+import kotlinx.coroutines.launch
 import com.example.gestordeeventos.ui.componentes.SelectorDeporte
 import com.example.gestordeeventos.ui.theme.GestorDeEventosTheme
 
@@ -99,8 +110,6 @@ fun CrearEventoScreen(
     onCrearEventoClick: (NuevoEvento) -> Unit = {},
     onFechaClick: () -> Unit = {},
     onHoraClick: () -> Unit = {},
-    onUbicacionActualClick: () -> Unit = {},
-    onAmpliarMapaClick: () -> Unit = {},
     onVerListaCompletaClick: () -> Unit = {},
 ) {
     var deporte by rememberSaveable { mutableStateOf<Deporte?>(Deporte.FUTBOL) }
@@ -116,6 +125,63 @@ fun CrearEventoScreen(
     var indicaciones by rememberSaveable { mutableStateOf("") }
     var busquedaAmigo by rememberSaveable { mutableStateOf("") }
     val invitados = remember { mutableStateListOf<String>() }
+
+    // ---------- Mapa y ubicación (Issue 46) ----------
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val localizacion = remember { LocalizacionProvider(context) }
+    val geocodificador = remember { GeocodificadorProvider(context) }
+    var latitud by rememberSaveable { mutableStateOf<Double?>(null) }
+    var longitud by rememberSaveable { mutableStateOf<Double?>(null) }
+    val lat = latitud
+    val lon = longitud
+    val coordenadas = if (lat != null && lon != null) Ubicacion(lat, lon) else null
+
+    fun aviso(texto: String) = Toast.makeText(context, texto, Toast.LENGTH_SHORT).show()
+
+    // Marca el punto en el mapa y rellena el campo con su dirección
+    fun marcar(punto: Ubicacion) {
+        latitud = punto.latitud
+        longitud = punto.longitud
+        scope.launch {
+            val direccion = geocodificador.direccionDe(punto.latitud, punto.longitud)
+            if (direccion != null) {
+                ubicacion = direccion.take(UBICACION_MAX)
+            } else {
+                aviso("No se pudo obtener la dirección de ese punto: escríbela a mano")
+            }
+        }
+    }
+
+    fun usarMiUbicacion() {
+        scope.launch {
+            when (val resultado = localizacion.obtenerUbicacionActual()) {
+                is ResultadoUbicacion.Obtenida -> marcar(resultado.ubicacion)
+                ResultadoUbicacion.SinPermiso -> aviso("Falta el permiso de ubicación")
+                ResultadoUbicacion.UbicacionDesactivada -> aviso("Activa la ubicación del móvil")
+                ResultadoUbicacion.NoDisponible -> aviso("No se pudo obtener tu ubicación")
+                is ResultadoUbicacion.Fallo -> aviso("Error al obtener tu ubicación")
+            }
+        }
+    }
+
+    val permisoUbicacion = rememberSolicitudPermiso(PermisoApp.UBICACION) { concedido ->
+        if (concedido) usarMiUbicacion()
+    }
+
+    // Escribe una dirección y pulsa "buscar" en el teclado: el mapa va a ese sitio
+    fun buscarDireccion() {
+        if (errorUbicacionEvento(ubicacion) != null) return
+        scope.launch {
+            val punto = geocodificador.buscarDireccion(ubicacion)
+            if (punto != null) {
+                latitud = punto.latitud
+                longitud = punto.longitud
+            } else {
+                aviso("No se encontró esa dirección")
+            }
+        }
+    }
 
     val amigosFiltrados = amigos.filter {
         busquedaAmigo.isBlank() || it.nombre.contains(busquedaAmigo.trim().removePrefix("@"), ignoreCase = true)
@@ -228,8 +294,16 @@ fun CrearEventoScreen(
             indicaciones = indicaciones,
             onIndicacionesChange = { indicaciones = it },
             mostrarError = intentoCrear,
-            onUbicacionActualClick = onUbicacionActualClick,
-            onAmpliarMapaClick = onAmpliarMapaClick,
+            coordenadas = coordenadas,
+            onCoordenadasElegidas = { marcar(it) },
+            onUbicacionActualClick = {
+                when {
+                    permisoUbicacion.concedido -> usarMiUbicacion()
+                    permisoUbicacion.estado == EstadoPermiso.BLOQUEADO -> permisoUbicacion.abrirAjustes()
+                    else -> permisoUbicacion.solicitar()
+                }
+            },
+            onBuscarDireccion = { buscarDireccion() },
         )
 
         Spacer(Modifier.height(18.dp))
@@ -338,6 +412,8 @@ fun CrearEventoScreen(
                                 tipoUbicacion = tipoUbicacion,
                                 ubicacion = ubicacion.trim(),
                                 indicaciones = indicaciones.trim(),
+                                latitud = latitud,
+                                longitud = longitud,
                                 invitadosIds = invitados.toList(),
                             )
                         )
