@@ -89,6 +89,14 @@ La app ya puede recordar quién ha iniciado sesión, aunque se cierre y se vuelv
 
 Cómo conectarlo a la navegación y al login está en [`docs/AUTENTICACION.md`](docs/AUTENTICACION.md).
 
+## Novedades: pruebas de interfaz del login (Issue 19)
+
+`LoginScreenTest` comprueba la pantalla de Login tal y como la ve el usuario, con Compose UI Testing.
+
+- **Qué se prueba:** que se ven los textos y los dos campos, que al pulsar «Iniciar sesión» se entregan el correo (sin espacios) y la contraseña escritos, que los enlaces de «¿Has olvidado tu contraseña?» y «Regístrate» avisan, que el ojo muestra y oculta la contraseña y que lo escrito se conserva al rotar la pantalla.
+- **Cómo ejecutarlas:** abrir `LoginScreenTest` y pulsar el botón verde con un emulador o móvil conectado (no funcionan con `./gradlew testDebugUnitTest`).
+- **Qué no se prueba aquí:** la validación y las credenciales, que ya cubren `LoginViewModelTest` y `AuthRepositorioTest` sin emulador.
+
 ## Tecnologías
 
 | Área | Tecnología |
