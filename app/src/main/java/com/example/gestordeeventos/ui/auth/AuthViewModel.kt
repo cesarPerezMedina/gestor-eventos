@@ -5,8 +5,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.gestordeeventos.data.local.dao.UsuarioDao
+import com.example.gestordeeventos.util.ClaveHash
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import java.security.MessageDigest
+import kotlinx.coroutines.withContext
 
 class AuthViewModel(
     private val dao: UsuarioDao,
@@ -46,7 +48,9 @@ class AuthViewModel(
                 nueva.length < 8 || nueva.none { it.isDigit() || !it.isLetterOrDigit() } ->
                     onResultado(false, "Mínimo 8 caracteres y un número o símbolo")
                 else -> {
-                    dao.cambiarContrasena(correo, hash(nueva))
+                    // Mismo formato que el registro y el login (PBKDF2); se calcula fuera del hilo principal
+                    val claveHash = withContext(Dispatchers.Default) { ClaveHash.generar(nueva) }
+                    dao.cambiarContrasena(correo, claveHash)
                     codigoActual = null
                     correoActual = null
                     onResultado(true, "Contraseña cambiada")
@@ -54,12 +58,6 @@ class AuthViewModel(
             }
         }
     }
-
-
-    private fun hash(texto: String): String =
-        MessageDigest.getInstance("SHA-256")
-            .digest(texto.toByteArray())
-            .joinToString("") { "%02x".format(it) }
 }
 
 class AuthViewModelFactory(private val dao: UsuarioDao) : ViewModelProvider.Factory {

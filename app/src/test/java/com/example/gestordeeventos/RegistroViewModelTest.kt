@@ -137,4 +137,23 @@ class RegistroViewModelTest {
         assertFalse(estado.cargando)
         assertFalse(estado.registroCompletado)
     }
+
+    @Test
+    fun elAtajoConValoresCopiaLosCamposYRegistra() {
+        viewModel.registrar("ana_23", "ana@correo.com", "Clave#2026", "Clave#2026")
+        assertTrue(viewModel.estado.value.registroCompletado)
+        assertEquals(1, dao.guardados.size)
+    }
+
+    @Test
+    fun alCorregirUnCorreoYaRegistradoYReenviarDesapareceElError() {
+        viewModel.registrar("ana_23", "ana@correo.com", "Clave#2026", "Clave#2026")
+        viewModel.registrar("otra_ana", "ana@correo.com", "Clave#2026", "Clave#2026")
+        assertNotNull(viewModel.estado.value.errorCorreo)
+        viewModel.registrar("otra_ana", "otra@correo.com", "Clave#2026", "Clave#2026")
+        val estado = viewModel.estado.value
+        assertNull(estado.errorCorreo)
+        assertTrue(estado.registroCompletado)
+        assertEquals(2, dao.guardados.size)
+    }
 }

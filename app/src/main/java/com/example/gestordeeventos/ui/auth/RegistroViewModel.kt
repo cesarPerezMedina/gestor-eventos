@@ -67,6 +67,27 @@ class RegistroViewModel(
         _estado.update { it.copy(confirmacion = valor, errorConfirmacion = null, errorGeneral = null) }
     }
 
+    /**
+     * Atajo para pantallas que guardan sus propios campos (como `RegistroScreen`): copia los valores al estado,
+     * borra los errores anteriores y lanza el registro.
+     */
+    fun registrar(nombreUsuario: String, correo: String, clave: String, confirmacion: String) {
+        _estado.update {
+            it.copy(
+                nombreUsuario = nombreUsuario,
+                correo = correo,
+                clave = clave,
+                confirmacion = confirmacion,
+                errorNombreUsuario = null,
+                errorCorreo = null,
+                errorClave = null,
+                errorConfirmacion = null,
+                errorGeneral = null
+            )
+        }
+        registrar()
+    }
+
     /** Se llama al pulsar "Crear cuenta": valida todos los campos y, si son correctos, registra al usuario. */
     fun registrar() {
         val actual = _estado.value
@@ -83,7 +104,16 @@ class RegistroViewModel(
                 )
             }
         } else {
-            _estado.update { it.copy(cargando = true, errorGeneral = null) }
+            _estado.update {
+                it.copy(
+                    cargando = true,
+                    errorNombreUsuario = null,
+                    errorCorreo = null,
+                    errorClave = null,
+                    errorConfirmacion = null,
+                    errorGeneral = null
+                )
+            }
             viewModelScope.launch { guardar(actual) }
         }
     }
