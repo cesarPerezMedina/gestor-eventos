@@ -1,55 +1,52 @@
 package com.example.gestordeeventos.util
 
-/** Qué falla en el número de participantes de un evento. La pantalla lo traduce a un texto (español o inglés). */
+/** Qué está mal en los campos de participantes de un evento. */
 enum class ErrorParticipantes {
-    MINIMO_VACIO,
-    MAXIMO_VACIO,
-    FUERA_DE_RANGO,
+    MINIMO_INVALIDO,
+    MAXIMO_INVALIDO,
     MAXIMO_MENOR_QUE_MINIMO
 }
 
+/** Mínimo y máximo de participantes ya validados (los valores de `Evento.minParticipantes` y `maxParticipantes`). */
+data class RangoParticipantes(val minimo: Int, val maximo: Int)
+
 /**
- * Reglas del número de participantes (mínimo y máximo) al crear un evento (Issue 44).
- * Kotlin puro, sin dependencias de Android, para poder probarlo con tests unitarios JVM.
+ * Validación de los campos de participantes de un evento (Issue 44).
+ * Kotlin puro (sin dependencias de Android) para poder probarla con tests unitarios JVM.
  *
- * Ambos números son obligatorios, van de [MINIMO_PERMITIDO] a [MAXIMO_PERMITIDO] y el máximo no puede ser
- * menor que el mínimo (pueden ser iguales). Los datos llegan como texto porque vienen de campos de texto.
+ * Reglas: el mínimo y el máximo son números enteros de [VALOR_MINIMO] a [VALOR_MAXIMO], y el máximo no puede
+ * ser menor que el mínimo. Los espacios al principio y al final se ignoran.
  */
 object ValidadorParticipantes {
 
-    const val MINIMO_PERMITIDO = 1
-    const val MAXIMO_PERMITIDO = 999
+    const val VALOR_MINIMO = 1
+    const val VALOR_MAXIMO = 1000
 
-    private val rango = MINIMO_PERMITIDO..MAXIMO_PERMITIDO
+    /** Cifras de [VALOR_MAXIMO]: lo máximo que tiene sentido dejar escribir en un campo. */
+    const val CIFRAS_MAXIMAS = 4
 
-    /** Devuelve qué falla en el mínimo, o null si es válido. */
-    fun validarMinimo(minimo: String): ErrorParticipantes? {
-        val valor = minimo.trim()
-        val numero = valor.toIntOrNull()
+    /** Error del campo "mínimo", o null si es válido. */
+    fun errorMinimo(minimo: String): ErrorParticipantes? =
+        if (numeroValido(minimo) == null) ErrorParticipantes.MINIMO_INVALIDO else null
+
+    /** Error del campo "máximo" (que también depende del mínimo), o null si es válido. */
+    fun errorMaximo(minimo: String, maximo: String): ErrorParticipantes? {
+        val max = numeroValido(maximo)
+        val min = numeroValido(minimo)
         return when {
-            valor.isEmpty() -> ErrorParticipantes.MINIMO_VACIO
-            numero == null || numero !in rango -> ErrorParticipantes.FUERA_DE_RANGO
+            max == null -> ErrorParticipantes.MAXIMO_INVALIDO
+            min != null && max < min -> ErrorParticipantes.MAXIMO_MENOR_QUE_MINIMO
             else -> null
         }
     }
 
-    /**
-     * Devuelve qué falla en el máximo, o null si es válido.
-     * Se compara con [minimo] solo si el mínimo es un número válido; si no, ese error ya se avisa en su campo.
-     */
-    fun validarMaximo(minimo: String, maximo: String): ErrorParticipantes? {
-        val valor = maximo.trim()
-        val numero = valor.toIntOrNull()
-        val numeroMinimo = minimo.trim().toIntOrNull()?.takeIf { it in rango }
-        return when {
-            valor.isEmpty() -> ErrorParticipantes.MAXIMO_VACIO
-            numero == null || numero !in rango -> ErrorParticipantes.FUERA_DE_RANGO
-            numeroMinimo != null && numero < numeroMinimo -> ErrorParticipantes.MAXIMO_MENOR_QUE_MINIMO
-            else -> null
-        }
+    /** El rango listo para guardar en el evento, o null si algún campo no es válido. */
+    fun rango(minimo: String, maximo: String): RangoParticipantes? {
+        val min = numeroValido(minimo)
+        val max = numeroValido(maximo)
+        return if (min != null && max != null && max >= min) RangoParticipantes(min, max) else null
     }
 
-    /** true si el mínimo y el máximo son válidos a la vez. */
-    fun sonValidos(minimo: String, maximo: String): Boolean =
-        validarMinimo(minimo) == null && validarMaximo(minimo, maximo) == null
+    private fun numeroValido(texto: String): Int? =
+        texto.trim().toIntOrNull()?.takeIf { it in VALOR_MINIMO..VALOR_MAXIMO }
 }
