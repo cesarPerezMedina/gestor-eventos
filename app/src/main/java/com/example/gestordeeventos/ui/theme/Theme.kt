@@ -65,7 +65,7 @@ private val EsquemaOscuro = darkColorScheme(
  * Tema global de la app. Envuelve TODA la interfaz (ver MainActivity).
  *
  * @param darkTheme   true = oscuro, false = claro. Por defecto sigue al sistema.
- *                    Cuando AjustesRepositorio.temaOscuro tenga valor, pásalo aquí.
+ *                    MainActivity le pasa lo que el usuario elige en Ajustes (AjustesRepositorio.modoTema).
  * @param escalaTexto multiplicador del tamaño de texto (1.0 = normal), pensado para
  *                    el ajuste de accesibilidad de AjustesRepositorio.escalaTexto.
  */
