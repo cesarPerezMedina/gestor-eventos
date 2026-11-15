@@ -97,6 +97,7 @@ fun CrearEventoScreen(
     amigos: List<AmigoInvitable> = amigosInvitablesDeEjemplo,
     onBackClick: () -> Unit = {},
     onCrearEventoClick: (nombre: String, descripcion: String) -> Unit = { _, _ -> },
+    onCrearEventoClick: () -> Unit = {},
     onFechaClick: () -> Unit = {},
     onHoraClick: () -> Unit = {},
     onUbicacionActualClick: () -> Unit = {},

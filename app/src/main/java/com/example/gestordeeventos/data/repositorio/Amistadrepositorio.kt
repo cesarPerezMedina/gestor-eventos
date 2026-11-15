@@ -67,6 +67,27 @@ class AmistadRepositorio(
             ResultadoAmistad(false, "La solicitud ya no existe")
         }
     }
+    /** Quita a un amigo de mi lista. */
+    suspend fun eliminarAmigo(miCorreo: String, idAmigo: Long): ResultadoAmistad {
+        val yo = amistadDao.obtenerIdPorCorreo(miCorreo)
+            ?: return ResultadoAmistad(false, "No se encontró tu usuario")
+        return if (amistadDao.eliminar(yo, idAmigo) > 0) {
+            ResultadoAmistad(true, "Amigo eliminado")
+        } else {
+            ResultadoAmistad(false, "Esa persona ya no está en tu lista")
+        }
+    }
+
+    /** Bloquea a un amigo: desaparece de la lista y ya no puede enviarte solicitudes. */
+    suspend fun bloquearAmigo(miCorreo: String, idAmigo: Long): ResultadoAmistad {
+        val yo = amistadDao.obtenerIdPorCorreo(miCorreo)
+            ?: return ResultadoAmistad(false, "No se encontró tu usuario")
+        return if (amistadDao.bloquear(yo, idAmigo) > 0) {
+            ResultadoAmistad(true, "Usuario bloqueado")
+        } else {
+            ResultadoAmistad(false, "No se pudo bloquear a este usuario")
+        }
+    }
 
     /** Solicitudes pendientes que he recibido. */
     suspend fun solicitudesRecibidas(miCorreo: String): List<Amistad> =
