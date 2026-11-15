@@ -89,6 +89,23 @@ La app ya puede recordar quién ha iniciado sesión, aunque se cierre y se vuelv
 
 Cómo conectarlo a la navegación y al login está en [`docs/AUTENTICACION.md`](docs/AUTENTICACION.md).
 
+## Novedades: invitaciones pendientes (Issue 72)
+
+El repositorio ya sabe qué invitaciones a eventos tiene pendientes un usuario.
+
+- **`InvitacionRepositorio.observarPendientes`:** devuelve las invitaciones recibidas aún sin responder, con el nombre del evento y de quien invita, ordenadas por la fecha del evento.
+- **Se actualiza sola:** es un `Flow`, así que la lista cambia cuando llega o se responde una invitación.
+- **Pruebas automáticas:** `InvitacionRepositorioTest` (sin emulador) e `InvitacionDaoTest` (con emulador, comprueba la SQL).
+
+Detalles en [`docs/INVITACIONES.md`](docs/INVITACIONES.md).
+
+## Novedades: rechazar invitaciones (Issue 74)
+
+- **`InvitacionRepositorio.rechazar`:** marca la invitación como rechazada; deja de salir en las pendientes pero no se borra.
+- **Seguro:** solo la puede rechazar quien la recibió y solo mientras esté pendiente. Dos toques seguidos no la responden dos veces.
+- **Resultado claro:** devuelve `OK`, `NO_EXISTE`, `NO_ES_PARA_TI` o `YA_RESPONDIDA`, para que la pantalla muestre el mensaje adecuado.
+- **Pruebas automáticas:** casos nuevos en `InvitacionRepositorioTest` (sin emulador) y en `InvitacionDaoTest` (con emulador).
+
 ## Tecnologías
 
 | Área | Tecnología |
