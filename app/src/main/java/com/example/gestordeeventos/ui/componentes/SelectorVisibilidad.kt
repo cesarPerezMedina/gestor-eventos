@@ -29,13 +29,13 @@ import com.example.gestordeeventos.ui.theme.GestorDeEventosTheme
 /**
  * Selector de la visibilidad de un evento: Público o Privado.
  *
- * No guarda estado: recibe si el evento es público (`Evento.publico`) y avisa con [onCambio] cuando el usuario
+ * No guarda estado: recibe si el evento es público (`Evento.publico`) y avisa con [onCambiar] cuando el usuario
  * elige la otra opción. Debajo de las opciones explica qué significa la elegida.
  */
 @Composable
 fun SelectorVisibilidad(
     publico: Boolean,
-    onCambio: (Boolean) -> Unit,
+    onCambiar: (Boolean) -> Unit,
     modifier: Modifier = Modifier,
     enabled: Boolean = true
 ) {
@@ -44,14 +44,14 @@ fun SelectorVisibilidad(
         Row(horizontalArrangement = Arrangement.spacedBy(Espacio.s)) {
             OpcionVisibilidad(
                 seleccionada = publico,
-                onClick = { onCambio(true) },
+                onClick = { onCambiar(true) },
                 etiqueta = R.string.visibilidad_publico,
                 icono = Icons.Filled.Public,
                 enabled = enabled
             )
             OpcionVisibilidad(
                 seleccionada = !publico,
-                onClick = { onCambio(false) },
+                onClick = { onCambiar(false) },
                 etiqueta = R.string.visibilidad_privado,
                 icono = Icons.Filled.Lock,
                 enabled = enabled
@@ -90,6 +90,6 @@ private fun OpcionVisibilidad(
 private fun SelectorVisibilidadPreview() {
     GestorDeEventosTheme {
         var publico by remember { mutableStateOf(true) }
-        SelectorVisibilidad(publico = publico, onCambio = { publico = it })
+        SelectorVisibilidad(publico = publico, onCambiar = { publico = it })
     }
 }
