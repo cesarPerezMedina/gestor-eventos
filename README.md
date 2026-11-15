@@ -89,6 +89,16 @@ La app ya puede recordar quién ha iniciado sesión, aunque se cierre y se vuelv
 
 Cómo conectarlo a la navegación y al login está en [`docs/AUTENTICACION.md`](docs/AUTENTICACION.md).
 
+## Novedades: validación de eventos (Issues 49 y 50)
+
+`ValidadorEvento` comprueba un evento antes de guardarlo y devuelve un error por campo, para que el formulario marque cada uno.
+
+- **Reglas:** nombre de 3 a 60 caracteres, descripción de hasta 500, máximo de jugadores no menor que el mínimo (0 = sin límite), dirección o coordenadas válidas y fecha futura.
+- **Fecha opcional de momento:** se puede dejar de exigir mientras el formulario no pida fecha y hora (Issue 47).
+- **Pruebas automáticas:** `ValidadorEventoTest`, sin emulador.
+
+Cómo conectarlo a la creación de eventos está en [`docs/VALIDACION_EVENTO.md`](docs/VALIDACION_EVENTO.md).
+
 ## Tecnologías
 
 | Área | Tecnología |
