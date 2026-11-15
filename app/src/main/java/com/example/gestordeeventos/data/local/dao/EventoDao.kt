@@ -36,6 +36,19 @@ interface EventoDao {
     )
     fun observarPublicosConCupo(): Flow<List<EventoConCupo>>
 
+    /**
+     * Para "Cerca de mí": públicos dentro de un rectángulo del mapa (primer filtro, rápido).
+     * La distancia exacta y el orden los calcula el repositorio. Los eventos sin punto en el mapa
+     * (latitud y longitud 0) quedan fuera, porque no tienen ubicación que comparar.
+     */
+    @Query(
+        "SELECT e.*, (SELECT COUNT(*) FROM participaciones p WHERE p.eventoId = e.id) AS apuntados " +
+            "FROM eventos e WHERE e.publico = 1 " +
+            "AND NOT (e.latitud = 0 AND e.longitud = 0) " +
+            "AND e.latitud BETWEEN :latMin AND :latMax AND e.longitud BETWEEN :lonMin AND :lonMax"
+    )
+    fun observarPublicosEnCaja(latMin: Double, latMax: Double, lonMin: Double, lonMax: Double): Flow<List<EventoConCupo>>
+
     /** Para "Mis eventos": los que creo, en los que participo y a los que me han invitado (sean públicos o privados). */
     @Query(
         "SELECT * FROM eventos e WHERE e.creadorId = :usuarioId " +
