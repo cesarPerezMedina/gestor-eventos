@@ -173,6 +173,7 @@ inicio?.let { NavHost(navController = navController, startDestination = it) { /*
 | `AuthRepositorioRegistroTest` | Registro, hash, correo normalizado, duplicados, login tras registrarse | Local |
 | `RegistroViewModelTest` | Errores por campo, éxito, duplicados, fallo inesperado | Local |
 | `SesionRepositorioTest` | Guardar, recuperar, sustituir y cerrar la sesión; sesión de un usuario que ya no existe | Local |
+| `LoginScreenTest` | La pantalla de login en pantalla: textos, escribir, pulsar botón y enlaces, ojo de contraseña, rotación | Emulador o móvil |
 | `UsuarioDaoTest` | Las consultas SQL reales de login y de existencia (sin distinguir mayúsculas) | Emulador o móvil |
 
 Los tests locales se ejecutan con el botón verde junto a cada clase, o con `./gradlew testDebugUnitTest`.
