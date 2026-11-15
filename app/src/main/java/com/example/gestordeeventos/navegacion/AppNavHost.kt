@@ -17,7 +17,6 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.gestordeeventos.data.local.AppDatabase
-import com.example.gestordeeventos.ui.ajustes.AjustesScreen
 import com.example.gestordeeventos.ui.auth.AuthViewModel
 import com.example.gestordeeventos.ui.auth.AuthViewModelFactory
 import com.example.gestordeeventos.ui.auth.LoginScreen
@@ -35,7 +34,7 @@ import com.example.gestordeeventos.ui.amigos.AmigosViewModel
 import com.example.gestordeeventos.ui.amigos.AmigosViewModelFactory
 import com.example.gestordeeventos.data.repositorio.AmistadRepositorio;
 import com.example.gestordeeventos.data.repositorio.SesionRepositorio
-
+import com.example.gestordeeventos.ui.ajustes.AjustesScreen
 
 
 @Composable
