@@ -7,4 +7,5 @@
     <string name="participantes_error_maximo_vacio">Enter the maximum</string>
     <string name="participantes_error_rango">Between %1$d and %2$d</string>
     <string name="participantes_error_maximo_menor">It can\'t be less than the minimum</string>
+    <string name="participantes_error_numero">Enter a number between %1$d and %2$d</string>
 </resources>
