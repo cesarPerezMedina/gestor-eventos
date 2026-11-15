@@ -89,6 +89,16 @@ La app ya puede recordar quién ha iniciado sesión, aunque se cierre y se vuelv
 
 Cómo conectarlo a la navegación y al login está en [`docs/AUTENTICACION.md`](docs/AUTENTICACION.md).
 
+## Novedades: invitaciones pendientes (Issue 72)
+
+El repositorio ya sabe qué invitaciones a eventos tiene pendientes un usuario.
+
+- **`InvitacionRepositorio.observarPendientes`:** devuelve las invitaciones recibidas aún sin responder, con el nombre del evento y de quien invita, ordenadas por la fecha del evento.
+- **Se actualiza sola:** es un `Flow`, así que la lista cambia cuando llega o se responde una invitación.
+- **Pruebas automáticas:** `InvitacionRepositorioTest` (sin emulador) e `InvitacionDaoTest` (con emulador, comprueba la SQL).
+
+Detalles en [`docs/INVITACIONES.md`](docs/INVITACIONES.md).
+
 ## Tecnologías
 
 | Área | Tecnología |
