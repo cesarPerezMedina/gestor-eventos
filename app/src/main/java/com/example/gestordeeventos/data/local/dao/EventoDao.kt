@@ -29,12 +29,13 @@ interface EventoDao {
     @Query("SELECT * FROM eventos WHERE publico = 1 ORDER BY fechaHora")
     fun observarPublicos(): Flow<List<Evento>>
 
-    /** Para Buscar: solo públicos, con el número de apuntados de cada uno. */
+    /** Para Buscar: solo públicos, con el número de apuntados y si [usuarioId] ya está apuntado. */
     @Query(
-        "SELECT e.*, (SELECT COUNT(*) FROM participaciones p WHERE p.eventoId = e.id) AS apuntados " +
+        "SELECT e.*, (SELECT COUNT(*) FROM participaciones p WHERE p.eventoId = e.id) AS apuntados, " +
+            "EXISTS(SELECT 1 FROM participaciones q WHERE q.eventoId = e.id AND q.usuarioId = :usuarioId) AS yoApuntado " +
             "FROM eventos e WHERE e.publico = 1 ORDER BY e.fechaHora"
     )
-    fun observarPublicosConCupo(): Flow<List<EventoConCupo>>
+    fun observarPublicosConCupo(usuarioId: Long): Flow<List<EventoConCupo>>
 
     /**
      * Para "Cerca de mí": públicos dentro de un rectángulo del mapa (primer filtro, rápido).
@@ -42,12 +43,19 @@ interface EventoDao {
      * (latitud y longitud 0) quedan fuera, porque no tienen ubicación que comparar.
      */
     @Query(
-        "SELECT e.*, (SELECT COUNT(*) FROM participaciones p WHERE p.eventoId = e.id) AS apuntados " +
+        "SELECT e.*, (SELECT COUNT(*) FROM participaciones p WHERE p.eventoId = e.id) AS apuntados, " +
+            "EXISTS(SELECT 1 FROM participaciones q WHERE q.eventoId = e.id AND q.usuarioId = :usuarioId) AS yoApuntado " +
             "FROM eventos e WHERE e.publico = 1 " +
             "AND NOT (e.latitud = 0 AND e.longitud = 0) " +
             "AND e.latitud BETWEEN :latMin AND :latMax AND e.longitud BETWEEN :lonMin AND :lonMax"
     )
-    fun observarPublicosEnCaja(latMin: Double, latMax: Double, lonMin: Double, lonMax: Double): Flow<List<EventoConCupo>>
+    fun observarPublicosEnCaja(
+        latMin: Double,
+        latMax: Double,
+        lonMin: Double,
+        lonMax: Double,
+        usuarioId: Long,
+    ): Flow<List<EventoConCupo>>
 
     /** Para "Mis eventos": los que creo, en los que participo y a los que me han invitado (sean públicos o privados). */
     @Query(

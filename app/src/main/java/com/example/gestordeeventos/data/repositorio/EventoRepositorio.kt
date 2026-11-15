@@ -27,18 +27,18 @@ class EventoRepositorio(
     /** Eventos que salen en Buscar: solo los públicos, siempre actualizados. */
     fun eventosPublicos(): Flow<List<Evento>> = eventoDao.observarPublicos()
 
-    /** Eventos de Buscar con su número de apuntados: solo los públicos, siempre actualizados. */
-    fun eventosPublicosConCupo(): Flow<List<EventoConCupo>> = eventoDao.observarPublicosConCupo()
+    /** Eventos de Buscar con su número de apuntados y si [usuarioId] ya está apuntado: solo los públicos, siempre actualizados. */
+    fun eventosPublicosConCupo(usuarioId: Long): Flow<List<EventoConCupo>> = eventoDao.observarPublicosConCupo(usuarioId)
 
     /**
      * Búsqueda por cercanía (Issue 57): eventos públicos a menos de [radioKm] km de [centro],
      * del más cercano al más lejano. Primero la base de datos descarta lo que queda fuera de un
      * rectángulo alrededor del punto; después se calcula la distancia exacta y se filtra por el radio.
      */
-    fun eventosPublicosCerca(centro: Ubicacion, radioKm: Double): Flow<List<EventoConDistancia>> {
+    fun eventosPublicosCerca(centro: Ubicacion, radioKm: Double, usuarioId: Long): Flow<List<EventoConDistancia>> {
         val caja = cajaDelimitadora(centro, radioKm)
         return eventoDao
-            .observarPublicosEnCaja(caja.latMin, caja.latMax, caja.lonMin, caja.lonMax)
+            .observarPublicosEnCaja(caja.latMin, caja.latMax, caja.lonMin, caja.lonMax, usuarioId)
             .map { lista ->
                 lista
                     .map { EventoConDistancia(it, distanciaKm(centro.latitud, centro.longitud, it.evento.latitud, it.evento.longitud)) }
