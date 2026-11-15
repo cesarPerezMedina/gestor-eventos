@@ -115,23 +115,29 @@ private fun List<Pair<EventoConCupo, Double?>>.aEstado(): EstadoBuscar {
 private fun EventoConCupo.aItem(distanciaKm: Double?): EventoBuscarItem {
     val maximo = evento.maxParticipantes
     val faltan = maximo - apuntados
-    val (etiqueta, estilo) = when {
-        maximo > 0 && faltan <= 0 -> "Completo" to EstiloEtiqueta.ALERTA
-        maximo > 0 && faltan == 1 -> "¡Última plaza!" to EstiloEtiqueta.ALERTA
-        else -> "Público" to EstiloEtiqueta.NEUTRA
+    val completo = maximo > 0 && faltan <= 0
+    val urgente = maximo > 0 && faltan == 1
+
+    val etiquetas = buildList {
+        add(EtiquetaTarjeta("PÚBLICO", EstiloEtiqueta.NEUTRA))
+        if (completo) add(EtiquetaTarjeta("COMPLETO", EstiloEtiqueta.ALERTA))
     }
+
     return EventoBuscarItem(
         id = evento.id.toString(),
         titulo = evento.nombre,
         icono = iconoDe(evento.deporte),
         cuando = textoCuando(evento.fechaHora),
-        distanciaKm = distanciaKm,
         lugar = evento.direccion.ifBlank { "Sin ubicación" },
         apuntados = apuntados,
         maximo = maximo,
-        cupoNota = if (evento.minParticipantes > apuntados) "Mín. ${evento.minParticipantes}" else null,
-        etiqueta = etiqueta,
-        estiloEtiqueta = estilo,
+        variante = if (urgente) VarianteTarjeta.URGENTE else VarianteTarjeta.ESTANDAR,
+        etiquetas = etiquetas,
+        distanciaKm = distanciaKm,
+        minimo = evento.minParticipantes.takeIf { it > 0 },
+        notaFaltan = if (maximo > 0 && faltan > 1) "Faltan $faltan jugadores" else null,
+        avisoUrgente = if (urgente) "¡ÚLTIMA PLAZA DISPONIBLE! ($apuntados/$maximo)" else null,
+        // Todavía no se guardan precio, organizador ni duración: la tarjeta simplemente no enseña esos bloques
     )
 }
 
