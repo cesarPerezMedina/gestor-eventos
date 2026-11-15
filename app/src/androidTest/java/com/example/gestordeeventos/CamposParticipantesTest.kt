@@ -11,7 +11,6 @@ import androidx.compose.ui.test.performTextInput
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.example.gestordeeventos.ui.componentes.CamposParticipantes
-import com.example.gestordeeventos.ui.componentes.ParticipantesUiState
 import com.example.gestordeeventos.ui.theme.GestorDeEventosTheme
 import org.junit.Rule
 import org.junit.Test
@@ -26,14 +25,17 @@ class CamposParticipantesTest {
 
     private val contexto = InstrumentationRegistry.getInstrumentation().targetContext
 
-    private fun mostrar(inicial: ParticipantesUiState) {
+    private fun mostrar(inicialMinimo: String = "", inicialMaximo: String = "", mostrarErrores: Boolean = false) {
         regla.setContent {
             GestorDeEventosTheme {
-                var estado by remember { mutableStateOf(inicial) }
+                var minimo by remember { mutableStateOf(inicialMinimo) }
+                var maximo by remember { mutableStateOf(inicialMaximo) }
                 CamposParticipantes(
-                    estado = estado,
-                    onMinimoChange = { estado = estado.copy(minimo = it) },
-                    onMaximoChange = { estado = estado.copy(maximo = it) }
+                    minimo = minimo,
+                    maximo = maximo,
+                    onMinimoChange = { minimo = it },
+                    onMaximoChange = { maximo = it },
+                    mostrarErrores = mostrarErrores
                 )
             }
         }
@@ -41,33 +43,33 @@ class CamposParticipantesTest {
 
     @Test
     fun muestraLosCamposMinimoYMaximo() {
-        mostrar(ParticipantesUiState())
-
+        mostrar()
         regla.onNodeWithText(contexto.getString(R.string.participantes_minimo)).assertIsDisplayed()
         regla.onNodeWithText(contexto.getString(R.string.participantes_maximo)).assertIsDisplayed()
     }
 
     @Test
     fun soloAceptaNumeros() {
-        mostrar(ParticipantesUiState())
-
+        mostrar()
         regla.onNodeWithText(contexto.getString(R.string.participantes_minimo)).performTextInput("a1b2")
-
         regla.onNodeWithText("12").assertIsDisplayed()
     }
 
     @Test
     fun avisaSiElMaximoEsMenorQueElMinimo() {
-        mostrar(ParticipantesUiState(minimo = "10", maximo = "4"))
-
-        regla.onNodeWithText(contexto.getString(R.string.participantes_error_maximo_menor)).assertIsDisplayed()
+        mostrar("10", "4", true)
+        regla.onNodeWithText(contexto.getString(R.string.participantes_error_rango)).assertIsDisplayed()
     }
 
     @Test
-    fun avisaDeLosCamposVaciosSoloCuandoSePide() {
-        mostrar(ParticipantesUiState(mostrarErrores = true))
-
-        regla.onNodeWithText(contexto.getString(R.string.participantes_error_minimo_vacio)).assertIsDisplayed()
-        regla.onNodeWithText(contexto.getString(R.string.participantes_error_maximo_vacio)).assertIsDisplayed()
+    fun avisaCuandoLosCamposNoSonValidos() {
+        mostrar("", "", true)
+        regla.onNodeWithText(
+            contexto.getString(
+                R.string.participantes_error_numero,
+                1,
+                1000
+            )
+        ).assertIsDisplayed()
     }
 }
