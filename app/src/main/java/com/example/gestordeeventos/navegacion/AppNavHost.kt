@@ -215,7 +215,7 @@ fun AppNavHost() {
                 CrearEventoScreen(onBackClick = { navController.popBackStack() })
             }
             composable(Ruta.Amigos.ruta) {
-                val amigos by amigosViewModel.amigos.collectAsState()
+                val amigos by amigosViewModel.amigos.collectAsStateWithLifecycle()
                 AmigosScreen(
                     amigos = amigos,
                     onEliminarClick = { amigosViewModel.eliminarAmigo(it.id) { _, mensaje -> aviso(mensaje) } },
