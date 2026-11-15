@@ -63,16 +63,16 @@ import com.example.gestordeeventos.ui.componentes.SelectorDeporte
 import com.example.gestordeeventos.ui.theme.GestorDeEventosTheme
 
 // --- Colores de la pantalla (mismos tonos que la pantalla de Amigos) ---
-private val CrePagina = Color(0xFFF6F4FF)
-private val CreVioleta = Color(0xFF5B0FBF)
-private val CreVioletaClaro = Color(0xFF7C3AED)
-private val CreBoton = Color(0xFF6D28D9)
-private val CreTinta = Color(0xFF1B1B3A)
-private val CreSubtitulo = Color(0xFF4A5068)
-private val CreGris = Color(0xFF7D8397)
-private val CreChip = Color(0xFFE6DDFB)
-private val CreCampo = Color(0xFFEEF0FF)
-private val CreLinea = Color(0xFFE3E1F2)
+internal val CrePagina = Color(0xFFF6F4FF)
+internal val CreVioleta = Color(0xFF5B0FBF)
+internal val CreVioletaClaro = Color(0xFF7C3AED)
+internal val CreBoton = Color(0xFF6D28D9)
+internal val CreTinta = Color(0xFF1B1B3A)
+internal val CreSubtitulo = Color(0xFF4A5068)
+internal val CreGris = Color(0xFF7D8397)
+internal val CreChip = Color(0xFFE6DDFB)
+internal val CreCampo = Color(0xFFEEF0FF)
+internal val CreLinea = Color(0xFFE3E1F2)
 
 /** Un amigo al que se puede invitar al evento (más adelante saldrá de la lista de amigos de Room). */
 data class AmigoInvitable(
@@ -96,6 +96,7 @@ fun CrearEventoScreen(
     modifier: Modifier = Modifier,
     amigos: List<AmigoInvitable> = amigosInvitablesDeEjemplo,
     onBackClick: () -> Unit = {},
+    onCrearEventoClick: (nombre: String, descripcion: String) -> Unit = { _, _ -> },
     onCrearEventoClick: () -> Unit = {},
     onFechaClick: () -> Unit = {},
     onHoraClick: () -> Unit = {},
@@ -106,6 +107,8 @@ fun CrearEventoScreen(
     var deporte by rememberSaveable { mutableStateOf<Deporte?>(Deporte.FUTBOL) }
     var nombre by rememberSaveable { mutableStateOf("") }
     var descripcion by rememberSaveable { mutableStateOf("") }
+    // Pasa a true al pulsar "Crear": entonces se enseñan los errores de los campos
+    var intentoCrear by rememberSaveable { mutableStateOf(false) }
     var esPublico by rememberSaveable { mutableStateOf(true) }
     var minJugadores by rememberSaveable { mutableStateOf(10) }
     var maxJugadores by rememberSaveable { mutableStateOf(14) }
@@ -151,25 +154,17 @@ fun CrearEventoScreen(
         Spacer(Modifier.height(18.dp))
 
         // ---------- Nombre y descripción ----------
-        Etiqueta("Nombre del evento")
-        Spacer(Modifier.height(6.dp))
-        CampoTexto(
+        CampoNombreEvento(
             valor = nombre,
             onCambio = { nombre = it },
-            placeholder = "Ej: Fútbol 7 entre semana - Los Pinos",
-            icono = Icons.Outlined.EditNote,
-            unaLinea = true,
+            mostrarError = intentoCrear,
         )
 
         Spacer(Modifier.height(14.dp))
 
-        Etiqueta("Descripción", derecha = "Opcional", derechaGris = true)
-        Spacer(Modifier.height(6.dp))
-        CampoTexto(
+        CampoDescripcionEvento(
             valor = descripcion,
             onCambio = { descripcion = it },
-            placeholder = "Nivel, material, normas...",
-            unaLinea = false,
         )
 
         Spacer(Modifier.height(18.dp))
@@ -339,7 +334,13 @@ fun CrearEventoScreen(
                 .height(56.dp)
                 .clip(RoundedCornerShape(18.dp))
                 .background(Brush.linearGradient(listOf(CreVioleta, CreVioletaClaro)))
-                .clickable(onClick = onCrearEventoClick),
+                .clickable {
+                    intentoCrear = true
+                    // Solo se crea si el nombre es válido; la descripción es opcional
+                    if (errorNombreEvento(nombre) == null) {
+                        onCrearEventoClick(nombre.trim(), descripcion.trim())
+                    }
+                },
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -411,7 +412,7 @@ private fun BarraPaso(onBackClick: () -> Unit) {
 
 /** Título pequeño de cada bloque, con un texto opcional a la derecha. */
 @Composable
-private fun Etiqueta(texto: String, derecha: String? = null, derechaGris: Boolean = false) {
+internal fun Etiqueta(texto: String, derecha: String? = null, derechaGris: Boolean = false) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
