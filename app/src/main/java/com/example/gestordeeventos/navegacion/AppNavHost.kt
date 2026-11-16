@@ -36,6 +36,7 @@ import com.example.gestordeeventos.ui.amigos.AmigosViewModel
 import com.example.gestordeeventos.ui.amigos.AmigosViewModelFactory
 import com.example.gestordeeventos.data.repositorio.AmistadRepositorio;
 import com.example.gestordeeventos.data.repositorio.SesionRepositorio
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
 
 
