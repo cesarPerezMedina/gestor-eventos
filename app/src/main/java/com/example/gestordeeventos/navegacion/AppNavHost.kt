@@ -5,30 +5,25 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.gestordeeventos.data.local.AppDatabase
-import com.example.gestordeeventos.data.model.Usuario
 import com.example.gestordeeventos.ui.ajustes.AjustesScreen
 import com.example.gestordeeventos.ui.auth.AuthViewModel
 import com.example.gestordeeventos.ui.auth.AuthViewModelFactory
 import com.example.gestordeeventos.ui.auth.LoginScreen
-import com.example.gestordeeventos.ui.auth.LoginViewModel
 import com.example.gestordeeventos.ui.auth.RecuperarScreen
 import com.example.gestordeeventos.ui.auth.RegistroScreen
-import com.example.gestordeeventos.ui.auth.RegistroViewModel
 import com.example.gestordeeventos.ui.auth.RestablecerScreen
 import com.example.gestordeeventos.ui.amigos.AmigosScreen
 import com.example.gestordeeventos.ui.componentes.BarraInferior
@@ -64,15 +59,6 @@ fun AppNavHost() {
             miCorreo = { sesionRepositorio.usuarioActual()?.correo },   // AJUSTAR: ver abajo
         )
     )
-
-    // Usuario con la sesión iniciada (Issues 16 y 20) y pantalla inicial: se deciden al arrancar
-    // con la sesión guardada. Hasta entonces no se dibujan las pantallas (es una consulta rápida).
-    var usuarioActual by remember { mutableStateOf<Usuario?>(null) }
-    var inicio by rememberSaveable { mutableStateOf<String?>(null) }
-    LaunchedEffect(Unit) {
-        usuarioActual = sesionRepositorio.usuarioActual()
-        if (inicio == null) inicio = if (usuarioActual != null) Ruta.Inicio.ruta else Ruta.Login.ruta
-    }
 
     // Recuerda el correo escrito en "Recuperar" para poder reenviar el código
     var correoRecuperar by remember { mutableStateOf("") }
@@ -117,50 +103,25 @@ fun AppNavHost() {
             }
         },
     ) { innerPadding ->
-        val destinoInicial = inicio ?: return@Scaffold
         NavHost(
             navController = navController,
-            startDestination = destinoInicial,
+            startDestination = Ruta.Login.ruta,
             modifier = Modifier.padding(bottom = innerPadding.calculateBottomPadding()),
         ) {
             // ---------- Acceso ----------
             composable(Ruta.Login.ruta) {
-                val loginViewModel: LoginViewModel = viewModel(factory = LoginViewModel.Factory)
-                val estadoLogin by loginViewModel.estado.collectAsStateWithLifecycle()
-
-                // Login correcto: se recuerda la sesión y se entra a Inicio sin poder volver al Login con "atrás"
-                LaunchedEffect(estadoLogin.usuarioId) {
-                    estadoLogin.usuarioId?.let { id ->
-                        sesionRepositorio.iniciar(id)
-                        usuarioActual = sesionRepositorio.usuarioActual()
-                        usuarioActual?.let { sesion.guardarSesion(it.correo) }
-                        navController.navigate(Ruta.Inicio.ruta) { popUpTo(Ruta.Login.ruta) { inclusive = true } }
-                    }
-                }
-
                 LoginScreen(
-                    onLoginClick = { identificador, clave -> loginViewModel.iniciarSesion(identificador, clave) },
+                    // Cuando hagas el login: sesion.guardarSesion(email) y navegar a Ruta.Inicio
+                    onLoginClick = { email, password -> /* pendiente: lógica de login */ },
                     onForgotPasswordClick = { navController.navigate(Ruta.Recuperar.ruta) },
                     onRegisterClick = { navController.navigate(Ruta.Registro.ruta) },
-                    estado = estadoLogin,
                 )
             }
 
             composable(Ruta.Registro.ruta) {
-                val registroViewModel: RegistroViewModel = viewModel(factory = RegistroViewModel.Factory)
-                val estadoRegistro by registroViewModel.estado.collectAsStateWithLifecycle()
-
-                // Registro correcto: se vuelve al Login para iniciar sesión con la cuenta nueva
-                LaunchedEffect(estadoRegistro.registroCompletado) {
-                    if (estadoRegistro.registroCompletado) navController.popBackStack()
-                }
-
                 RegistroScreen(
-                    onRegisterClick = { usuario, correo, clave, repetir ->
-                        registroViewModel.registrar(usuario, correo, clave, repetir)
-                    },
+                    onRegisterClick = { usuario, correo, contrasena, repetir -> /* pendiente: lógica de registro */ },
                     onLoginClick = { navController.popBackStack() },
-                    estado = estadoRegistro,
                 )
             }
 
@@ -199,7 +160,7 @@ fun AppNavHost() {
             // ---------- Secciones principales (menú de abajo) ----------
             composable(Ruta.Inicio.ruta) {
                 InicioScreen(
-                    nombreUsuario = usuarioActual?.nombreUsuario ?: "",
+                    nombreUsuario = "ana_23", // provisional, luego saldrá de la sesión
                     onAjustesClick = { navController.navigate(Ruta.Ajustes.ruta) },
                     onCrearClick = { irACrear() },
                 )
@@ -208,7 +169,6 @@ fun AppNavHost() {
             // Cuando cada sección tenga su diseño, se rellena su propio archivo
             composable(Ruta.Buscar.ruta) { BuscarEventoScreen() }
             composable(Ruta.Eventos.ruta) { MisEventosScreen() }
-            composable(Ruta.Amigos.ruta) { AmigosScreen() }
 
             // ---------- Otras pantallas (sin menú de abajo) ----------
             composable(Ruta.Crear.ruta) {
@@ -227,10 +187,7 @@ fun AppNavHost() {
                 AjustesScreen(
                     onBackClick = { navController.popBackStack() },
                     onCerrarSesion = {
-                        sesion.cerrarSesion() // olvida el correo guardado
-                        // Olvida también el ID de la sesión (Issue 16); si no, al reabrir la app entraría sola
-                        sesionRepositorio.cerrar()
-                        usuarioActual = null
+                        sesion.cerrarSesion() // olvida al usuario guardado
                         navController.navigate(Ruta.Login.ruta) {
                             popUpTo(0) { inclusive = true } // borra el historial: "atrás" ya no vuelve a la app
                         }
