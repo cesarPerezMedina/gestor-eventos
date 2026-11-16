@@ -67,6 +67,7 @@ class AmistadRepositorio(
             ResultadoAmistad(false, "La solicitud ya no existe")
         }
     }
+
     /** Quita a un amigo de mi lista. */
     suspend fun eliminarAmigo(miCorreo: String, idAmigo: Long): ResultadoAmistad {
         val yo = amistadDao.obtenerIdPorCorreo(miCorreo)
