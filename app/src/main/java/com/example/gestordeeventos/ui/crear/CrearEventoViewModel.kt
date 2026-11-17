@@ -56,6 +56,7 @@ class CrearEventoViewModel(
                 // Evento solo tiene un campo de texto para el lugar: si hay indicaciones, van detrás
                 latitud = nuevo.latitud ?: 0.0,
                 longitud = nuevo.longitud ?: 0.0,
+                // Evento solo tiene un campo de texto para el lugar: si hay indicaciones, van detrás
                 direccion = listOf(nuevo.ubicacion, nuevo.indicaciones).filter { it.isNotBlank() }.joinToString(" · "),
                 // PENDIENTE: la hora de fin (nuevo.finMillis) todavía no tiene columna en Evento
                 fechaHora = nuevo.inicioMillis,

@@ -22,7 +22,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.Add
-import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.EditNote
 import androidx.compose.material.icons.outlined.Info
@@ -34,7 +33,6 @@ import androidx.compose.material.icons.outlined.Place
 import androidx.compose.material.icons.outlined.Public
 import androidx.compose.material.icons.outlined.Remove
 import androidx.compose.material.icons.outlined.RocketLaunch
-import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.SportsSoccer
 import androidx.compose.material3.Icon
@@ -70,6 +68,8 @@ import com.example.gestordeeventos.ui.componentes.rememberSolicitudPermiso
 import com.example.gestordeeventos.util.EstadoPermiso
 import com.example.gestordeeventos.util.PermisoApp
 import kotlinx.coroutines.launch
+import java.time.LocalDate
+import java.time.LocalTime
 import com.example.gestordeeventos.ui.componentes.SelectorDeporte
 import com.example.gestordeeventos.ui.theme.GestorDeEventosTheme
 
@@ -108,8 +108,6 @@ fun CrearEventoScreen(
     amigos: List<AmigoInvitable> = amigosInvitablesDeEjemplo,
     onBackClick: () -> Unit = {},
     onCrearEventoClick: (NuevoEvento) -> Unit = {},
-    onFechaClick: () -> Unit = {},
-    onHoraClick: () -> Unit = {},
     onVerListaCompletaClick: () -> Unit = {},
 ) {
     var deporte by rememberSaveable { mutableStateOf<Deporte?>(Deporte.FUTBOL) }
@@ -123,6 +121,14 @@ fun CrearEventoScreen(
     var tipoUbicacion by rememberSaveable { mutableStateOf(TipoUbicacion.POLIDEPORTIVO) }
     var ubicacion by rememberSaveable { mutableStateOf("") }
     var indicaciones by rememberSaveable { mutableStateOf("") }
+    // Fecha y hora (Issue 47): se guardan como números porque LocalDate y LocalTime no sobreviven a girar la pantalla.
+    // Por defecto, mañana de 18:30 a 20:00.
+    var fechaDia by rememberSaveable { mutableStateOf(LocalDate.now().plusDays(1).toEpochDay()) }
+    var inicioMin by rememberSaveable { mutableStateOf(18 * 60 + 30) }
+    var finMin by rememberSaveable { mutableStateOf(20 * 60) }
+    val fecha = LocalDate.ofEpochDay(fechaDia)
+    val horaInicio = LocalTime.of(inicioMin / 60, inicioMin % 60)
+    val horaFin = LocalTime.of(finMin / 60, finMin % 60)
     var busquedaAmigo by rememberSaveable { mutableStateOf("") }
     val invitados = remember { mutableStateListOf<String>() }
 
@@ -309,18 +315,16 @@ fun CrearEventoScreen(
         Spacer(Modifier.height(18.dp))
 
         // ---------- Fecha y hora ----------
-        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            Column(modifier = Modifier.weight(1f)) {
-                Etiqueta("Fecha")
-                Spacer(Modifier.height(6.dp))
-                CampoSelector(Icons.Outlined.CalendarMonth, "Sáb, 24 Oct", onFechaClick)
-            }
-            Column(modifier = Modifier.weight(1f)) {
-                Etiqueta("Hora")
-                Spacer(Modifier.height(6.dp))
-                CampoSelector(Icons.Outlined.Schedule, "18:30 - 20:00", onHoraClick)
-            }
-        }
+        SelectorFechaHoraEvento(
+            fecha = fecha,
+            onFechaChange = { fechaDia = it.toEpochDay() },
+            horaInicio = horaInicio,
+            horaFin = horaFin,
+            onHorasChange = { inicio, fin ->
+                inicioMin = inicio.hour * 60 + inicio.minute
+                finMin = fin.hour * 60 + fin.minute
+            },
+        )
 
         Spacer(Modifier.height(20.dp))
 
@@ -399,8 +403,11 @@ fun CrearEventoScreen(
                 .background(Brush.linearGradient(listOf(CreVioleta, CreVioletaClaro)))
                 .clickable {
                     intentoCrear = true
-                    // Solo se crea si el nombre y la ubicación son válidos; la descripción es opcional
-                    if (errorNombreEvento(nombre) == null && errorUbicacionEvento(ubicacion) == null) {
+                    // Solo se crea si el nombre, la ubicación y la fecha son válidos; la descripción es opcional
+                    if (errorNombreEvento(nombre) == null &&
+                        errorUbicacionEvento(ubicacion) == null &&
+                        errorFechaHoraEvento(fecha, horaInicio, horaFin) == null
+                    ) {
                         onCrearEventoClick(
                             NuevoEvento(
                                 nombre = nombre.trim(),
@@ -414,6 +421,8 @@ fun CrearEventoScreen(
                                 indicaciones = indicaciones.trim(),
                                 latitud = latitud,
                                 longitud = longitud,
+                                inicioMillis = milisegundosDe(fecha, horaInicio),
+                                finMillis = milisegundosDe(fecha, horaFin),
                                 invitadosIds = invitados.toList(),
                             )
                         )
@@ -539,7 +548,7 @@ private fun CampoTexto(
 
 /** Campo que no se escribe, se pulsa (fecha y hora). */
 @Composable
-private fun CampoSelector(icono: androidx.compose.ui.graphics.vector.ImageVector, texto: String, onClick: () -> Unit) {
+internal fun CampoSelector(icono: androidx.compose.ui.graphics.vector.ImageVector, texto: String, onClick: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
