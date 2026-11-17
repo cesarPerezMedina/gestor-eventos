@@ -22,19 +22,12 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.Add
-import androidx.compose.material.icons.outlined.Check
-import androidx.compose.material.icons.outlined.EditNote
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Lock
-import androidx.compose.material.icons.outlined.MyLocation
 import androidx.compose.material.icons.outlined.NotificationsActive
-import androidx.compose.material.icons.outlined.OpenInFull
-import androidx.compose.material.icons.outlined.Place
 import androidx.compose.material.icons.outlined.Public
 import androidx.compose.material.icons.outlined.Remove
 import androidx.compose.material.icons.outlined.RocketLaunch
-import androidx.compose.material.icons.outlined.Search
-import androidx.compose.material.icons.outlined.SportsSoccer
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
@@ -44,6 +37,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.listSaver
+import androidx.compose.runtime.toMutableStateList
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -105,10 +100,9 @@ val amigosInvitablesDeEjemplo = listOf(
 @Composable
 fun CrearEventoScreen(
     modifier: Modifier = Modifier,
-    amigos: List<AmigoInvitable> = amigosInvitablesDeEjemplo,
+    amigos: List<AmigoInvitable> = emptyList(),
     onBackClick: () -> Unit = {},
     onCrearEventoClick: (NuevoEvento) -> Unit = {},
-    onVerListaCompletaClick: () -> Unit = {},
 ) {
     var deporte by rememberSaveable { mutableStateOf<Deporte?>(Deporte.FUTBOL) }
     var nombre by rememberSaveable { mutableStateOf("") }
@@ -129,8 +123,10 @@ fun CrearEventoScreen(
     val fecha = LocalDate.ofEpochDay(fechaDia)
     val horaInicio = LocalTime.of(inicioMin / 60, inicioMin % 60)
     val horaFin = LocalTime.of(finMin / 60, finMin % 60)
-    var busquedaAmigo by rememberSaveable { mutableStateOf("") }
-    val invitados = remember { mutableStateListOf<String>() }
+    // Ids de los amigos invitados; se guardan para no perderlos al girar la pantalla
+    val invitados = rememberSaveable(saver = listSaver(save = { it.toList() }, restore = { it.toMutableStateList() })) {
+        mutableStateListOf<String>()
+    }
 
     // ---------- Mapa y ubicación (Issue 46) ----------
     val context = LocalContext.current
@@ -189,9 +185,6 @@ fun CrearEventoScreen(
         }
     }
 
-    val amigosFiltrados = amigos.filter {
-        busquedaAmigo.isBlank() || it.nombre.contains(busquedaAmigo.trim().removePrefix("@"), ignoreCase = true)
-    }
 
     Column(
         modifier = modifier
@@ -329,68 +322,12 @@ fun CrearEventoScreen(
         Spacer(Modifier.height(20.dp))
 
         // ---------- Invitar amigos ----------
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("Invitar amigos", color = CreTinta, fontSize = 14.sp, fontWeight = FontWeight.Bold)
-                Spacer(Modifier.size(8.dp))
-                Text(
-                    text = "Opcional",
-                    color = CreVioleta,
-                    fontSize = 10.sp,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(50))
-                        .background(CreChip)
-                        .padding(horizontal = 8.dp, vertical = 3.dp),
-                )
-            }
-            Text(
-                text = "Ver lista completa",
-                color = CreVioleta,
-                fontSize = 12.sp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.clickable(onClick = onVerListaCompletaClick),
-            )
-        }
-        Spacer(Modifier.height(8.dp))
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .shadow(4.dp, RoundedCornerShape(18.dp), spotColor = Color(0x1A000000))
-                .clip(RoundedCornerShape(18.dp))
-                .background(Color.White)
-                .padding(12.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
-        ) {
-            CampoTexto(
-                valor = busquedaAmigo,
-                onCambio = { busquedaAmigo = it },
-                placeholder = "Buscar por apodo o nombre...",
-                icono = Icons.Outlined.Search,
-                unaLinea = true,
-            )
-            amigosFiltrados.forEach { amigo ->
-                FilaAmigoInvitable(
-                    amigo = amigo,
-                    invitado = amigo.id in invitados,
-                    onClick = {
-                        if (amigo.id in invitados) invitados.remove(amigo.id) else invitados.add(amigo.id)
-                    },
-                )
-            }
-            if (amigosFiltrados.isEmpty()) {
-                Text(
-                    text = "Ningún amigo coincide con tu búsqueda",
-                    color = CreGris,
-                    fontSize = 12.sp,
-                    modifier = Modifier.padding(vertical = 6.dp),
-                )
-            }
-        }
+        SelectorInvitados(
+            amigos = amigos,
+            seleccionados = invitados.toSet(),
+            onAlternar = { id -> if (id in invitados) invitados.remove(id) else invitados.add(id) },
+            esPublico = esPublico,
+        )
 
         Spacer(Modifier.height(22.dp))
 
@@ -423,7 +360,7 @@ fun CrearEventoScreen(
                                 longitud = longitud,
                                 inicioMillis = milisegundosDe(fecha, horaInicio),
                                 finMillis = milisegundosDe(fecha, horaFin),
-                                invitadosIds = invitados.toList(),
+                                invitadosIds = invitados.filter { id -> amigos.any { it.id == id } },
                             )
                         )
                     }
@@ -515,35 +452,6 @@ internal fun Etiqueta(texto: String, derecha: String? = null, derechaGris: Boole
             )
         }
     }
-}
-
-@Composable
-private fun CampoTexto(
-    valor: String,
-    onCambio: (String) -> Unit,
-    placeholder: String,
-    unaLinea: Boolean,
-    icono: androidx.compose.ui.graphics.vector.ImageVector? = null,
-    accionFinal: (@Composable () -> Unit)? = null,
-) {
-    OutlinedTextField(
-        value = valor,
-        onValueChange = onCambio,
-        modifier = Modifier.fillMaxWidth(),
-        singleLine = unaLinea,
-        minLines = if (unaLinea) 1 else 3,
-        shape = RoundedCornerShape(14.dp),
-        placeholder = { Text(placeholder, color = CreGris, fontSize = 13.sp, maxLines = 1, overflow = TextOverflow.Ellipsis) },
-        leadingIcon = icono?.let { { Icon(it, contentDescription = null, tint = CreSubtitulo) } },
-        trailingIcon = accionFinal,
-        colors = OutlinedTextFieldDefaults.colors(
-            focusedContainerColor = Color.White,
-            unfocusedContainerColor = Color.White,
-            focusedBorderColor = CreVioletaClaro,
-            unfocusedBorderColor = CreLinea,
-            cursorColor = CreVioleta,
-        ),
-    )
 }
 
 /** Campo que no se escribe, se pulsa (fecha y hora). */
@@ -649,56 +557,10 @@ private fun BotonRedondo(icono: androidx.compose.ui.graphics.vector.ImageVector,
     }
 }
 
-@Composable
-private fun FilaAmigoInvitable(amigo: AmigoInvitable, invitado: Boolean, onClick: () -> Unit) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Box(
-            modifier = Modifier
-                .size(38.dp)
-                .clip(CircleShape)
-                .background(CreChip),
-            contentAlignment = Alignment.Center,
-        ) {
-            Text(amigo.nombre.take(1).uppercase(), color = CreVioleta, fontSize = 15.sp, fontWeight = FontWeight.ExtraBold)
-        }
-        Spacer(Modifier.size(10.dp))
-        Column(modifier = Modifier.weight(1f)) {
-            Text(amigo.nombre, color = CreTinta, fontSize = 14.sp, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
-            Text(amigo.detalle, color = CreSubtitulo, fontSize = 11.5.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
-        }
-        Spacer(Modifier.size(8.dp))
-        Row(
-            modifier = Modifier
-                .clip(RoundedCornerShape(50))
-                .background(if (invitado) CreBoton else CreCampo)
-                .clickable(onClick = onClick)
-                .padding(horizontal = 12.dp, vertical = 8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Icon(
-                imageVector = if (invitado) Icons.Outlined.Check else Icons.Outlined.Add,
-                contentDescription = null,
-                tint = if (invitado) Color.White else CreVioleta,
-                modifier = Modifier.size(14.dp),
-            )
-            Spacer(Modifier.size(4.dp))
-            Text(
-                text = if (invitado) "Invitado" else "Invitar",
-                color = if (invitado) Color.White else CreVioleta,
-                fontSize = 12.sp,
-                fontWeight = FontWeight.Bold,
-            )
-        }
-    }
-}
-
 @Preview(showBackground = true, widthDp = 390, heightDp = 1900)
 @Composable
 private fun CrearEventoScreenPreview() {
     GestorDeEventosTheme {
-        CrearEventoScreen()
+        CrearEventoScreen(amigos = amigosInvitablesDeEjemplo)
     }
 }

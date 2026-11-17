@@ -20,8 +20,14 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.gestordeeventos.data.local.AppDatabase
+import com.example.gestordeeventos.data.repositorio.AmistadRepositorio
+import com.example.gestordeeventos.data.repositorio.EventoRepositorio
+import com.example.gestordeeventos.data.repositorio.SesionRepositorio
 import com.example.gestordeeventos.data.model.Usuario
 import com.example.gestordeeventos.ui.ajustes.AjustesScreen
+import com.example.gestordeeventos.ui.amigos.AmigosScreen
+import com.example.gestordeeventos.ui.amigos.AmigosViewModel
+import com.example.gestordeeventos.ui.amigos.AmigosViewModelFactory
 import com.example.gestordeeventos.ui.auth.AuthViewModel
 import com.example.gestordeeventos.ui.auth.AuthViewModelFactory
 import com.example.gestordeeventos.ui.auth.LoginScreen
@@ -30,10 +36,11 @@ import com.example.gestordeeventos.ui.auth.RecuperarScreen
 import com.example.gestordeeventos.ui.auth.RegistroScreen
 import com.example.gestordeeventos.ui.auth.RegistroViewModel
 import com.example.gestordeeventos.ui.auth.RestablecerScreen
-import com.example.gestordeeventos.ui.amigos.AmigosScreen
-import com.example.gestordeeventos.ui.componentes.BarraInferior
 import com.example.gestordeeventos.ui.buscar.BuscarEventoScreen
+import com.example.gestordeeventos.ui.componentes.BarraInferior
 import com.example.gestordeeventos.ui.crear.CrearEventoScreen
+import com.example.gestordeeventos.ui.crear.CrearEventoViewModel
+import com.example.gestordeeventos.ui.crear.CrearEventoViewModelFactory
 import com.example.gestordeeventos.ui.evento.MisEventosScreen
 import com.example.gestordeeventos.ui.inicio.InicioScreen
 import com.example.gestordeeventos.util.SesionManager
@@ -49,19 +56,24 @@ fun AppNavHost() {
     val navController = rememberNavController()
     val context = LocalContext.current
 
-
-    val dao = remember { AppDatabase.obtener(context).usuarioDao() }
+    val db = remember { AppDatabase.obtener(context) }
+    val dao = remember { db.usuarioDao() }
     val authViewModel: AuthViewModel = viewModel(factory = AuthViewModelFactory(dao))
     val sesion = remember { SesionManager(context) }
     val sesionRepositorio = remember { SesionRepositorio.crear(context) }
-    val amistadRepositorio = remember {
-        val db = AppDatabase.obtener(context)
-        AmistadRepositorio(db.usuarioDao(), db.amistadDao())
-    }
+    val amistadRepositorio = remember { AmistadRepositorio(db.usuarioDao(), db.amistadDao()) }
+    val eventoRepositorio = remember { EventoRepositorio(db.eventoDao(), db.invitacionDao()) }
+
     val amigosViewModel: AmigosViewModel = viewModel(
         factory = AmigosViewModelFactory(
             repositorio = amistadRepositorio,
-            miCorreo = { sesionRepositorio.usuarioActual()?.correo },   // AJUSTAR: ver abajo
+            miCorreo = { sesionRepositorio.usuarioActual()?.correo },
+        )
+    )
+    val crearEventoViewModel: CrearEventoViewModel = viewModel(
+        factory = CrearEventoViewModelFactory(
+            repositorio = eventoRepositorio,
+            miId = { sesionRepositorio.usuarioActual()?.id },
         )
     )
 
@@ -82,7 +94,6 @@ fun AppNavHost() {
     }
 
     // --- Menú principal de abajo ---
-    // Solo se muestra en las cuatro secciones principales
     val rutaActual = navController.currentBackStackEntryAsState().value?.destination?.route
     val rutasConBarra = listOf(
         Ruta.Inicio.ruta,
@@ -91,12 +102,11 @@ fun AppNavHost() {
         Ruta.Amigos.ruta,
     )
 
-
     fun irASeccion(ruta: String) {
         navController.navigate(ruta) {
-            popUpTo(Ruta.Inicio.ruta) { saveState = true } // no apila secciones repetidas
-            launchSingleTop = true                          // no abre dos veces la misma
-            restoreState = true                             // recupera el estado de la sección
+            popUpTo(Ruta.Inicio.ruta) { saveState = true }
+            launchSingleTop = true
+            restoreState = true
         }
     }
 
@@ -105,7 +115,6 @@ fun AppNavHost() {
     }
 
     Scaffold(
-        // Cada pantalla ya gestiona la barra de estado; aquí solo reservamos hueco para el menú
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         bottomBar = {
             if (rutaActual in rutasConBarra) {
@@ -205,13 +214,23 @@ fun AppNavHost() {
                 )
             }
 
-            // Cuando cada sección tenga su diseño, se rellena su propio archivo
             composable(Ruta.Buscar.ruta) { BuscarEventoScreen() }
             composable(Ruta.Eventos.ruta) { MisEventosScreen() }
 
             // ---------- Otras pantallas (sin menú de abajo) ----------
             composable(Ruta.Crear.ruta) {
-                CrearEventoScreen(onBackClick = { navController.popBackStack() })
+                CrearEventoScreen(
+                    amigos = emptyList(),
+                    onBackClick = { navController.popBackStack() },
+                    onCrearEventoClick = { nuevo ->
+                        crearEventoViewModel.crearEvento(nuevo) { ok, mensaje ->
+                            aviso(mensaje)
+                            if (ok) {
+                                navController.popBackStack()
+                            }
+                        }
+                    },
+                )
             }
             composable(Ruta.Amigos.ruta) {
                 val amigos by amigosViewModel.amigos.collectAsStateWithLifecycle()
@@ -231,7 +250,7 @@ fun AppNavHost() {
                         sesionRepositorio.cerrar()
                         usuarioActual = null
                         navController.navigate(Ruta.Login.ruta) {
-                            popUpTo(0) { inclusive = true } // borra el historial: "atrás" ya no vuelve a la app
+                            popUpTo(0) { inclusive = true }
                         }
                     },
                 )
