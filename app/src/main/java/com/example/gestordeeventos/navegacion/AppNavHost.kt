@@ -22,6 +22,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.gestordeeventos.data.local.AppDatabase
 import com.example.gestordeeventos.data.repositorio.AmistadRepositorio
 import com.example.gestordeeventos.data.repositorio.EventoRepositorio
+import com.example.gestordeeventos.data.repositorio.InvitacionRepositorio
 import com.example.gestordeeventos.data.repositorio.SesionRepositorio
 import com.example.gestordeeventos.data.model.Usuario
 import com.example.gestordeeventos.ui.ajustes.AjustesScreen
@@ -43,7 +44,7 @@ import com.example.gestordeeventos.ui.crear.CrearEventoViewModel
 import com.example.gestordeeventos.ui.crear.CrearEventoViewModelFactory
 import com.example.gestordeeventos.ui.evento.MisEventosScreen
 import com.example.gestordeeventos.ui.inicio.InicioScreen
-import com.example.gestordeeventos.ui.invitaciones.InvitacionesScreen
+import com.example.gestordeeventos.ui.invitaciones.InvitacionesRoute
 import com.example.gestordeeventos.util.SesionManager
 
 
@@ -59,6 +60,7 @@ fun AppNavHost() {
     val sesionRepositorio = remember { SesionRepositorio.crear(context) }
     val amistadRepositorio = remember { AmistadRepositorio(db.usuarioDao(), db.amistadDao()) }
     val eventoRepositorio = remember { EventoRepositorio(db.eventoDao(), db.invitacionDao()) }
+    val invitacionRepositorio = remember { InvitacionRepositorio.crear(context) }
 
     val amigosViewModel: AmigosViewModel = viewModel(
         factory = AmigosViewModelFactory(
@@ -239,7 +241,14 @@ fun AppNavHost() {
             }
 
             composable(Ruta.Invitaciones.ruta) {
-                InvitacionesScreen(onBackClick = { navController.popBackStack() })
+                // Hace falta el usuario con sesión: sus invitaciones son las que se enseñan
+                usuarioActual?.id?.let { usuarioId ->
+                    InvitacionesRoute(
+                        usuarioId = usuarioId,
+                        repositorio = invitacionRepositorio,
+                        onBackClick = { navController.popBackStack() },
+                    )
+                }
             }
 
             composable(Ruta.Ajustes.ruta) {

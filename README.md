@@ -118,6 +118,12 @@ Detalles en [`docs/INVITACIONES.md`](docs/INVITACIONES.md).
 - **Reglas:** solo quien la recibió y mientras siga pendiente; no deja apuntarse si el evento está completo (la invitación sigue pendiente) y no duplica participaciones.
 - **Pruebas automáticas:** `InvitacionAceptarTest` (sin emulador).
 
+## Novedades: lista de invitaciones actualizada (Issue 75)
+
+- **Pantalla conectada a la base de datos:** la campana de Inicio abre las invitaciones reales del usuario. Al aceptar o rechazar, la invitación desaparece de la lista sola y sale un aviso con el resultado.
+- **Listas de eventos vivas:** `EventoRepositorio.observarEventosCreados` y `observarEventosUnidos` se actualizan al aceptar una invitación (el evento pasa a "unidos").
+- **Pruebas automáticas:** `InvitacionesViewModelTest` (sin emulador).
+
 ## Tecnologías
 
 | Área | Tecnología |

@@ -60,6 +60,15 @@ class EventoRepositorio(
     suspend fun eventosEnLosQueParticipa(usuarioId: Long): List<Evento> =
         eventoDao.listarEventosParticipadosPorUsuario(usuarioId)
 
+    /** Eventos creados por el usuario, siempre actualizados (Issue 75). */
+    fun observarEventosCreados(usuarioId: Long): Flow<List<Evento>> = eventoDao.observarCreados(usuarioId)
+
+    /**
+     * Eventos a los que se ha unido el usuario, siempre actualizados (Issue 75). Al aceptar una invitación el
+     * evento aparece aquí solo; al rechazarla no.
+     */
+    fun observarEventosUnidos(usuarioId: Long): Flow<List<Evento>> = eventoDao.observarUnidos(usuarioId)
+
     /** Público: cualquiera. Privado: solo el creador, los invitados y los participantes. */
     suspend fun puedeVer(eventoId: Long, usuarioId: Long): Boolean =
         eventoDao.puedeVer(eventoId, usuarioId)

@@ -112,5 +112,22 @@ interface EventoDao {
             "ORDER BY e.fechaHora ASC"
     )
     suspend fun listarEventosParticipadosPorUsuario(usuarioId: Long): List<Evento>
-}
 
+    // --- Listas del usuario que se actualizan solas (Issue 75) ---
+
+    /** Eventos que ha creado el usuario, de más próximos a más lejanos. Se vuelve a emitir al cambiar la base de datos. */
+    @Query("SELECT * FROM eventos WHERE creadorId = :usuarioId ORDER BY fechaHora ASC")
+    fun observarCreados(usuarioId: Long): Flow<List<Evento>>
+
+    /**
+     * Eventos a los que se ha apuntado el usuario (con "Unirse" o aceptando una invitación), de más próximos
+     * a más lejanos. Un evento rechazado o con la invitación aún pendiente NO sale aquí.
+     */
+    @Query(
+        "SELECT e.* FROM eventos e " +
+            "INNER JOIN participaciones p ON e.id = p.eventoId " +
+            "WHERE p.usuarioId = :usuarioId " +
+            "ORDER BY e.fechaHora ASC"
+    )
+    fun observarUnidos(usuarioId: Long): Flow<List<Evento>>
+}
