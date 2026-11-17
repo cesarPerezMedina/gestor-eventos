@@ -38,6 +38,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.gestordeeventos.R
+import com.example.gestordeeventos.data.model.EscalaTexto
 import com.example.gestordeeventos.data.model.ModoTema
 import com.example.gestordeeventos.ui.theme.GestorDeEventosTheme
 
@@ -53,10 +54,13 @@ fun AjustesScreen(
     viewModel: AjustesViewModel = viewModel(factory = AjustesViewModel.Factory),
 ) {
     val modoTema by viewModel.modoTema.collectAsStateWithLifecycle()
+    val escalaTexto by viewModel.escalaTexto.collectAsStateWithLifecycle()
 
     AjustesContenido(
         modoTema = modoTema,
         onModoTemaChange = viewModel::elegirModoTema,
+        escalaTexto = escalaTexto,
+        onEscalaTextoChange = viewModel::elegirEscalaTexto,
         onBackClick = onBackClick,
         onCerrarSesion = onCerrarSesion,
         modifier = modifier,
@@ -68,6 +72,8 @@ fun AjustesScreen(
 internal fun AjustesContenido(
     modoTema: ModoTema,
     onModoTemaChange: (ModoTema) -> Unit,
+    escalaTexto: EscalaTexto,
+    onEscalaTextoChange: (EscalaTexto) -> Unit,
     onBackClick: () -> Unit,
     onCerrarSesion: () -> Unit,
     modifier: Modifier = Modifier,
@@ -120,6 +126,17 @@ internal fun AjustesContenido(
 
             Spacer(Modifier.height(24.dp))
 
+            SeccionAjustes(titulo = stringResource(R.string.ajustes_seccion_texto)) {
+                OpcionesSeleccion(
+                    opciones = EscalaTexto.entries,
+                    seleccionada = escalaTexto,
+                    etiqueta = { stringResource(it.etiqueta) },
+                    onSeleccion = onEscalaTextoChange,
+                )
+            }
+
+            Spacer(Modifier.height(24.dp))
+
             SeccionAjustes(titulo = stringResource(R.string.ajustes_seccion_cuenta)) {
                 CerrarSesionOpcion(onCerrarSesion = onCerrarSesion)
             }
@@ -155,7 +172,14 @@ private fun SeccionAjustes(titulo: String, contenido: @Composable () -> Unit) {
 @Composable
 private fun AjustesScreenClaroPreview() {
     GestorDeEventosTheme(darkTheme = false) {
-        AjustesContenido(ModoTema.SISTEMA, onModoTemaChange = {}, onBackClick = {}, onCerrarSesion = {})
+        AjustesContenido(
+            modoTema = ModoTema.SISTEMA,
+            onModoTemaChange = {},
+            escalaTexto = EscalaTexto.NORMAL,
+            onEscalaTextoChange = {},
+            onBackClick = {},
+            onCerrarSesion = {},
+        )
     }
 }
 
@@ -163,6 +187,13 @@ private fun AjustesScreenClaroPreview() {
 @Composable
 private fun AjustesScreenOscuroPreview() {
     GestorDeEventosTheme(darkTheme = true) {
-        AjustesContenido(ModoTema.OSCURO, onModoTemaChange = {}, onBackClick = {}, onCerrarSesion = {})
+        AjustesContenido(
+            modoTema = ModoTema.OSCURO,
+            onModoTemaChange = {},
+            escalaTexto = EscalaTexto.GRANDE,
+            onEscalaTextoChange = {},
+            onBackClick = {},
+            onCerrarSesion = {},
+        )
     }
 }

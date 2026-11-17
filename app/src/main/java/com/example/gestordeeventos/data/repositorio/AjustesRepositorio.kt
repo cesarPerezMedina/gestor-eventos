@@ -2,6 +2,7 @@ package com.example.gestordeeventos.data.repositorio
 
 import android.content.Context
 import androidx.core.content.edit
+import com.example.gestordeeventos.data.model.EscalaTexto
 import com.example.gestordeeventos.data.model.ModoTema
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -32,7 +33,7 @@ class AlmacenAjustesPreferencias(context: Context) : AlmacenAjustes {
 }
 
 /**
- * Ajustes de la app que se recuerdan entre sesiones (tema claro/oscuro; el tamaño de texto llega con la Issue 79).
+ * Ajustes de la app que se recuerdan entre sesiones: tema claro/oscuro y tamaño del texto.
  * Los valores son un StateFlow: la pantalla de Ajustes y la actividad principal los observan y la app se
  * repinta al instante cuando cambian.
  */
@@ -49,8 +50,20 @@ class AjustesRepositorio(private val almacen: AlmacenAjustes) {
         _modoTema.value = modo
     }
 
+    private val _escalaTexto = MutableStateFlow(EscalaTexto.desdeNombre(almacen.leer(CLAVE_ESCALA_TEXTO)))
+
+    /** Tamaño de texto elegido. Por defecto, normal. */
+    val escalaTexto: StateFlow<EscalaTexto> = _escalaTexto.asStateFlow()
+
+    /** Guarda el tamaño de texto elegido y avisa a quien lo esté observando. */
+    fun cambiarEscalaTexto(escala: EscalaTexto) {
+        almacen.guardar(CLAVE_ESCALA_TEXTO, escala.name)
+        _escalaTexto.value = escala
+    }
+
     companion object {
         private const val CLAVE_MODO_TEMA = "modo_tema"
+        private const val CLAVE_ESCALA_TEXTO = "escala_texto"
 
         @Volatile
         private var instancia: AjustesRepositorio? = null

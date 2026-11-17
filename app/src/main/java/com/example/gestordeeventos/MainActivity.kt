@@ -22,6 +22,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             val ajustes = remember { AjustesRepositorio.obtener(applicationContext) }
             val modoTema by ajustes.modoTema.collectAsStateWithLifecycle()
+            val escalaTexto by ajustes.escalaTexto.collectAsStateWithLifecycle()
             val oscuro = modoTema.esOscuro(isSystemInDarkTheme())
 
             // Los iconos de las barras del sistema deben verse bien con el tema elegido (no solo con el del móvil)
@@ -33,7 +34,7 @@ class MainActivity : ComponentActivity() {
                 onDispose {}
             }
 
-            GestorDeEventosTheme(darkTheme = oscuro) {
+            GestorDeEventosTheme(darkTheme = oscuro, escalaTexto = escalaTexto.factor) {
                 AppNavHost()
             }
         }

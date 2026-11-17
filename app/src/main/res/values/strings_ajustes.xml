@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Pantalla de Ajustes (Issue 78) -->
+    <!-- Pantalla de Ajustes: tema (Issue 78) -->
     <string name="ajustes_titulo">Ajustes</string>
     <string name="ajustes_volver">Volver</string>
     <string name="ajustes_seccion_apariencia">APARIENCIA</string>
@@ -8,4 +8,11 @@
     <string name="ajustes_tema_sistema">Seguir al sistema</string>
     <string name="ajustes_tema_claro">Claro</string>
     <string name="ajustes_tema_oscuro">Oscuro</string>
+
+    <!-- Tamaño del texto (Issue 79) -->
+    <string name="ajustes_seccion_texto">TAMAÑO DEL TEXTO</string>
+    <string name="ajustes_texto_pequeno">Pequeño</string>
+    <string name="ajustes_texto_normal">Normal</string>
+    <string name="ajustes_texto_grande">Grande</string>
+    <string name="ajustes_texto_muy_grande">Muy grande</string>
 </resources>
