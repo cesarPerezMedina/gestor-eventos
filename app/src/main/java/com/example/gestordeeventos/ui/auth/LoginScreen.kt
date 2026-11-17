@@ -43,6 +43,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.CornerRadius
@@ -79,6 +80,7 @@ fun LoginScreen(
     onForgotPasswordClick: () -> Unit,
     onRegisterClick: () -> Unit,
     modifier: Modifier = Modifier,
+    estado: LoginUiState = LoginUiState(),
 ) {
     var email by rememberSaveable { mutableStateOf("") }
     var password by rememberSaveable { mutableStateOf("") }
@@ -160,6 +162,7 @@ fun LoginScreen(
                 LoginTextField(
                     value = email,
                     onValueChange = { email = it },
+                    isError = estado.errorIdentificador != null,
                     placeholder = "correo@ejemplo.com",
                     leadingIcon = {
                         Icon(Icons.Outlined.Email, contentDescription = null, tint = IconGray)
@@ -169,6 +172,7 @@ fun LoginScreen(
                         imeAction = ImeAction.Next,
                     ),
                 )
+                ErrorAuth(estado.errorIdentificador)
 
                 Spacer(Modifier.height(20.dp))
 
@@ -196,6 +200,7 @@ fun LoginScreen(
                 LoginTextField(
                     value = password,
                     onValueChange = { password = it },
+                    isError = estado.errorClave != null,
                     placeholder = "••••••••",
                     leadingIcon = {
                         Icon(Icons.Outlined.Lock, contentDescription = null, tint = IconGray)
@@ -215,6 +220,8 @@ fun LoginScreen(
                         imeAction = ImeAction.Done,
                     ),
                 )
+                ErrorAuth(estado.errorClave)
+                ErrorAuth(estado.errorGeneral)
 
                 Spacer(Modifier.height(28.dp))
 
@@ -233,12 +240,13 @@ fun LoginScreen(
                             Brush.horizontalGradient(listOf(GradientStart, GradientEnd)),
                             RoundedCornerShape(18.dp),
                         )
-                        .clickable { onLoginClick(email.trim(), password) },
+                        .alpha(if (estado.cargando) 0.6f else 1f)
+                        .clickable(enabled = !estado.cargando) { onLoginClick(email.trim(), password) },
                     contentAlignment = Alignment.Center,
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
-                            text = "Iniciar sesión",
+                            text = if (estado.cargando) "Iniciando sesión…" else "Iniciar sesión",
                             color = Color.White,
                             fontSize = 15.sp,
                             fontWeight = FontWeight.SemiBold,
@@ -289,6 +297,7 @@ private fun LoginTextField(
     placeholder: String,
     leadingIcon: @Composable () -> Unit,
     modifier: Modifier = Modifier,
+    isError: Boolean = false,
     trailingIcon: (@Composable () -> Unit)? = null,
     visualTransformation: VisualTransformation = VisualTransformation.None,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
@@ -296,6 +305,7 @@ private fun LoginTextField(
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
+        isError = isError,
         modifier = modifier
             .fillMaxWidth()
             .height(56.dp),

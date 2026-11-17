@@ -42,6 +42,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.CornerRadius
@@ -78,6 +79,7 @@ fun RegistroScreen(
     onRegisterClick: (username: String, email: String, password: String, repeatPassword: String) -> Unit,
     onLoginClick: () -> Unit,
     modifier: Modifier = Modifier,
+    estado: RegistroUiState = RegistroUiState(),
 ) {
     var username by rememberSaveable { mutableStateOf("") }
     var email by rememberSaveable { mutableStateOf("") }
@@ -152,6 +154,7 @@ fun RegistroScreen(
                 RegistroTextField(
                     value = username,
                     onValueChange = { username = it },
+                    isError = estado.errorNombreUsuario != null,
                     placeholder = "Ej: alex_martinez",
                     leadingIcon = {
                         Icon(Icons.Outlined.Person, contentDescription = null, tint = RegIconGray)
@@ -159,12 +162,15 @@ fun RegistroScreen(
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
                 )
 
+                ErrorAuth(estado.errorNombreUsuario)
+
                 Spacer(Modifier.height(18.dp))
 
                 FieldLabel("Correo electrónico")
                 RegistroTextField(
                     value = email,
                     onValueChange = { email = it },
+                    isError = estado.errorCorreo != null,
                     placeholder = "alex.martinez@ejemplo.com",
                     leadingIcon = {
                         Icon(Icons.Outlined.Email, contentDescription = null, tint = RegIconGray)
@@ -175,12 +181,15 @@ fun RegistroScreen(
                     ),
                 )
 
+                ErrorAuth(estado.errorCorreo)
+
                 Spacer(Modifier.height(18.dp))
 
                 FieldLabel("Contraseña")
                 RegistroTextField(
                     value = password,
                     onValueChange = { password = it },
+                    isError = estado.errorClave != null,
                     placeholder = "••••••••",
                     leadingIcon = {
                         Icon(Icons.Outlined.Lock, contentDescription = null, tint = RegIconGray)
@@ -201,6 +210,8 @@ fun RegistroScreen(
                     ),
                 )
 
+                ErrorAuth(estado.errorClave)
+
                 Spacer(Modifier.height(8.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
@@ -211,7 +222,7 @@ fun RegistroScreen(
                     )
                     Spacer(Modifier.size(6.dp))
                     Text(
-                        text = "Mínimo 8 caracteres, con letras y números",
+                        text = "Mínimo 8 caracteres, con mayúscula, minúscula, número y símbolo",
                         color = RegHint,
                         fontSize = 12.sp,
                     )
@@ -223,6 +234,7 @@ fun RegistroScreen(
                 RegistroTextField(
                     value = repeatPassword,
                     onValueChange = { repeatPassword = it },
+                    isError = estado.errorConfirmacion != null,
                     placeholder = "••••••••",
                     leadingIcon = {
                         Icon(Icons.Outlined.Lock, contentDescription = null, tint = RegIconGray)
@@ -243,6 +255,9 @@ fun RegistroScreen(
                     ),
                 )
 
+                ErrorAuth(estado.errorConfirmacion)
+                ErrorAuth(estado.errorGeneral)
+
                 Spacer(Modifier.height(26.dp))
 
                 // Botón
@@ -260,14 +275,15 @@ fun RegistroScreen(
                             Brush.horizontalGradient(listOf(RegGradientStart, RegGradientEnd)),
                             RoundedCornerShape(16.dp),
                         )
-                        .clickable {
+                        .alpha(if (estado.cargando) 0.6f else 1f)
+                        .clickable(enabled = !estado.cargando) {
                             onRegisterClick(username.trim(), email.trim(), password, repeatPassword)
                         },
                     contentAlignment = Alignment.Center,
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
-                            text = "Crear cuenta",
+                            text = if (estado.cargando) "Creando cuenta…" else "Crear cuenta",
                             color = Color.White,
                             fontSize = 15.sp,
                             fontWeight = FontWeight.SemiBold,
@@ -330,6 +346,7 @@ private fun RegistroTextField(
     placeholder: String,
     leadingIcon: @Composable () -> Unit,
     modifier: Modifier = Modifier,
+    isError: Boolean = false,
     trailingIcon: (@Composable () -> Unit)? = null,
     visualTransformation: VisualTransformation = VisualTransformation.None,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
@@ -337,6 +354,7 @@ private fun RegistroTextField(
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
+        isError = isError,
         modifier = modifier
             .fillMaxWidth()
             .height(56.dp),
