@@ -38,7 +38,7 @@ Devuelve un `ResultadoRespuestaInvitacion`; la pantalla decide qué texto enseñ
 | `YA_RESPONDIDA` | Ya estaba aceptada o rechazada; no se puede cambiar. |
 
 El cambio se hace en una sola sentencia SQL (`responderSiPendiente`), así que dos toques seguidos en el botón no
-pueden responder dos veces. La **Issue 73 (aceptar)** puede usar esa misma sentencia con `EstadoInvitacion.ACEPTADA`.
+pueden responder dos veces. La Issue 73 (aceptar) usa esa misma sentencia con `EstadoInvitacion.ACEPTADA`.
 
 ### Ejemplo desde un ViewModel
 
@@ -68,8 +68,31 @@ la campana de notificaciones de Inicio (ruta `Ruta.Invitaciones`).
   el título es un encabezado y los tamaños de texto siguen el ajuste de la Issue 79. Zonas táctiles de 48 dp.
 - **Idiomas:** textos en `strings_invitaciones.xml` (español e inglés).
 
+## Aceptar una invitación (Issue 73)
+
+`InvitacionRepositorio.aceptar(invitacionId, usuarioId)` acepta la invitación y **apunta al usuario al evento**
+(público o privado). Todo ocurre dentro de una transacción de Room: o se guarda todo o nada.
+
+1. Comprueba que la invitación existe, es para ese usuario y sigue pendiente.
+2. Comprueba que el evento existe y que hay plaza (`maxParticipantes = 0` significa sin límite).
+3. Marca la invitación como `ACEPTADA` y añade la participación. Si ya estaba apuntado, no se duplica.
+
+Devuelve el mismo `ResultadoRespuestaInvitacion` que `rechazar`, con un caso más:
+
+| Resultado | Cuándo |
+|---|---|
+| `OK` | Aceptada y apuntado al evento. |
+| `NO_EXISTE` | La invitación o el evento ya no existen. |
+| `NO_ES_PARA_TI` | La recibió otro usuario. |
+| `YA_RESPONDIDA` | Ya estaba aceptada o rechazada. |
+| `EVENTO_COMPLETO` | No quedan plazas. No cambia nada: la invitación sigue pendiente y se puede rechazar. |
+
+`InvitacionRepositorio.crear(context)` crea el repositorio con la transacción real. En los tests se usa
+`InvitacionRepositorio(dao)`, que simplemente ejecuta el bloque.
+
 ## Pruebas
 
 - `InvitacionRepositorioTest` (sin emulador): filtro por usuario y estado, orden, actualización del Flow y todos los casos de `rechazar`.
 - `InvitacionDaoTest` (con emulador): comprueba la consulta SQL real sobre una base de datos en memoria.
+- `InvitacionAceptarTest` (sin emulador): aceptar con plaza, evento completo, sin límite, invitación ajena, inexistente, repetida, rechazada y ya apuntado.
 - `InvitacionesScreenTest` (con emulador): lista, contador, mensaje vacío y avisos de Aceptar, Rechazar y Volver.

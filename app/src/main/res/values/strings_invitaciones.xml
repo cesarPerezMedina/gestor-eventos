@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Pantalla "Invitaciones" (Issue 71) -->
+    <string name="invitaciones_titulo">Invitaciones</string>
+    <string name="invitaciones_volver">Volver</string>
+    <string name="invitaciones_contador_una">1 invitación pendiente</string>
+    <string name="invitaciones_contador_varias">%1$d invitaciones pendientes</string>
+    <string name="invitaciones_de">Invitación de @%1$s</string>
+    <string name="invitaciones_aceptar">Aceptar</string>
+    <string name="invitaciones_rechazar">Rechazar</string>
+    <string name="invitaciones_aceptar_descripcion">Aceptar la invitación a %1$s</string>
+    <string name="invitaciones_rechazar_descripcion">Rechazar la invitación a %1$s</string>
+    <string name="invitaciones_vacio_titulo">No tienes invitaciones pendientes</string>
+    <string name="invitaciones_vacio_texto">Cuando alguien te invite a un evento, aparecerá aquí.</string>
+</resources>
