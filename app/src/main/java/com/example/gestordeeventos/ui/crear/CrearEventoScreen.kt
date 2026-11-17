@@ -96,7 +96,7 @@ fun CrearEventoScreen(
     modifier: Modifier = Modifier,
     amigos: List<AmigoInvitable> = amigosInvitablesDeEjemplo,
     onBackClick: () -> Unit = {},
-    onCrearEventoClick: (nombre: String, descripcion: String) -> Unit = { _, _ -> },
+    onCrearEventoClick: (NuevoEvento) -> Unit = {},
     onFechaClick: () -> Unit = {},
     onHoraClick: () -> Unit = {},
     onUbicacionActualClick: () -> Unit = {},
@@ -337,7 +337,18 @@ fun CrearEventoScreen(
                     intentoCrear = true
                     // Solo se crea si el nombre es válido; la descripción es opcional
                     if (errorNombreEvento(nombre) == null) {
-                        onCrearEventoClick(nombre.trim(), descripcion.trim())
+                        onCrearEventoClick(
+                            NuevoEvento(
+                                nombre = nombre.trim(),
+                                descripcion = descripcion.trim(),
+                                deporte = deporte,
+                                publico = esPublico,
+                                minJugadores = minJugadores,
+                                maxJugadores = maxJugadores,
+                                ubicacion = ubicacion.trim(),
+                                invitadosIds = invitados.toList(),
+                            )
+                        )
                     }
                 },
             horizontalArrangement = Arrangement.Center,

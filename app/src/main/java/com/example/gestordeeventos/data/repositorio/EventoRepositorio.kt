@@ -69,17 +69,51 @@ class EventoRepositorio(
      * La visibilidad sale de [Evento.publico]; el creador siempre es quien tiene la sesión.
      */
     suspend fun crearEvento(evento: Evento, invitadosIds: List<Long>): ResultadoEvento {
-        // ... (igual que lo tenías)
-        return TODO("Provide the return value")
+        if (evento.nombre.trim().length < 3) {
+            return ResultadoEvento(false, "El nombre debe tener al menos 3 caracteres")
+        }
+        if (evento.maxParticipantes in 1 until evento.minParticipantes) {
+            return ResultadoEvento(false, "El máximo de jugadores no puede ser menor que el mínimo")
+        }
+
+        val eventoId = eventoDao.insertar(evento.copy(nombre = evento.nombre.trim(), descripcion = evento.descripcion.trim()))
+
+        invitadosIds
+            .distinct()
+            .filter { it != evento.creadorId }
+            .forEach { invitado ->
+                invitacionDao.insertar(
+                    Invitacion(eventoId = eventoId, deUsuarioId = evento.creadorId, paraUsuarioId = invitado)
+                )
+            }
+
+        return ResultadoEvento(
+            ok = true,
+            mensaje = if (evento.publico) "Evento público creado" else "Evento privado creado",
+        )
     }
 
     /** Apuntarse a un evento. En uno privado solo se puede con invitación. */
     suspend fun apuntarse(eventoId: Long, usuarioId: Long): ResultadoEvento {
-        // ... (igual que lo tenías)
-        return TODO("Provide the return value")
-    }
+        val evento = eventoDao.buscarPorId(eventoId)
+            ?: return ResultadoEvento(false, "El evento ya no existe")
 
-    companion object {
+        if (eventoDao.estaApuntado(eventoId, usuarioId)) {
+            return ResultadoEvento(false, "Ya estás apuntado a este evento")
+        }
+        if (!evento.publico && evento.creadorId != usuarioId && !eventoDao.tieneInvitacion(eventoId, usuarioId)) {
+            return ResultadoEvento(false, "Este evento es privado: necesitas una invitación")
+        }
+        if (evento.maxParticipantes > 0 && eventoDao.contarParticipantes(eventoId) >= evento.maxParticipantes) {
+            return ResultadoEvento(false, "El evento está completo")
+        }
+
+        eventoDao.insertarParticipacion(Participacion(eventoId = eventoId, usuarioId = usuarioId))
+        eventoDao.aceptarInvitacion(eventoId, usuarioId)
+        return ResultadoEvento(true, "Te has apuntado al evento")
+    }
+    
+      companion object {
         /** Crea el repositorio usando la base de datos local de la aplicación. */
         fun crear(context: Context): EventoRepositorio {
             val db = AppDatabase.obtener(context)
