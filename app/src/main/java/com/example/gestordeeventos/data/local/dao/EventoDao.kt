@@ -71,4 +71,25 @@ interface EventoDao {
     /** Al apuntarse con una invitación pendiente, se marca como aceptada. */
     @Query("UPDATE invitaciones SET estado = 'ACEPTADA' WHERE eventoId = :eventoId AND paraUsuarioId = :usuarioId AND estado = 'PENDIENTE'")
     suspend fun aceptarInvitacion(eventoId: Long, usuarioId: Long): Int
+=======
+    /**
+     * Devuelve todos los eventos creados por el usuario indicado.
+     * Se ordenan por fecha, de más próximos a más lejanos.
+     */
+    @Query("SELECT * FROM eventos WHERE creadorId = :usuarioId ORDER BY fechaHora ASC")
+    suspend fun listarCreadosPorUsuario(usuarioId: Long): List<Evento>
+
+    /**
+     * Devuelve los eventos en los que el usuario tiene una participación.
+     * El JOIN evita depender de que el usuario sea también el creador.
+     * Se ordenan por fecha, de más próximos a más lejanos.
+     */
+    @Query(
+        "SELECT e.* FROM eventos e " +
+            "INNER JOIN participaciones p ON e.id = p.eventoId " +
+            "WHERE p.usuarioId = :usuarioId " +
+            "ORDER BY e.fechaHora ASC"
+    )
+    suspend fun listarEventosParticipadosPorUsuario(usuarioId: Long): List<Evento>
+
 }
