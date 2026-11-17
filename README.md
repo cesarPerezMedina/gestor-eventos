@@ -78,29 +78,6 @@ La lógica del registro ya guarda usuarios en la base de datos local. La pantall
 
 Tras registrarse, ya se puede iniciar sesión con ese usuario. Ejemplo de conexión en [`docs/AUTENTICACION.md`](docs/AUTENTICACION.md).
 
-## Novedades: tema claro / oscuro (Issue 78)
-
-En Ajustes ya se puede elegir el aspecto de la app.
-
-- **Tres opciones:** seguir al sistema (por defecto), claro u oscuro. Se aplica al instante en toda la app.
-- **Se recuerda:** la elección se guarda en el móvil (`AjustesRepositorio`) y sigue al cerrar y abrir la app.
-- **Textos en español e inglés** (`strings_ajustes.xml`).
-- **Pruebas automáticas:** `AjustesRepositorioTest` (sin emulador) y `AjustesScreenTest` (con emulador).
-- **Aviso:** las pantallas con colores escritos a mano no cambian hasta que usen `MaterialTheme.colorScheme`.
-
-Detalles y cómo probarlo en [`docs/AJUSTES.md`](docs/AJUSTES.md).
-
-## Novedades: tamaño del texto (Issue 79)
-
-Ajustes también permite cambiar el tamaño de los textos de toda la app, pensado para accesibilidad.
-
-- **Cuatro tamaños:** pequeño, normal (por defecto), grande y muy grande. Se aplica al instante.
-- **Se recuerda:** se guarda en el móvil junto al tema (`AjustesRepositorio.escalaTexto`).
-- **Pruebas automáticas:** nuevos casos en `AjustesRepositorioTest` y `AjustesScreenTest`.
-- **Aviso:** con "Muy grande" hay que revisar que ninguna pantalla se corte (alturas fijas).
-
-Cómo probarlo en [`docs/AJUSTES.md`](docs/AJUSTES.md).
-
 ## Novedades: sesión recordada (Issue 16)
 
 La app ya puede recordar quién ha iniciado sesión, aunque se cierre y se vuelva a abrir.
@@ -121,6 +98,13 @@ El repositorio ya sabe qué invitaciones a eventos tiene pendientes un usuario.
 - **Pruebas automáticas:** `InvitacionRepositorioTest` (sin emulador) e `InvitacionDaoTest` (con emulador, comprueba la SQL).
 
 Detalles en [`docs/INVITACIONES.md`](docs/INVITACIONES.md).
+
+## Novedades: rechazar invitaciones (Issue 74)
+
+- **`InvitacionRepositorio.rechazar`:** marca la invitación como rechazada; deja de salir en las pendientes pero no se borra.
+- **Seguro:** solo la puede rechazar quien la recibió y solo mientras esté pendiente. Dos toques seguidos no la responden dos veces.
+- **Resultado claro:** devuelve `OK`, `NO_EXISTE`, `NO_ES_PARA_TI` o `YA_RESPONDIDA`, para que la pantalla muestre el mensaje adecuado.
+- **Pruebas automáticas:** casos nuevos en `InvitacionRepositorioTest` (sin emulador) y en `InvitacionDaoTest` (con emulador).
 
 ## Tecnologías
 

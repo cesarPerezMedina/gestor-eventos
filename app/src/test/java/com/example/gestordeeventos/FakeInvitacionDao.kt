@@ -29,6 +29,16 @@ class FakeInvitacionDao(
 
     override suspend fun buscarPorId(id: Long): Invitacion? = invitaciones.value.firstOrNull { it.id == id }
 
+    override suspend fun responderSiPendiente(id: Long, usuarioId: Long, estado: EstadoInvitacion): Int {
+        val actual = invitaciones.value
+        val indice = actual.indexOfFirst {
+            it.id == id && it.paraUsuarioId == usuarioId && it.estado == EstadoInvitacion.PENDIENTE
+        }
+        if (indice == -1) return 0
+        invitaciones.value = actual.toMutableList().also { it[indice] = it[indice].copy(estado = estado) }
+        return 1
+    }
+
     override fun observarPendientes(usuarioId: Long) = invitaciones.map { todas ->
         todas
             .filter { it.paraUsuarioId == usuarioId && it.estado == EstadoInvitacion.PENDIENTE }

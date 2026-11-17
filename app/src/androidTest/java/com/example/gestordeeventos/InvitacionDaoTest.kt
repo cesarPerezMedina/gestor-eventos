@@ -85,4 +85,31 @@ class InvitacionDaoTest {
 
         assertTrue(db.invitacionDao().observarPendientes(luisId).first().isEmpty())
     }
+
+    @Test
+    fun responderSiPendienteCambiaElEstadoSoloUnaVez() = runBlocking {
+        val id = invitar(futbolId)
+        val dao = db.invitacionDao()
+
+        assertEquals(1, dao.responderSiPendiente(id, anaId, EstadoInvitacion.RECHAZADA))
+        assertEquals(EstadoInvitacion.RECHAZADA, dao.buscarPorId(id)?.estado)
+        assertEquals(0, dao.responderSiPendiente(id, anaId, EstadoInvitacion.ACEPTADA))
+        assertEquals(EstadoInvitacion.RECHAZADA, dao.buscarPorId(id)?.estado)
+    }
+
+    @Test
+    fun responderSiPendienteNoCambiaLaInvitacionDeOtroUsuario() = runBlocking {
+        val id = invitar(futbolId)
+
+        assertEquals(0, db.invitacionDao().responderSiPendiente(id, luisId, EstadoInvitacion.RECHAZADA))
+        assertEquals(EstadoInvitacion.PENDIENTE, db.invitacionDao().buscarPorId(id)?.estado)
+    }
+
+    @Test
+    fun laRechazadaDejaDeSalirEnLasPendientes() = runBlocking {
+        val id = invitar(futbolId)
+        db.invitacionDao().responderSiPendiente(id, anaId, EstadoInvitacion.RECHAZADA)
+
+        assertTrue(db.invitacionDao().observarPendientes(anaId).first().isEmpty())
+    }
 }

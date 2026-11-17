@@ -6,9 +6,11 @@ import com.example.gestordeeventos.data.model.EstadoInvitacion
 import com.example.gestordeeventos.data.model.Invitacion
 import com.example.gestordeeventos.data.model.Usuario
 import com.example.gestordeeventos.data.repositorio.InvitacionRepositorio
+import com.example.gestordeeventos.data.repositorio.ResultadoRespuestaInvitacion
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -88,5 +90,70 @@ class InvitacionRepositorioTest {
         invitar(futbol, de = luis, para = ana)
 
         assertEquals(1, repositorio.observarNumeroPendientes(ana.id).first())
+    }
+
+    // ---------- Rechazar (Issue 74) ----------
+
+    @Test
+    fun rechazarLaQuitaDeLasPendientesYLaDejaComoRechazada() = runTest {
+        val id = invitar(futbol, de = luis, para = ana)
+
+        val resultado = repositorio.rechazar(id, ana.id)
+
+        assertEquals(ResultadoRespuestaInvitacion.OK, resultado)
+        assertTrue(repositorio.observarPendientes(ana.id).first().isEmpty())
+        assertEquals(EstadoInvitacion.RECHAZADA, dao.buscarPorId(id)?.estado)
+    }
+
+    @Test
+    fun rechazarUnaNoAfectaALasDemas() = runTest {
+        val primera = invitar(futbol, de = luis, para = ana)
+        invitar(tenis, de = marta, para = ana)
+
+        repositorio.rechazar(primera, ana.id)
+
+        val nombres = repositorio.observarPendientes(ana.id).first().map { it.eventoNombre }
+        assertEquals(listOf("Tenis dobles"), nombres)
+    }
+
+    @Test
+    fun rechazarUnaInvitacionQueNoExisteAvisa() = runTest {
+        assertEquals(ResultadoRespuestaInvitacion.NO_EXISTE, repositorio.rechazar(99, ana.id))
+    }
+
+    @Test
+    fun nadiePuedeRechazarLaInvitacionDeOtro() = runTest {
+        val id = invitar(futbol, de = luis, para = ana)
+
+        val resultado = repositorio.rechazar(id, marta.id)
+
+        assertEquals(ResultadoRespuestaInvitacion.NO_ES_PARA_TI, resultado)
+        assertEquals(EstadoInvitacion.PENDIENTE, dao.buscarPorId(id)?.estado)
+    }
+
+    @Test
+    fun rechazarDosVecesAvisaDeQueYaEstaRespondida() = runTest {
+        val id = invitar(futbol, de = luis, para = ana)
+        repositorio.rechazar(id, ana.id)
+
+        assertEquals(ResultadoRespuestaInvitacion.YA_RESPONDIDA, repositorio.rechazar(id, ana.id))
+    }
+
+    @Test
+    fun noSePuedeRechazarUnaInvitacionYaAceptada() = runTest {
+        val id = invitar(futbol, de = luis, para = ana, estado = EstadoInvitacion.ACEPTADA)
+
+        val resultado = repositorio.rechazar(id, ana.id)
+
+        assertEquals(ResultadoRespuestaInvitacion.YA_RESPONDIDA, resultado)
+        assertEquals(EstadoInvitacion.ACEPTADA, dao.buscarPorId(id)?.estado)
+    }
+
+    @Test
+    fun laInvitacionRechazadaNoVuelveAAparecerComoPendiente() = runTest {
+        val id = invitar(futbol, de = luis, para = ana)
+        repositorio.rechazar(id, ana.id)
+
+        assertNull(repositorio.observarPendientes(ana.id).first().firstOrNull { it.invitacionId == id })
     }
 }

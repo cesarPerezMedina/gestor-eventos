@@ -3,6 +3,7 @@ package com.example.gestordeeventos.data.local.dao
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
+import com.example.gestordeeventos.data.model.EstadoInvitacion
 import com.example.gestordeeventos.data.model.Invitacion
 import com.example.gestordeeventos.data.model.InvitacionPendiente
 import kotlinx.coroutines.flow.Flow
@@ -32,4 +33,15 @@ interface InvitacionDao {
             "ORDER BY e.fechaHora ASC, i.id ASC"
     )
     fun observarPendientes(usuarioId: Long): Flow<List<InvitacionPendiente>>
+
+    /**
+     * Cambia el estado de la invitación [id] a [estado], pero SOLO si es para [usuarioId] y sigue PENDIENTE.
+     * Devuelve cuántas filas ha cambiado: 1 si se ha cambiado, 0 si no existe, es de otro usuario o ya
+     * estaba respondida. Se hace en una sola sentencia para que dos toques seguidos no la respondan dos veces.
+     */
+    @Query(
+        "UPDATE invitaciones SET estado = :estado " +
+            "WHERE id = :id AND paraUsuarioId = :usuarioId AND estado = 'PENDIENTE'"
+    )
+    suspend fun responderSiPendiente(id: Long, usuarioId: Long, estado: EstadoInvitacion): Int
 }

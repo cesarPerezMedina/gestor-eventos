@@ -23,7 +23,37 @@ val pendientes: StateFlow<List<InvitacionPendiente>> = repositorio
 
 El `usuarioId` sale de `SesionRepositorio.usuarioActual()?.id`.
 
+## Rechazar una invitación (Issue 74)
+
+`InvitacionRepositorio.rechazar(invitacionId, usuarioId)` marca la invitación como `RECHAZADA`. No se borra:
+queda guardada pero deja de salir en las pendientes.
+
+Devuelve un `ResultadoRespuestaInvitacion`; la pantalla decide qué texto enseñar:
+
+| Resultado | Cuándo |
+|---|---|
+| `OK` | Se ha rechazado. |
+| `NO_EXISTE` | La invitación ya no existe (por ejemplo, se borró el evento). |
+| `NO_ES_PARA_TI` | La recibió otro usuario: nadie puede responder por los demás. |
+| `YA_RESPONDIDA` | Ya estaba aceptada o rechazada; no se puede cambiar. |
+
+El cambio se hace en una sola sentencia SQL (`responderSiPendiente`), así que dos toques seguidos en el botón no
+pueden responder dos veces. La **Issue 73 (aceptar)** puede usar esa misma sentencia con `EstadoInvitacion.ACEPTADA`.
+
+### Ejemplo desde un ViewModel
+
+```kotlin
+fun rechazar(invitacionId: Long) {
+    viewModelScope.launch {
+        when (repositorio.rechazar(invitacionId, usuarioId)) {
+            ResultadoRespuestaInvitacion.OK -> Unit // la lista se actualiza sola
+            else -> _mensaje.value = texto(R.string.invitacion_error_respuesta)
+        }
+    }
+}
+```
+
 ## Pruebas
 
-- `InvitacionRepositorioTest` (sin emulador): filtro por usuario y estado, orden y actualización del Flow.
+- `InvitacionRepositorioTest` (sin emulador): filtro por usuario y estado, orden, actualización del Flow y todos los casos de `rechazar`.
 - `InvitacionDaoTest` (con emulador): comprueba la consulta SQL real sobre una base de datos en memoria.
