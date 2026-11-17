@@ -111,7 +111,9 @@ fun CrearEventoScreen(
     var esPublico by rememberSaveable { mutableStateOf(true) }
     var minJugadores by rememberSaveable { mutableStateOf(10) }
     var maxJugadores by rememberSaveable { mutableStateOf(14) }
+    var tipoUbicacion by rememberSaveable { mutableStateOf(TipoUbicacion.POLIDEPORTIVO) }
     var ubicacion by rememberSaveable { mutableStateOf("") }
+    var indicaciones by rememberSaveable { mutableStateOf("") }
     var busquedaAmigo by rememberSaveable { mutableStateOf("") }
     val invitados = remember { mutableStateListOf<String>() }
 
@@ -218,29 +220,17 @@ fun CrearEventoScreen(
         Spacer(Modifier.height(18.dp))
 
         // ---------- Ubicación ----------
-        Etiqueta("Ubicación de la pista o campo")
-        Spacer(Modifier.height(6.dp))
-        CampoTexto(
-            valor = ubicacion,
-            onCambio = { ubicacion = it },
-            placeholder = "Ej: Polideportivo Retiro - Pista Central",
-            icono = Icons.Outlined.Place,
-            unaLinea = true,
-            accionFinal = {
-                Box(
-                    modifier = Modifier
-                        .size(34.dp)
-                        .clip(RoundedCornerShape(10.dp))
-                        .background(CreChip)
-                        .clickable(onClick = onUbicacionActualClick),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Icon(Icons.Outlined.MyLocation, contentDescription = "Usar mi ubicación", tint = CreVioleta, modifier = Modifier.size(18.dp))
-                }
-            },
+        SelectorUbicacionEvento(
+            tipo = tipoUbicacion,
+            onTipoChange = { tipoUbicacion = it },
+            ubicacion = ubicacion,
+            onUbicacionChange = { ubicacion = it },
+            indicaciones = indicaciones,
+            onIndicacionesChange = { indicaciones = it },
+            mostrarError = intentoCrear,
+            onUbicacionActualClick = onUbicacionActualClick,
+            onAmpliarMapaClick = onAmpliarMapaClick,
         )
-        Spacer(Modifier.height(10.dp))
-        VistaPreviaMapa(onAmpliarMapaClick)
 
         Spacer(Modifier.height(18.dp))
 
@@ -335,8 +325,8 @@ fun CrearEventoScreen(
                 .background(Brush.linearGradient(listOf(CreVioleta, CreVioletaClaro)))
                 .clickable {
                     intentoCrear = true
-                    // Solo se crea si el nombre es válido; la descripción es opcional
-                    if (errorNombreEvento(nombre) == null) {
+                    // Solo se crea si el nombre y la ubicación son válidos; la descripción es opcional
+                    if (errorNombreEvento(nombre) == null && errorUbicacionEvento(ubicacion) == null) {
                         onCrearEventoClick(
                             NuevoEvento(
                                 nombre = nombre.trim(),
@@ -345,7 +335,9 @@ fun CrearEventoScreen(
                                 publico = esPublico,
                                 minJugadores = minJugadores,
                                 maxJugadores = maxJugadores,
+                                tipoUbicacion = tipoUbicacion,
                                 ubicacion = ubicacion.trim(),
+                                indicaciones = indicaciones.trim(),
                                 invitadosIds = invitados.toList(),
                             )
                         )
@@ -569,59 +561,6 @@ private fun BotonRedondo(icono: androidx.compose.ui.graphics.vector.ImageVector,
         contentAlignment = Alignment.Center,
     ) {
         Icon(icono, contentDescription = descripcion, tint = CreVioleta, modifier = Modifier.size(18.dp))
-    }
-}
-
-/** Recuadro del mapa. Es un dibujo de relleno: el mapa de verdad se enchufa más adelante. */
-@Composable
-private fun VistaPreviaMapa(onAmpliarClick: () -> Unit) {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(118.dp)
-            .clip(RoundedCornerShape(16.dp))
-            .background(Brush.linearGradient(listOf(Color(0xFFE7EAFB), Color(0xFFDCD7F5))))
-            .border(1.dp, CreLinea, RoundedCornerShape(16.dp)),
-    ) {
-        Column(
-            modifier = Modifier.align(Alignment.Center),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(40.dp)
-                    .clip(CircleShape)
-                    .background(CreBoton),
-                contentAlignment = Alignment.Center,
-            ) {
-                Icon(Icons.Outlined.SportsSoccer, contentDescription = null, tint = Color.White, modifier = Modifier.size(22.dp))
-            }
-            Spacer(Modifier.height(6.dp))
-            Text(
-                text = "Pista 2 reservada",
-                color = CreTinta,
-                fontSize = 10.sp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier
-                    .clip(RoundedCornerShape(50))
-                    .background(Color.White)
-                    .padding(horizontal = 9.dp, vertical = 3.dp),
-            )
-        }
-        Row(
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(8.dp)
-                .clip(RoundedCornerShape(50))
-                .background(CreChip)
-                .clickable(onClick = onAmpliarClick)
-                .padding(horizontal = 9.dp, vertical = 5.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Icon(Icons.Outlined.OpenInFull, contentDescription = null, tint = CreVioleta, modifier = Modifier.size(12.dp))
-            Spacer(Modifier.size(4.dp))
-            Text("Ampliar", color = CreVioleta, fontSize = 10.sp, fontWeight = FontWeight.Bold)
-        }
     }
 }
 

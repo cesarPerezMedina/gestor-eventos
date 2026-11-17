@@ -19,6 +19,7 @@ data class NuevoEvento(
     val maxJugadores: Int,
     val ubicacion: String,
     val invitadosIds: List<String>,
+    val tipoUbicacion: TipoUbicacion = TipoUbicacion.POLIDEPORTIVO,
     val indicaciones: String = "",
     val latitud: Double? = null,
     val longitud: Double? = null,
