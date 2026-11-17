@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- "Invitations" screen (Issue 71) -->
+    <string name="invitaciones_titulo">Invitations</string>
+    <string name="invitaciones_volver">Back</string>
+    <string name="invitaciones_contador_una">1 pending invitation</string>
+    <string name="invitaciones_contador_varias">%1$d pending invitations</string>
+    <string name="invitaciones_de">Invitation from @%1$s</string>
+    <string name="invitaciones_aceptar">Accept</string>
+    <string name="invitaciones_rechazar">Decline</string>
+    <string name="invitaciones_aceptar_descripcion">Accept the invitation to %1$s</string>
+    <string name="invitaciones_rechazar_descripcion">Decline the invitation to %1$s</string>
+    <string name="invitaciones_vacio_titulo">You have no pending invitations</string>
+    <string name="invitaciones_vacio_texto">When someone invites you to an event, it will show up here.</string>
+</resources>

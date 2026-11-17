@@ -112,6 +112,12 @@ Detalles en [`docs/INVITACIONES.md`](docs/INVITACIONES.md).
 - **Estado vacío y accesibilidad:** mensaje cuando no hay invitaciones, botones con descripción para lectores de pantalla y textos en español e inglés.
 - **Pruebas automáticas:** `InvitacionesScreenTest` (con emulador). Más detalles en [`docs/INVITACIONES.md`](docs/INVITACIONES.md).
 
+## Novedades: aceptar invitaciones (Issue 73)
+
+- **`InvitacionRepositorio.aceptar`:** acepta la invitación y apunta al usuario al evento (público o privado), todo en una sola transacción.
+- **Reglas:** solo quien la recibió y mientras siga pendiente; no deja apuntarse si el evento está completo (la invitación sigue pendiente) y no duplica participaciones.
+- **Pruebas automáticas:** `InvitacionAceptarTest` (sin emulador).
+
 ## Tecnologías
 
 | Área | Tecnología |

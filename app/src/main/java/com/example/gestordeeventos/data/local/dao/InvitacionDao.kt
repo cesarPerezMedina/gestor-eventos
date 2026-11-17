@@ -2,10 +2,13 @@ package com.example.gestordeeventos.data.local.dao
 
 import androidx.room.Dao
 import androidx.room.Insert
+import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import com.example.gestordeeventos.data.model.EstadoInvitacion
+import com.example.gestordeeventos.data.model.Evento
 import com.example.gestordeeventos.data.model.Invitacion
 import com.example.gestordeeventos.data.model.InvitacionPendiente
+import com.example.gestordeeventos.data.model.Participacion
 import kotlinx.coroutines.flow.Flow
 
 /** Consultas sobre "invitaciones". */
@@ -44,4 +47,22 @@ interface InvitacionDao {
             "WHERE id = :id AND paraUsuarioId = :usuarioId AND estado = 'PENDIENTE'"
     )
     suspend fun responderSiPendiente(id: Long, usuarioId: Long, estado: EstadoInvitacion): Int
+
+    // --- Aceptar una invitación (Issue 73): apuntarse al evento ---
+
+    /** El evento de la invitación, para conocer su cupo máximo. null si ya no existe. */
+    @Query("SELECT * FROM eventos WHERE id = :eventoId")
+    suspend fun buscarEvento(eventoId: Long): Evento?
+
+    /** Cuántas personas están ya apuntadas al evento. */
+    @Query("SELECT COUNT(*) FROM participaciones WHERE eventoId = :eventoId")
+    suspend fun contarParticipantes(eventoId: Long): Int
+
+    /** true si [usuarioId] ya está apuntado al evento. */
+    @Query("SELECT EXISTS(SELECT 1 FROM participaciones WHERE eventoId = :eventoId AND usuarioId = :usuarioId)")
+    suspend fun yaParticipa(eventoId: Long, usuarioId: Long): Boolean
+
+    /** Apunta al usuario al evento. Si ya estaba apuntado no hace nada y devuelve -1. */
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insertarParticipacion(participacion: Participacion): Long
 }

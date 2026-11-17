@@ -5,6 +5,7 @@ import com.example.gestordeeventos.data.model.Evento
 import com.example.gestordeeventos.data.model.EstadoInvitacion
 import com.example.gestordeeventos.data.model.Invitacion
 import com.example.gestordeeventos.data.model.InvitacionPendiente
+import com.example.gestordeeventos.data.model.Participacion
 import com.example.gestordeeventos.data.model.Usuario
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.map
@@ -20,6 +21,7 @@ class FakeInvitacionDao(
 ) : InvitacionDao {
 
     private val invitaciones = MutableStateFlow<List<Invitacion>>(emptyList())
+    private val participaciones = mutableListOf<Participacion>()
 
     override suspend fun insertar(invitacion: Invitacion): Long {
         val id = invitaciones.value.size + 1L
@@ -28,6 +30,27 @@ class FakeInvitacionDao(
     }
 
     override suspend fun buscarPorId(id: Long): Invitacion? = invitaciones.value.firstOrNull { it.id == id }
+
+    override suspend fun buscarEvento(eventoId: Long): Evento? = eventos.firstOrNull { it.id == eventoId }
+
+    override suspend fun contarParticipantes(eventoId: Long): Int = participaciones.count { it.eventoId == eventoId }
+
+    override suspend fun yaParticipa(eventoId: Long, usuarioId: Long): Boolean =
+        participaciones.any { it.eventoId == eventoId && it.usuarioId == usuarioId }
+
+    override suspend fun insertarParticipacion(participacion: Participacion): Long {
+        if (yaParticipa(participacion.eventoId, participacion.usuarioId)) return -1
+        participaciones.add(participacion)
+        return participaciones.size.toLong()
+    }
+
+    /** Para los tests: ids de los usuarios apuntados al evento, en orden de llegada. */
+    fun participantesDe(eventoId: Long): List<Long> =
+        participaciones.filter { it.eventoId == eventoId }.map { it.usuarioId }
+
+    /** Para los tests: el estado actual de una invitación. */
+    fun estadoDe(invitacionId: Long): EstadoInvitacion? =
+        invitaciones.value.firstOrNull { it.id == invitacionId }?.estado
 
     override suspend fun responderSiPendiente(id: Long, usuarioId: Long, estado: EstadoInvitacion): Int {
         val actual = invitaciones.value
