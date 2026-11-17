@@ -4,11 +4,16 @@ import android.content.Context
 import com.example.gestordeeventos.data.local.AppDatabase
 import com.example.gestordeeventos.data.local.dao.EventoDao
 import com.example.gestordeeventos.data.local.dao.InvitacionDao
+import com.example.gestordeeventos.data.localizacion.EventoConDistancia
+import com.example.gestordeeventos.data.localizacion.Ubicacion
+import com.example.gestordeeventos.data.localizacion.cajaDelimitadora
+import com.example.gestordeeventos.data.localizacion.distanciaKm
 import com.example.gestordeeventos.data.model.Evento
 import com.example.gestordeeventos.data.model.EventoConCupo
 import com.example.gestordeeventos.data.model.Invitacion
 import com.example.gestordeeventos.data.model.Participacion
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 
 data class ResultadoEvento(val ok: Boolean, val mensaje: String)
 
@@ -26,6 +31,23 @@ class EventoRepositorio(
 
     /** Eventos de Buscar con su número de apuntados: solo los públicos, siempre actualizados. */
     fun eventosPublicosConCupo(): Flow<List<EventoConCupo>> = eventoDao.observarPublicosConCupo()
+
+    /**
+     * Búsqueda por cercanía (Issue 57): eventos públicos a menos de [radioKm] km de [centro],
+     * del más cercano al más lejano. Primero la base de datos descarta lo que queda fuera de un
+     * rectángulo alrededor del punto; después se calcula la distancia exacta y se filtra por el radio.
+     */
+    fun eventosPublicosCerca(centro: Ubicacion, radioKm: Double): Flow<List<EventoConDistancia>> {
+        val caja = cajaDelimitadora(centro, radioKm)
+        return eventoDao
+            .observarPublicosEnCaja(caja.latMin, caja.latMax, caja.lonMin, caja.lonMax)
+            .map { lista ->
+                lista
+                    .map { EventoConDistancia(it, distanciaKm(centro.latitud, centro.longitud, it.evento.latitud, it.evento.longitud)) }
+                    .filter { it.distanciaKm <= radioKm }
+                    .sortedBy { it.distanciaKm }
+            }
+    }
 
     /** Eventos de "Mis eventos": los que creo, en los que participo o a los que me han invitado. */
     fun misEventos(usuarioId: Long): Flow<List<Evento>> = eventoDao.observarMisEventos(usuarioId)

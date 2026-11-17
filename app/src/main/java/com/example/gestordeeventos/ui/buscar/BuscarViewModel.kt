@@ -9,11 +9,16 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.example.gestordeeventos.data.localizacion.Ubicacion
 import com.example.gestordeeventos.data.model.Deporte
 import com.example.gestordeeventos.data.model.EventoConCupo
 import com.example.gestordeeventos.data.repositorio.EventoRepositorio
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import java.time.Instant
@@ -30,21 +35,55 @@ data class EstadoBuscar(
 )
 
 /**
- * ViewModel de "Buscar eventos" (Issue 56).
- * Solo trabaja con eventos públicos: la consulta de Room ya descarta los privados y aquí se vuelve a
- * comprobar, para que un evento privado no pueda salir en Buscar aunque cambie la consulta.
- * Es un Flow de Room: si alguien crea un evento o se apunta, la lista se actualiza sola.
+ * ViewModel de "Buscar eventos" (Issues 56 y 57).
+ *
+ * - Solo trabaja con eventos públicos (la consulta de Room ya descarta los privados y aquí se vuelve a comprobar).
+ * - En "Cerca de mí", si se conoce la ubicación del usuario, enseña los eventos a menos de [radio] km,
+ *   del más cercano al más lejano, con su distancia.
+ * - Si no hay ubicación (sin permiso, GPS apagado...) o se busca "Por nombre", enseña todos los públicos por fecha.
+ * Todo viene de Flows de Room: si alguien crea un evento o se apunta, la lista se actualiza sola.
  */
-class BuscarViewModel(repositorio: EventoRepositorio) : ViewModel() {
+@OptIn(ExperimentalCoroutinesApi::class)
+class BuscarViewModel(private val repositorio: EventoRepositorio) : ViewModel() {
 
-    val estado: StateFlow<EstadoBuscar> = repositorio.eventosPublicosConCupo()
-        .map { lista -> lista.filter { it.evento.publico }.aEstado() }
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5_000),
-            initialValue = EstadoBuscar(),
-        )
+    private val ubicacion = MutableStateFlow<Ubicacion?>(null)
+    private val radioKm = MutableStateFlow(RADIOS_KM.first())
+    private val buscarCerca = MutableStateFlow(true)
+
+    val estado: StateFlow<EstadoBuscar> = combine(ubicacion, radioKm, buscarCerca) { u, r, cerca ->
+        ParametrosBusqueda(if (cerca) u else null, r)
+    }.flatMapLatest { parametros ->
+        val centro = parametros.centro
+        if (centro != null) {
+            repositorio.eventosPublicosCerca(centro, parametros.radioKm.toDouble())
+                .map { lista -> lista.filter { it.evento.evento.publico }.map { it.evento to it.distanciaKm }.aEstado() }
+        } else {
+            repositorio.eventosPublicosConCupo()
+                .map { lista -> lista.filter { it.evento.publico }.map { it to null }.aEstado() }
+        }
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5_000),
+        initialValue = EstadoBuscar(),
+    )
+
+    /** La pantalla avisa cuando obtiene la ubicación del usuario. */
+    fun actualizarUbicacion(nueva: Ubicacion?) {
+        ubicacion.value = nueva
+    }
+
+    /** Chips "< 2 km", "5 km"... */
+    fun cambiarRadio(km: Int) {
+        radioKm.value = km
+    }
+
+    /** Pestañas "Cerca de mí" / "Por nombre". */
+    fun cambiarModo(modo: ModoBusqueda) {
+        buscarCerca.value = modo == ModoBusqueda.CERCA_DE_MI
+    }
 }
+
+private data class ParametrosBusqueda(val centro: Ubicacion?, val radioKm: Int)
 
 class BuscarViewModelFactory(
     private val repositorio: EventoRepositorio,
@@ -55,9 +94,10 @@ class BuscarViewModelFactory(
 
 // ---------- De Room a lo que pinta la pantalla ----------
 
-private fun List<EventoConCupo>.aEstado(): EstadoBuscar {
-    val eventos = map { it.aItem() }
-    val porDeporte = groupingBy { it.evento.deporte }.eachCount()
+/** Cada pareja es un evento y su distancia en km (null si no se conoce). */
+private fun List<Pair<EventoConCupo, Double?>>.aEstado(): EstadoBuscar {
+    val eventos = map { (evento, distancia) -> evento.aItem(distancia) }
+    val porDeporte = groupingBy { it.first.evento.deporte }.eachCount()
     val chips = porDeporte.map { (deporte, cantidad) ->
         FiltroDeporteBuscar(
             id = deporte.name,
@@ -72,7 +112,7 @@ private fun List<EventoConCupo>.aEstado(): EstadoBuscar {
     )
 }
 
-private fun EventoConCupo.aItem(): EventoBuscarItem {
+private fun EventoConCupo.aItem(distanciaKm: Double?): EventoBuscarItem {
     val maximo = evento.maxParticipantes
     val faltan = maximo - apuntados
     val (etiqueta, estilo) = when {
@@ -85,7 +125,7 @@ private fun EventoConCupo.aItem(): EventoBuscarItem {
         titulo = evento.nombre,
         icono = iconoDe(evento.deporte),
         cuando = textoCuando(evento.fechaHora),
-        distanciaKm = null, // llegará cuando se use la ubicación del usuario
+        distanciaKm = distanciaKm,
         lugar = evento.direccion.ifBlank { "Sin ubicación" },
         apuntados = apuntados,
         maximo = maximo,

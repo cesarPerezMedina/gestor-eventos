@@ -135,6 +135,10 @@ fun BuscarEventoScreen(
     onMapaClick: () -> Unit = {},
     onFiltrosClick: () -> Unit = {},
     onOrdenClick: () -> Unit = {},
+    onModoChange: (ModoBusqueda) -> Unit = {},
+    onRadioChange: (Int) -> Unit = {},
+    avisoUbicacion: String? = null,
+    onAvisoUbicacionClick: () -> Unit = {},
     onBuscar: (String) -> Unit = {},
     onDetalleClick: (String) -> Unit = {},
     onUnirmeClick: (String) -> Unit = {},
@@ -163,11 +167,14 @@ fun BuscarEventoScreen(
             )
         }
 
-        item { PestanasModo(modo = modo, onCambio = { modo = it }) }
+        item { PestanasModo(modo = modo, onCambio = { modo = it; onModoChange(it) }) }
 
         // El radio solo tiene sentido al buscar cerca de ti
         if (modo == ModoBusqueda.CERCA_DE_MI) {
-            item { FilaRadio(seleccionado = radioKm, onCambio = { radioKm = it }) }
+            item { FilaRadio(seleccionado = radioKm, onCambio = { radioKm = it; onRadioChange(it) }) }
+            if (avisoUbicacion != null) {
+                item { AvisoUbicacion(texto = avisoUbicacion, onClick = onAvisoUbicacionClick) }
+            }
         }
 
         item {
@@ -365,6 +372,24 @@ private fun FilaRadio(seleccionado: Int, onCambio: (Int) -> Unit) {
                     .padding(horizontal = 12.dp, vertical = 6.dp),
             )
         }
+    }
+}
+
+/** Franja que explica por qué no se puede buscar cerca (sin permiso, ubicación apagada...) y deja arreglarlo. */
+@Composable
+private fun AvisoUbicacion(texto: String, onClick: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(14.dp))
+            .background(BusChip)
+            .clickable(onClick = onClick)
+            .padding(horizontal = 12.dp, vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(Icons.Outlined.LocationOn, contentDescription = null, tint = BusVioleta, modifier = Modifier.size(18.dp))
+        Spacer(Modifier.width(8.dp))
+        Text(texto, color = BusVioleta, fontSize = 12.sp, fontWeight = FontWeight.Medium, modifier = Modifier.weight(1f))
     }
 }
 
