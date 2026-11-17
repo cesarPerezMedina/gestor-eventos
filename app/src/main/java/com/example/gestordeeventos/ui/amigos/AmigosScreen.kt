@@ -34,15 +34,18 @@ import androidx.compose.material.icons.outlined.PersonSearch
 import androidx.compose.material.icons.outlined.QrCodeScanner
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.SportsTennis
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -131,11 +134,14 @@ fun AmigosScreen(
     onRechazarInvitacion: (InvitacionRecibida) -> Unit = {},
     onMensajeClick: (AmigoItem) -> Unit = {},
     onEliminarClick: (AmigoItem) -> Unit = {},
+    onBloquearClick: (AmigoItem) -> Unit = {},
 ) {
     var pestana by rememberSaveable { mutableIntStateOf(0) }
     var consulta by rememberSaveable { mutableStateOf("") }
     var filtroIndice by rememberSaveable { mutableIntStateOf(0) }
     val filtro = FiltroBusqueda.values()[filtroIndice]
+    // Amigo sobre el que se ha pulsado "Eliminar": abre el diálogo eliminar / bloquear
+    var amigoSeleccionado by remember { mutableStateOf<AmigoItem?>(null) }
 
     Surface(modifier = modifier.fillMaxSize(), color = AmiPagina) {
         Column(
@@ -271,7 +277,7 @@ fun AmigosScreen(
                     .background(Color.White),
             ) {
                 amigos.forEachIndexed { indice, amigo ->
-                    FilaAmigo(amigo, onMensaje = { onMensajeClick(amigo) }, onEliminar = { onEliminarClick(amigo) })
+                    FilaAmigo(amigo, onMensaje = { onMensajeClick(amigo) }, onEliminar = { amigoSeleccionado = amigo })
                     if (indice < amigos.lastIndex) {
                         Box(Modifier.fillMaxWidth().padding(horizontal = 14.dp).height(1.dp).background(AmiLinea))
                     }
@@ -280,6 +286,44 @@ fun AmigosScreen(
 
             Spacer(Modifier.height(24.dp))
         }
+    }
+
+    amigoSeleccionado?.let { amigo ->
+        AlertDialog(
+            onDismissRequest = { amigoSeleccionado = null },
+            containerColor = Color.White,
+            title = {
+                Text("@${amigo.usuario}", color = AmiTinta, fontWeight = FontWeight.ExtraBold)
+            },
+            text = {
+                Text(
+                    text = "Eliminar lo quita de tu lista de amigos. Bloquear además impide que te vuelva a enviar solicitudes.",
+                    color = AmiSubtitulo,
+                    fontSize = 14.sp,
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    onEliminarClick(amigo)
+                    amigoSeleccionado = null
+                }) {
+                    Text("Eliminar", color = AmiRojo, fontWeight = FontWeight.Bold)
+                }
+            },
+            dismissButton = {
+                Row {
+                    TextButton(onClick = { amigoSeleccionado = null }) {
+                        Text("Cancelar", color = AmiSubtitulo, fontWeight = FontWeight.Bold)
+                    }
+                    TextButton(onClick = {
+                        onBloquearClick(amigo)
+                        amigoSeleccionado = null
+                    }) {
+                        Text("Bloquear", color = AmiRojo, fontWeight = FontWeight.Bold)
+                    }
+                }
+            },
+        )
     }
 }
 
