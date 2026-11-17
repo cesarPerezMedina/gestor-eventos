@@ -92,9 +92,6 @@ interface EventoDao {
     /** Al apuntarse con una invitación pendiente, se marca como aceptada. */
     @Query("UPDATE invitaciones SET estado = 'ACEPTADA' WHERE eventoId = :eventoId AND paraUsuarioId = :usuarioId AND estado = 'PENDIENTE'")
     suspend fun aceptarInvitacion(eventoId: Long, usuarioId: Long): Int
-}
-
-
 
     /**
      * Devuelve todos los eventos creados por el usuario indicado.
@@ -115,6 +112,5 @@ interface EventoDao {
             "ORDER BY e.fechaHora ASC"
     )
     suspend fun listarEventosParticipadosPorUsuario(usuarioId: Long): List<Evento>
-
 }
 

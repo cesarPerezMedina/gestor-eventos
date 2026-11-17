@@ -44,11 +44,6 @@ import com.example.gestordeeventos.ui.crear.CrearEventoViewModelFactory
 import com.example.gestordeeventos.ui.evento.MisEventosScreen
 import com.example.gestordeeventos.ui.inicio.InicioScreen
 import com.example.gestordeeventos.util.SesionManager
-import com.example.gestordeeventos.ui.amigos.AmigosViewModel
-import com.example.gestordeeventos.ui.amigos.AmigosViewModelFactory
-import com.example.gestordeeventos.data.repositorio.AmistadRepositorio;
-import com.example.gestordeeventos.data.repositorio.SesionRepositorio
-import com.example.gestordeeventos.ui.ajustes.AjustesScreen
 
 
 @Composable

@@ -88,7 +88,7 @@ data class FiltroDeporteBuscar(
 
 
 /** Un evento tal como se pinta en la tarjeta. */
-data class EventoBuscarItem(
+/*data class EventoBuscarItem(
     val id: String,
     val titulo: String,
     val icono: ImageVector,
@@ -103,7 +103,7 @@ data class EventoBuscarItem(
     val estiloEtiqueta: EstiloEtiqueta = EstiloEtiqueta.NEUTRA,
     val organizador: String? = null,
     val avatares: List<String> = emptyList(),
-)
+)*/
 private val MARCAS_DIACRITICAS = Regex("\\p{InCombiningDiacriticalMarks}+")
 
 /** Minúsculas, sin tildes y sin espacios sobrantes: "  Pádel " -> "padel". */
