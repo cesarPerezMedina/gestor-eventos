@@ -1,3 +1,4 @@
+
 package com.example.gestordeeventos.ui.crear
 
 import androidx.lifecycle.ViewModel
@@ -20,6 +21,10 @@ data class NuevoEvento(
     val invitadosIds: List<String>,
     val tipoUbicacion: TipoUbicacion = TipoUbicacion.POLIDEPORTIVO,
     val indicaciones: String = "",
+    val latitud: Double? = null,
+    val longitud: Double? = null,
+    val inicioMillis: Long = System.currentTimeMillis(),
+    val finMillis: Long = 0L,
 )
 
 /**
@@ -46,10 +51,12 @@ class CrearEventoViewModel(
                 publico = nuevo.publico,
                 minParticipantes = nuevo.minJugadores,
                 maxParticipantes = nuevo.maxJugadores,
+                latitud = nuevo.latitud ?: 0.0,
+                longitud = nuevo.longitud ?: 0.0,
                 // Evento solo tiene un campo de texto para el lugar: si hay indicaciones, van detrás
                 direccion = listOf(nuevo.ubicacion, nuevo.indicaciones).filter { it.isNotBlank() }.joinToString(" · "),
-                // PENDIENTE: la pantalla todavía no guarda fecha, hora ni coordenadas del mapa
-                fechaHora = System.currentTimeMillis(),
+                // PENDIENTE: la hora de fin (nuevo.finMillis) todavía no tiene columna en Evento
+                fechaHora = nuevo.inicioMillis,
                 creadorId = yo,
             )
             val resultado = repositorio.crearEvento(evento, nuevo.invitadosIds.mapNotNull { it.toLongOrNull() })
@@ -66,3 +73,4 @@ class CrearEventoViewModelFactory(
     override fun <T : ViewModel> create(modelClass: Class<T>): T =
         CrearEventoViewModel(repositorio, miId) as T
 }
+ 
