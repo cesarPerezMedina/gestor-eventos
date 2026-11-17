@@ -124,6 +124,12 @@ Detalles en [`docs/INVITACIONES.md`](docs/INVITACIONES.md).
 - **Listas de eventos vivas:** `EventoRepositorio.observarEventosCreados` y `observarEventosUnidos` se actualizan al aceptar una invitación (el evento pasa a "unidos").
 - **Pruebas automáticas:** `InvitacionesViewModelTest` (sin emulador).
 
+## Novedades: pruebas del flujo de invitaciones (Issue 76)
+
+- **Flujo completo probado:** crear un evento con invitados, recibirlas, aceptar o rechazar y comprobar qué ve cada usuario (plazas, eventos privados, respuestas repetidas).
+- **Dos niveles:** `FlujoInvitacionesRepositorioTest` (sin emulador) y `FlujoInvitacionesTest` (con Room real en memoria).
+- **Casos y cómo ejecutarlas:** [`docs/PRUEBAS_INVITACIONES.md`](docs/PRUEBAS_INVITACIONES.md).
+
 ## Tecnologías
 
 | Área | Tecnología |
