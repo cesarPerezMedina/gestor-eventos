@@ -27,6 +27,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AddCircleOutline
 import androidx.compose.material.icons.outlined.CalendarToday
 import androidx.compose.material.icons.outlined.ChevronRight
+import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material.icons.outlined.Map
 import androidx.compose.material.icons.outlined.Navigation
@@ -39,12 +40,14 @@ import androidx.compose.material.icons.outlined.SportsTennis
 import androidx.compose.material.icons.outlined.SwapVert
 import androidx.compose.material.icons.outlined.Tune
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -54,6 +57,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -65,6 +69,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.gestordeeventos.ui.theme.GestorDeEventosTheme
+import java.text.Normalizer
 import java.util.Locale
 
 // --- Colores de la pantalla (mismos tonos que Amigos y Crear evento) ---
@@ -119,10 +124,33 @@ data class EventoBuscarItem(
     val avatares: List<String> = emptyList(),
 )
 
+// --- Búsqueda por nombre (Issue 55) ---
+
+private val MARCAS_DIACRITICAS = Regex("\\p{InCombiningDiacriticalMarks}+")
+
+/** Minúsculas, sin tildes y sin espacios sobrantes: "  Pádel " -> "padel". */
+private fun String.normalizar(): String =
+    Normalizer.normalize(trim().lowercase(Locale.getDefault()), Normalizer.Form.NFD)
+        .replace(MARCAS_DIACRITICAS, "")
+
 /**
- * Pantalla "Buscar eventos" (Issue 54). De momento es solo la interfaz: lo que el usuario toca
- * (modo, radio, deporte, texto) se guarda en variables locales y los botones avisan con callbacks.
- * Filtrar de verdad y cargar los eventos de la base de datos llegará en las siguientes issues.
+ * Devuelve los eventos cuyo título contiene TODAS las palabras de la consulta
+ * (sin importar mayúsculas ni tildes). Con la consulta vacía devuelve la lista entera.
+ */
+fun filtrarPorNombre(eventos: List<EventoBuscarItem>, consulta: String): List<EventoBuscarItem> {
+    val palabras = consulta.normalizar().split(Regex("\\s+")).filter { it.isNotEmpty() }
+    if (palabras.isEmpty()) return eventos
+    return eventos.filter { evento ->
+        val titulo = evento.titulo.normalizar()
+        palabras.all { it in titulo }
+    }
+}
+
+/**
+ * Pantalla "Buscar eventos" (Issue 54 + Issue 55). Lo que el usuario toca (modo, radio,
+ * deporte, texto) se guarda en variables locales y los botones avisan con callbacks.
+ * La barra de búsqueda ya filtra por nombre de evento mientras se escribe; filtrar por
+ * deporte/radio y cargar los eventos de la base de datos llegará en las siguientes issues.
  *
  * Todos los parámetros tienen valor por defecto, así que `BuscarEventoScreen()` sigue compilando.
  * La lista y los filtros por defecto son datos de ejemplo para ver el diseño.
@@ -144,6 +172,8 @@ fun BuscarEventoScreen(
     var modo by rememberSaveable { mutableStateOf(ModoBusqueda.CERCA_DE_MI) }
     var radioKm by rememberSaveable { mutableStateOf(RADIOS_KM.first()) }
     var deporteId by rememberSaveable { mutableStateOf(filtrosDeporte.firstOrNull()?.id.orEmpty()) }
+
+    val eventosVisibles = remember(eventos, consulta) { filtrarPorNombre(eventos, consulta) }
 
     LazyColumn(
         modifier = modifier
@@ -181,12 +211,12 @@ fun BuscarEventoScreen(
         item {
             EncabezadoLista(
                 titulo = if (modo == ModoBusqueda.CERCA_DE_MI) "Eventos cercanos" else "Resultados",
-                disponibles = eventos.size,
+                disponibles = eventosVisibles.size,
                 onOrdenClick = onOrdenClick,
             )
         }
 
-        items(eventos, key = { it.id }) { evento ->
+        items(eventosVisibles, key = { it.id }) { evento ->
             TarjetaEventoBuscar(
                 evento = evento,
                 onDetalleClick = { onDetalleClick(evento.id) },
@@ -194,10 +224,14 @@ fun BuscarEventoScreen(
             )
         }
 
-        if (eventos.isEmpty()) {
+        if (eventosVisibles.isEmpty()) {
             item {
                 Text(
-                    text = "No hay eventos con estos filtros",
+                    text = if (consulta.isBlank()) {
+                        "No hay eventos con estos filtros"
+                    } else {
+                        "No hay eventos que coincidan con «${consulta.trim()}»"
+                    },
                     color = BusGris,
                     fontSize = 14.sp,
                     textAlign = TextAlign.Center,
@@ -256,6 +290,8 @@ private fun BarraBusqueda(
     onBuscar: () -> Unit,
     onFiltrosClick: () -> Unit,
 ) {
+    val focusManager = LocalFocusManager.current
+
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
@@ -269,7 +305,7 @@ private fun BarraBusqueda(
             shape = RoundedCornerShape(14.dp),
             placeholder = {
                 Text(
-                    "Nombre de evento, pista o club...",
+                    "Nombre del evento...",
                     color = BusGris,
                     fontSize = 13.sp,
                     maxLines = 1,
@@ -277,8 +313,18 @@ private fun BarraBusqueda(
                 )
             },
             leadingIcon = { Icon(Icons.Outlined.Search, contentDescription = null, tint = BusSubtitulo) },
+            trailingIcon = {
+                if (consulta.isNotEmpty()) {
+                    IconButton(onClick = { onCambio("") }) {
+                        Icon(Icons.Outlined.Close, contentDescription = "Borrar búsqueda", tint = BusGris)
+                    }
+                }
+            },
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-            keyboardActions = KeyboardActions(onSearch = { onBuscar() }),
+            keyboardActions = KeyboardActions(onSearch = {
+                onBuscar()
+                focusManager.clearFocus()
+            }),
             colors = OutlinedTextFieldDefaults.colors(
                 focusedContainerColor = Color.White,
                 unfocusedContainerColor = Color.White,
