@@ -89,6 +89,18 @@ La app ya puede recordar quién ha iniciado sesión, aunque se cierre y se vuelv
 
 Cómo conectarlo a la navegación y al login está en [`docs/AUTENTICACION.md`](docs/AUTENTICACION.md).
 
+## Novedades: flujo de autenticación completo (Issue 20)
+
+Login, Registro y sesión ya funcionan de extremo a extremo en la app, sobre la base de datos local.
+
+- **Login y Registro conectados:** los botones usan `LoginViewModel` y `RegistroViewModel`; los errores salen bajo cada campo y el botón se desactiva mientras se comprueba.
+- **Sesión recordada:** al abrir la app entra directo si ya había una sesión iniciada; si no, muestra el Login.
+- **Inicio con el nombre real:** el dashboard ya muestra el nombre del usuario que ha iniciado sesión, en lugar de uno provisional.
+- **Cerrar sesión:** olvida la sesión completa, para que la app no entre sola al reabrirla.
+- **Correcciones:** restablecer contraseña ya guarda en el formato que entiende el login; se borran los errores obsoletos al reenviar un formulario y la pista de contraseña del registro ya coincide con las reglas reales.
+
+Pasos para probarlo a mano en [`docs/AUTENTICACION.md`](docs/AUTENTICACION.md).
+
 ## Tecnologías
 
 | Área | Tecnología |
