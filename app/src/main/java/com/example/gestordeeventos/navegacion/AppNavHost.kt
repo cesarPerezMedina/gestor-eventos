@@ -41,7 +41,7 @@ import com.example.gestordeeventos.ui.amigos.AmigosViewModel
 import com.example.gestordeeventos.ui.amigos.AmigosViewModelFactory
 import com.example.gestordeeventos.data.repositorio.AmistadRepositorio;
 import com.example.gestordeeventos.data.repositorio.SesionRepositorio
-
+import com.example.gestordeeventos.ui.ajustes.AjustesScreen
 
 
 @Composable
