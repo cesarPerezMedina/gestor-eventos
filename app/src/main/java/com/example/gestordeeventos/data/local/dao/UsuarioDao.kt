@@ -31,12 +31,6 @@ interface UsuarioDao {
     )
     suspend fun buscarPorNombreUsuarioParcial(texto: String, miCorreo: String, limite: Int): List<Usuario>
 
-    @Query("SELECT * FROM usuarios WHERE correo = :correo LIMIT 1")//Significa: “busca en la tabla de usuarios uno con este correo”. Devuelve el usuario si existe, o null (nada) si no. La usamos para saber si el correo que escribió la persona está registrado.
-    suspend fun buscarPorCorreo(correo: String): Usuario?
-  
-    @Query("UPDATE usuarios SET claveHash = :nueva WHERE correo = :correo")// cambiar contraseña por esta
-    suspend fun cambiarContrasena(correo: String, nueva: String)
-
     /**
      * Busca un usuario por su correo o por su nombre de usuario, sin distinguir mayúsculas
      * (es lo que se escribe en el campo único del login). Devuelve null si no existe.
