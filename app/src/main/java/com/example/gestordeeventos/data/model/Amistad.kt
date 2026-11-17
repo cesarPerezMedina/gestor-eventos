@@ -8,6 +8,7 @@ import androidx.room.Index
 object EstadoAmistad {
     const val PENDIENTE = "PENDIENTE" // solicitud enviada, falta que el otro la acepte
     const val ACEPTADA = "ACEPTADA"   // ya sois amigos
+    const val BLOQUEADA = "BLOQUEADA"
 }
 
 /**
