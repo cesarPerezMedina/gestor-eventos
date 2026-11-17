@@ -30,6 +30,7 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+
     buildTypes {
         release {
             isMinifyEnabled = false
@@ -64,6 +65,7 @@ dependencies {
     implementation(libs.androidx.navigation.compose)
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.compose.ui)
+    implementation("org.osmdroid:osmdroid-android:6.1.20")
     implementation(libs.androidx.compose.ui.graphics)
     implementation("androidx.navigation:navigation-compose:2.8.5")
     implementation(libs.androidx.compose.ui.tooling.preview)

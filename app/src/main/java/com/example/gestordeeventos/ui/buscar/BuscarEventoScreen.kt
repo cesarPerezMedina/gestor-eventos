@@ -65,21 +65,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.gestordeeventos.ui.theme.GestorDeEventosTheme
+import java.text.Normalizer
 import java.util.Locale
-
-// --- Colores de la pantalla (mismos tonos que Amigos y Crear evento) ---
-private val BusPagina = Color(0xFFF6F4FF)
-private val BusVioleta = Color(0xFF5B0FBF)
-private val BusVioletaClaro = Color(0xFF7C3AED)
-private val BusBoton = Color(0xFF6D28D9)
-private val BusTinta = Color(0xFF1B1B3A)
-private val BusSubtitulo = Color(0xFF4A5068)
-private val BusGris = Color(0xFF7D8397)
-private val BusChip = Color(0xFFE6DDFB)
-private val BusCampo = Color(0xFFEEF0FF)
-private val BusLinea = Color(0xFFE3E1F2)
-private val BusAlerta = Color(0xFFC2185B)
-private val BusAlertaFondo = Color(0xFFFFE4EC)
 
 // --- Modelos de la interfaz (solo lo que se pinta; más adelante se rellenarán desde Room) ---
 
@@ -91,8 +78,6 @@ enum class ModoBusqueda(val etiqueta: String, val icono: ImageVector) {
 /** Radios de búsqueda en kilómetros. */
 val RADIOS_KM = listOf(2, 5, 10, 25)
 
-enum class EstiloEtiqueta { ALERTA, INFO, NEUTRA }
-
 /** Chip de deporte de la fila de filtros. [icono] es null para "Todos". */
 data class FiltroDeporteBuscar(
     val id: String,
@@ -101,13 +86,14 @@ data class FiltroDeporteBuscar(
     val cantidad: Int,
 )
 
+
 /** Un evento tal como se pinta en la tarjeta. */
-data class EventoBuscarItem(
+/*data class EventoBuscarItem(
     val id: String,
     val titulo: String,
     val icono: ImageVector,
     val cuando: String,
-    val distanciaKm: Double,
+    val distanciaKm: Double? = null, // null mientras no se conozca la ubicación del usuario
     val lugar: String,
     val apuntados: Int,
     val maximo: Int,
@@ -117,7 +103,26 @@ data class EventoBuscarItem(
     val estiloEtiqueta: EstiloEtiqueta = EstiloEtiqueta.NEUTRA,
     val organizador: String? = null,
     val avatares: List<String> = emptyList(),
-)
+)*/
+private val MARCAS_DIACRITICAS = Regex("\\p{InCombiningDiacriticalMarks}+")
+
+/** Minúsculas, sin tildes y sin espacios sobrantes: "  Pádel " -> "padel". */
+private fun String.normalizar(): String =
+    Normalizer.normalize(trim().lowercase(Locale.getDefault()), Normalizer.Form.NFD)
+        .replace(MARCAS_DIACRITICAS, "")
+
+/**
+ * Devuelve los eventos cuyo título contiene TODAS las palabras de la consulta
+ * (sin importar mayúsculas ni tildes). Con la consulta vacía devuelve la lista entera.
+ */
+fun filtrarPorNombre(eventos: List<EventoBuscarItem>, consulta: String): List<EventoBuscarItem> {
+    val palabras = consulta.normalizar().split(Regex("\\s+")).filter { it.isNotEmpty() }
+    if (palabras.isEmpty()) return eventos
+    return eventos.filter { evento ->
+        val titulo = evento.titulo.normalizar()
+        palabras.all { it in titulo }
+    }
+}
 
 /**
  * Pantalla "Buscar eventos" (Issue 54). De momento es solo la interfaz: lo que el usuario toca
@@ -135,9 +140,14 @@ fun BuscarEventoScreen(
     onMapaClick: () -> Unit = {},
     onFiltrosClick: () -> Unit = {},
     onOrdenClick: () -> Unit = {},
+    onModoChange: (ModoBusqueda) -> Unit = {},
+    onRadioChange: (Int) -> Unit = {},
+    avisoUbicacion: String? = null,
+    onAvisoUbicacionClick: () -> Unit = {},
     onBuscar: (String) -> Unit = {},
     onDetalleClick: (String) -> Unit = {},
     onUnirmeClick: (String) -> Unit = {},
+    onRechazarClick: (String) -> Unit = {},
     onCrearEventoClick: () -> Unit = {},
 ) {
     var consulta by rememberSaveable { mutableStateOf("") }
@@ -163,11 +173,14 @@ fun BuscarEventoScreen(
             )
         }
 
-        item { PestanasModo(modo = modo, onCambio = { modo = it }) }
+        item { PestanasModo(modo = modo, onCambio = { modo = it; onModoChange(it) }) }
 
         // El radio solo tiene sentido al buscar cerca de ti
         if (modo == ModoBusqueda.CERCA_DE_MI) {
-            item { FilaRadio(seleccionado = radioKm, onCambio = { radioKm = it }) }
+            item { FilaRadio(seleccionado = radioKm, onCambio = { radioKm = it; onRadioChange(it) }) }
+            if (avisoUbicacion != null) {
+                item { AvisoUbicacion(texto = avisoUbicacion, onClick = onAvisoUbicacionClick) }
+            }
         }
 
         item {
@@ -189,8 +202,13 @@ fun BuscarEventoScreen(
         items(eventos, key = { it.id }) { evento ->
             TarjetaEventoBuscar(
                 evento = evento,
-                onDetalleClick = { onDetalleClick(evento.id) },
-                onUnirmeClick = { onUnirmeClick(evento.id) },
+                onClick = { onDetalleClick(evento.id) },
+                // Botón de la izquierda: "Ver detalle" / "Ver cuadro", o "Rechazar" en una invitación
+                onSecundarioClick = {
+                    if (evento.variante == VarianteTarjeta.PRIVADO) onRechazarClick(evento.id) else onDetalleClick(evento.id)
+                },
+                // Botón de la derecha: "Unirme", "Reservar", "Solicitar plaza" o "Aceptar"
+                onPrincipalClick = { onUnirmeClick(evento.id) },
             )
         }
 
@@ -368,6 +386,24 @@ private fun FilaRadio(seleccionado: Int, onCambio: (Int) -> Unit) {
     }
 }
 
+/** Franja que explica por qué no se puede buscar cerca (sin permiso, ubicación apagada...) y deja arreglarlo. */
+@Composable
+private fun AvisoUbicacion(texto: String, onClick: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(14.dp))
+            .background(BusChip)
+            .clickable(onClick = onClick)
+            .padding(horizontal = 12.dp, vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(Icons.Outlined.LocationOn, contentDescription = null, tint = BusVioleta, modifier = Modifier.size(18.dp))
+        Spacer(Modifier.width(8.dp))
+        Text(texto, color = BusVioleta, fontSize = 12.sp, fontWeight = FontWeight.Medium, modifier = Modifier.weight(1f))
+    }
+}
+
 @Composable
 private fun FilaDeportes(
     filtros: List<FiltroDeporteBuscar>,
@@ -442,197 +478,6 @@ private fun EncabezadoLista(titulo: String, disponibles: Int, onOrdenClick: () -
     }
 }
 
-// ---------- Tarjeta de evento ----------
-
-@Composable
-private fun TarjetaEventoBuscar(
-    evento: EventoBuscarItem,
-    onDetalleClick: () -> Unit,
-    onUnirmeClick: () -> Unit,
-) {
-    val casiLleno = evento.maximo - evento.apuntados <= 1
-    val progreso = if (evento.maximo > 0) (evento.apuntados.toFloat() / evento.maximo).coerceIn(0f, 1f) else 0f
-
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .shadow(4.dp, RoundedCornerShape(20.dp), spotColor = Color(0x1A000000))
-            .clip(RoundedCornerShape(20.dp))
-            .background(Color.White)
-            .padding(14.dp),
-    ) {
-        Row(verticalAlignment = Alignment.Top) {
-            Box(
-                modifier = Modifier
-                    .size(46.dp)
-                    .clip(RoundedCornerShape(14.dp))
-                    .background(BusChip),
-                contentAlignment = Alignment.Center,
-            ) {
-                Icon(evento.icono, contentDescription = null, tint = BusVioleta, modifier = Modifier.size(24.dp))
-            }
-            Spacer(Modifier.width(12.dp))
-            Column(modifier = Modifier.weight(1f)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        text = evento.titulo,
-                        color = BusTinta,
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.ExtraBold,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.weight(1f, fill = false),
-                    )
-                    if (evento.etiqueta != null) {
-                        Spacer(Modifier.width(8.dp))
-                        EtiquetaEvento(evento.etiqueta, evento.estiloEtiqueta)
-                    }
-                }
-                Spacer(Modifier.height(4.dp))
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Outlined.CalendarToday, contentDescription = null, tint = BusVioleta, modifier = Modifier.size(14.dp))
-                    Spacer(Modifier.width(4.dp))
-                    Text(evento.cuando, color = BusVioleta, fontSize = 12.sp, fontWeight = FontWeight.Bold)
-                    Spacer(Modifier.width(10.dp))
-                    Icon(Icons.Outlined.LocationOn, contentDescription = null, tint = BusGris, modifier = Modifier.size(14.dp))
-                    Spacer(Modifier.width(2.dp))
-                    Text(
-                        text = "≈ ${String.format(Locale.US, "%.1f", evento.distanciaKm)} km",
-                        color = BusSubtitulo,
-                        fontSize = 12.sp,
-                    )
-                }
-                Spacer(Modifier.height(3.dp))
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Outlined.Place, contentDescription = null, tint = BusGris, modifier = Modifier.size(14.dp))
-                    Spacer(Modifier.width(4.dp))
-                    Text(
-                        text = evento.lugar,
-                        color = BusSubtitulo,
-                        fontSize = 12.sp,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                }
-                if (evento.organizador != null) {
-                    Spacer(Modifier.height(3.dp))
-                    Text(
-                        text = buildAnnotatedString {
-                            append("Org. por ")
-                            withStyle(SpanStyle(fontWeight = FontWeight.Bold, color = BusTinta)) { append(evento.organizador) }
-                        },
-                        color = BusGris,
-                        fontSize = 11.sp,
-                    )
-                }
-            }
-        }
-
-        Spacer(Modifier.height(12.dp))
-
-        // Barra de plazas ocupadas
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(6.dp)
-                .clip(RoundedCornerShape(50))
-                .background(BusLinea),
-        ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxHeight()
-                    .fillMaxWidth(progreso)
-                    .clip(RoundedCornerShape(50))
-                    .background(if (casiLleno) BusAlerta else BusBoton),
-            )
-        }
-
-        Spacer(Modifier.height(10.dp))
-
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text(
-                text = buildAnnotatedString {
-                    withStyle(SpanStyle(fontWeight = FontWeight.ExtraBold, color = BusVioleta)) {
-                        append("${evento.apuntados}/${evento.maximo} ")
-                    }
-                    append(evento.cupoUnidad)
-                    if (evento.cupoNota != null) {
-                        withStyle(SpanStyle(color = if (casiLleno) BusAlerta else BusGris)) { append(" (${evento.cupoNota})") }
-                    }
-                },
-                color = BusSubtitulo,
-                fontSize = 11.sp,
-                lineHeight = 14.sp,
-                maxLines = 3,
-                modifier = Modifier.weight(1f),
-            )
-            if (evento.avatares.isNotEmpty()) Avatares(evento.avatares)
-            Text(
-                text = "Detalle",
-                color = BusVioleta,
-                fontSize = 13.sp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(BusCampo)
-                    .clickable(onClick = onDetalleClick)
-                    .padding(horizontal = 14.dp, vertical = 9.dp),
-            )
-            Row(
-                modifier = Modifier
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(BusBoton)
-                    .clickable(onClick = onUnirmeClick)
-                    .padding(start = 14.dp, end = 8.dp, top = 9.dp, bottom = 9.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text("Unirme", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
-                Icon(Icons.Outlined.ChevronRight, contentDescription = null, tint = Color.White, modifier = Modifier.size(16.dp))
-            }
-        }
-    }
-}
-
-@Composable
-private fun EtiquetaEvento(texto: String, estilo: EstiloEtiqueta) {
-    val (fondo, tinta) = when (estilo) {
-        EstiloEtiqueta.ALERTA -> BusAlertaFondo to BusAlerta
-        EstiloEtiqueta.INFO -> BusChip to BusVioleta
-        EstiloEtiqueta.NEUTRA -> Color(0xFFEFEFF4) to BusSubtitulo
-    }
-    Text(
-        text = texto,
-        color = tinta,
-        fontSize = 10.sp,
-        fontWeight = FontWeight.Bold,
-        maxLines = 1,
-        modifier = Modifier
-            .clip(RoundedCornerShape(50))
-            .background(fondo)
-            .padding(horizontal = 8.dp, vertical = 3.dp),
-    )
-}
-
-/** Hasta tres círculos con las iniciales de quienes ya se han apuntado, algo solapados. */
-@Composable
-private fun Avatares(iniciales: List<String>) {
-    val colores = listOf(Color(0xFFB794F4), Color(0xFFF6AD55), Color(0xFF63B3ED))
-    Row(horizontalArrangement = Arrangement.spacedBy((-8).dp)) {
-        iniciales.take(3).forEachIndexed { indice, texto ->
-            Box(
-                modifier = Modifier
-                    .size(24.dp)
-                    .clip(CircleShape)
-                    .background(colores[indice % colores.size])
-                    .border(1.5.dp, Color.White, CircleShape),
-                contentAlignment = Alignment.Center,
-            ) {
-                Text(texto.take(1).uppercase(), color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Bold)
-            }
-        }
-    }
-}
-
 // ---------- Banner final ----------
 
 @Composable
@@ -689,65 +534,6 @@ val filtrosDeporteDeEjemplo = listOf(
     FiltroDeporteBuscar("futbol", "Fútbol", Icons.Outlined.SportsSoccer, 6),
     FiltroDeporteBuscar("padel", "Pádel", Icons.Outlined.SportsTennis, 4),
     FiltroDeporteBuscar("baloncesto", "Baloncesto", Icons.Outlined.SportsBasketball, 3),
-)
-
-val eventosBuscarDeEjemplo = listOf(
-    EventoBuscarItem(
-        id = "1",
-        titulo = "Baloncesto 3×3",
-        icono = Icons.Outlined.SportsBasketball,
-        cuando = "Hoy 20:00",
-        distanciaKm = 0.8,
-        lugar = "Cancha Municipal Norte",
-        apuntados = 5,
-        maximo = 8,
-        etiqueta = "¡Última plaza!",
-        estiloEtiqueta = EstiloEtiqueta.ALERTA,
-        avatares = listOf("C", "I", "M"),
-    ),
-    EventoBuscarItem(
-        id = "2",
-        titulo = "Tenis individual",
-        icono = Icons.Outlined.SportsTennis,
-        cuando = "Mañana 17:00",
-        distanciaKm = 1.9,
-        lugar = "Club Deportivo Retiro",
-        apuntados = 1,
-        maximo = 2,
-        cupoUnidad = "plazas",
-        cupoNota = "Falta 1 rival",
-        etiqueta = "Nivel 4.0",
-        estiloEtiqueta = EstiloEtiqueta.INFO,
-    ),
-    EventoBuscarItem(
-        id = "3",
-        titulo = "Fútbol 7 en el parque",
-        icono = Icons.Outlined.SportsSoccer,
-        cuando = "Sáb 18:00",
-        distanciaKm = 1.2,
-        lugar = "Parque Central, Campo 2",
-        apuntados = 8,
-        maximo = 14,
-        cupoUnidad = "inscritos",
-        cupoNota = "Mín. 10",
-        etiqueta = "Público",
-        estiloEtiqueta = EstiloEtiqueta.NEUTRA,
-        organizador = "carlos_m",
-    ),
-    EventoBuscarItem(
-        id = "4",
-        titulo = "Pádel dobles mixto",
-        icono = Icons.Outlined.SportsTennis,
-        cuando = "Dom 11:00",
-        distanciaKm = 2.4,
-        lugar = "Pádel Center Las Rozas",
-        apuntados = 3,
-        maximo = 4,
-        cupoUnidad = "plazas",
-        cupoNota = "Falta 1 jugador",
-        etiqueta = "Intermedio",
-        estiloEtiqueta = EstiloEtiqueta.ALERTA,
-    ),
 )
 
 // --- Vistas previas (solo Android Studio) ---

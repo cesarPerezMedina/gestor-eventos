@@ -1,5 +1,6 @@
 package com.example.gestordeeventos.ui.crear
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -21,21 +22,12 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.Add
-import androidx.compose.material.icons.outlined.CalendarMonth
-import androidx.compose.material.icons.outlined.Check
-import androidx.compose.material.icons.outlined.EditNote
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Lock
-import androidx.compose.material.icons.outlined.MyLocation
 import androidx.compose.material.icons.outlined.NotificationsActive
-import androidx.compose.material.icons.outlined.OpenInFull
-import androidx.compose.material.icons.outlined.Place
 import androidx.compose.material.icons.outlined.Public
 import androidx.compose.material.icons.outlined.Remove
 import androidx.compose.material.icons.outlined.RocketLaunch
-import androidx.compose.material.icons.outlined.Schedule
-import androidx.compose.material.icons.outlined.Search
-import androidx.compose.material.icons.outlined.SportsSoccer
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
@@ -44,6 +36,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.listSaver
+import androidx.compose.runtime.toMutableStateList
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -52,13 +47,24 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.gestordeeventos.data.localizacion.GeocodificadorProvider
+import com.example.gestordeeventos.data.localizacion.LocalizacionProvider
+import com.example.gestordeeventos.data.localizacion.ResultadoUbicacion
+import com.example.gestordeeventos.data.localizacion.Ubicacion
 import com.example.gestordeeventos.data.model.Deporte
+import com.example.gestordeeventos.ui.componentes.rememberSolicitudPermiso
+import com.example.gestordeeventos.util.EstadoPermiso
+import com.example.gestordeeventos.util.PermisoApp
+import kotlinx.coroutines.launch
+import java.time.LocalDate
+import java.time.LocalTime
 import com.example.gestordeeventos.ui.componentes.SelectorDeporte
 import com.example.gestordeeventos.ui.theme.GestorDeEventosTheme
 
@@ -94,14 +100,9 @@ val amigosInvitablesDeEjemplo = listOf(
 @Composable
 fun CrearEventoScreen(
     modifier: Modifier = Modifier,
-    amigos: List<AmigoInvitable> = amigosInvitablesDeEjemplo,
+    amigos: List<AmigoInvitable> = emptyList(),
     onBackClick: () -> Unit = {},
-    onCrearEventoClick: (nombre: String, descripcion: String) -> Unit = { _, _ -> },
-    onFechaClick: () -> Unit = {},
-    onHoraClick: () -> Unit = {},
-    onUbicacionActualClick: () -> Unit = {},
-    onAmpliarMapaClick: () -> Unit = {},
-    onVerListaCompletaClick: () -> Unit = {},
+    onCrearEventoClick: (NuevoEvento) -> Unit = {},
 ) {
     var deporte by rememberSaveable { mutableStateOf<Deporte?>(Deporte.FUTBOL) }
     var nombre by rememberSaveable { mutableStateOf("") }
@@ -111,13 +112,79 @@ fun CrearEventoScreen(
     var esPublico by rememberSaveable { mutableStateOf(true) }
     var minJugadores by rememberSaveable { mutableStateOf(10) }
     var maxJugadores by rememberSaveable { mutableStateOf(14) }
+    var tipoUbicacion by rememberSaveable { mutableStateOf(TipoUbicacion.POLIDEPORTIVO) }
     var ubicacion by rememberSaveable { mutableStateOf("") }
-    var busquedaAmigo by rememberSaveable { mutableStateOf("") }
-    val invitados = remember { mutableStateListOf<String>() }
-
-    val amigosFiltrados = amigos.filter {
-        busquedaAmigo.isBlank() || it.nombre.contains(busquedaAmigo.trim().removePrefix("@"), ignoreCase = true)
+    var indicaciones by rememberSaveable { mutableStateOf("") }
+    // Fecha y hora (Issue 47): se guardan como números porque LocalDate y LocalTime no sobreviven a girar la pantalla.
+    // Por defecto, mañana de 18:30 a 20:00.
+    var fechaDia by rememberSaveable { mutableStateOf(LocalDate.now().plusDays(1).toEpochDay()) }
+    var inicioMin by rememberSaveable { mutableStateOf(18 * 60 + 30) }
+    var finMin by rememberSaveable { mutableStateOf(20 * 60) }
+    val fecha = LocalDate.ofEpochDay(fechaDia)
+    val horaInicio = LocalTime.of(inicioMin / 60, inicioMin % 60)
+    val horaFin = LocalTime.of(finMin / 60, finMin % 60)
+    // Ids de los amigos invitados; se guardan para no perderlos al girar la pantalla
+    val invitados = rememberSaveable(saver = listSaver(save = { it.toList() }, restore = { it.toMutableStateList() })) {
+        mutableStateListOf<String>()
     }
+
+    // ---------- Mapa y ubicación (Issue 46) ----------
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val localizacion = remember { LocalizacionProvider(context) }
+    val geocodificador = remember { GeocodificadorProvider(context) }
+    var latitud by rememberSaveable { mutableStateOf<Double?>(null) }
+    var longitud by rememberSaveable { mutableStateOf<Double?>(null) }
+    val lat = latitud
+    val lon = longitud
+    val coordenadas = if (lat != null && lon != null) Ubicacion(lat, lon) else null
+
+    fun aviso(texto: String) = Toast.makeText(context, texto, Toast.LENGTH_SHORT).show()
+
+    // Marca el punto en el mapa y rellena el campo con su dirección
+    fun marcar(punto: Ubicacion) {
+        latitud = punto.latitud
+        longitud = punto.longitud
+        scope.launch {
+            val direccion = geocodificador.direccionDe(punto.latitud, punto.longitud)
+            if (direccion != null) {
+                ubicacion = direccion.take(UBICACION_MAX)
+            } else {
+                aviso("No se pudo obtener la dirección de ese punto: escríbela a mano")
+            }
+        }
+    }
+
+    fun usarMiUbicacion() {
+        scope.launch {
+            when (val resultado = localizacion.obtenerUbicacionActual()) {
+                is ResultadoUbicacion.Obtenida -> marcar(resultado.ubicacion)
+                ResultadoUbicacion.SinPermiso -> aviso("Falta el permiso de ubicación")
+                ResultadoUbicacion.UbicacionDesactivada -> aviso("Activa la ubicación del móvil")
+                ResultadoUbicacion.NoDisponible -> aviso("No se pudo obtener tu ubicación")
+                is ResultadoUbicacion.Fallo -> aviso("Error al obtener tu ubicación")
+            }
+        }
+    }
+
+    val permisoUbicacion = rememberSolicitudPermiso(PermisoApp.UBICACION) { concedido ->
+        if (concedido) usarMiUbicacion()
+    }
+
+    // Escribe una dirección y pulsa "buscar" en el teclado: el mapa va a ese sitio
+    fun buscarDireccion() {
+        if (errorUbicacionEvento(ubicacion) != null) return
+        scope.launch {
+            val punto = geocodificador.buscarDireccion(ubicacion)
+            if (punto != null) {
+                latitud = punto.latitud
+                longitud = punto.longitud
+            } else {
+                aviso("No se encontró esa dirección")
+            }
+        }
+    }
+
 
     Column(
         modifier = modifier
@@ -218,111 +285,49 @@ fun CrearEventoScreen(
         Spacer(Modifier.height(18.dp))
 
         // ---------- Ubicación ----------
-        Etiqueta("Ubicación de la pista o campo")
-        Spacer(Modifier.height(6.dp))
-        CampoTexto(
-            valor = ubicacion,
-            onCambio = { ubicacion = it },
-            placeholder = "Ej: Polideportivo Retiro - Pista Central",
-            icono = Icons.Outlined.Place,
-            unaLinea = true,
-            accionFinal = {
-                Box(
-                    modifier = Modifier
-                        .size(34.dp)
-                        .clip(RoundedCornerShape(10.dp))
-                        .background(CreChip)
-                        .clickable(onClick = onUbicacionActualClick),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Icon(Icons.Outlined.MyLocation, contentDescription = "Usar mi ubicación", tint = CreVioleta, modifier = Modifier.size(18.dp))
+        SelectorUbicacionEvento(
+            tipo = tipoUbicacion,
+            onTipoChange = { tipoUbicacion = it },
+            ubicacion = ubicacion,
+            onUbicacionChange = { ubicacion = it },
+            indicaciones = indicaciones,
+            onIndicacionesChange = { indicaciones = it },
+            mostrarError = intentoCrear,
+            coordenadas = coordenadas,
+            onCoordenadasElegidas = { marcar(it) },
+            onUbicacionActualClick = {
+                when {
+                    permisoUbicacion.concedido -> usarMiUbicacion()
+                    permisoUbicacion.estado == EstadoPermiso.BLOQUEADO -> permisoUbicacion.abrirAjustes()
+                    else -> permisoUbicacion.solicitar()
                 }
             },
+            onBuscarDireccion = { buscarDireccion() },
         )
-        Spacer(Modifier.height(10.dp))
-        VistaPreviaMapa(onAmpliarMapaClick)
 
         Spacer(Modifier.height(18.dp))
 
         // ---------- Fecha y hora ----------
-        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            Column(modifier = Modifier.weight(1f)) {
-                Etiqueta("Fecha")
-                Spacer(Modifier.height(6.dp))
-                CampoSelector(Icons.Outlined.CalendarMonth, "Sáb, 24 Oct", onFechaClick)
-            }
-            Column(modifier = Modifier.weight(1f)) {
-                Etiqueta("Hora")
-                Spacer(Modifier.height(6.dp))
-                CampoSelector(Icons.Outlined.Schedule, "18:30 - 20:00", onHoraClick)
-            }
-        }
+        SelectorFechaHoraEvento(
+            fecha = fecha,
+            onFechaChange = { fechaDia = it.toEpochDay() },
+            horaInicio = horaInicio,
+            horaFin = horaFin,
+            onHorasChange = { inicio, fin ->
+                inicioMin = inicio.hour * 60 + inicio.minute
+                finMin = fin.hour * 60 + fin.minute
+            },
+        )
 
         Spacer(Modifier.height(20.dp))
 
         // ---------- Invitar amigos ----------
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("Invitar amigos", color = CreTinta, fontSize = 14.sp, fontWeight = FontWeight.Bold)
-                Spacer(Modifier.size(8.dp))
-                Text(
-                    text = "Opcional",
-                    color = CreVioleta,
-                    fontSize = 10.sp,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(50))
-                        .background(CreChip)
-                        .padding(horizontal = 8.dp, vertical = 3.dp),
-                )
-            }
-            Text(
-                text = "Ver lista completa",
-                color = CreVioleta,
-                fontSize = 12.sp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.clickable(onClick = onVerListaCompletaClick),
-            )
-        }
-        Spacer(Modifier.height(8.dp))
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .shadow(4.dp, RoundedCornerShape(18.dp), spotColor = Color(0x1A000000))
-                .clip(RoundedCornerShape(18.dp))
-                .background(Color.White)
-                .padding(12.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
-        ) {
-            CampoTexto(
-                valor = busquedaAmigo,
-                onCambio = { busquedaAmigo = it },
-                placeholder = "Buscar por apodo o nombre...",
-                icono = Icons.Outlined.Search,
-                unaLinea = true,
-            )
-            amigosFiltrados.forEach { amigo ->
-                FilaAmigoInvitable(
-                    amigo = amigo,
-                    invitado = amigo.id in invitados,
-                    onClick = {
-                        if (amigo.id in invitados) invitados.remove(amigo.id) else invitados.add(amigo.id)
-                    },
-                )
-            }
-            if (amigosFiltrados.isEmpty()) {
-                Text(
-                    text = "Ningún amigo coincide con tu búsqueda",
-                    color = CreGris,
-                    fontSize = 12.sp,
-                    modifier = Modifier.padding(vertical = 6.dp),
-                )
-            }
-        }
+        SelectorInvitados(
+            amigos = amigos,
+            seleccionados = invitados.toSet(),
+            onAlternar = { id -> if (id in invitados) invitados.remove(id) else invitados.add(id) },
+            esPublico = esPublico,
+        )
 
         Spacer(Modifier.height(22.dp))
 
@@ -335,9 +340,29 @@ fun CrearEventoScreen(
                 .background(Brush.linearGradient(listOf(CreVioleta, CreVioletaClaro)))
                 .clickable {
                     intentoCrear = true
-                    // Solo se crea si el nombre es válido; la descripción es opcional
-                    if (errorNombreEvento(nombre) == null) {
-                        onCrearEventoClick(nombre.trim(), descripcion.trim())
+                    // Solo se crea si el nombre, la ubicación y la fecha son válidos; la descripción es opcional
+                    if (errorNombreEvento(nombre) == null &&
+                        errorUbicacionEvento(ubicacion) == null &&
+                        errorFechaHoraEvento(fecha, horaInicio, horaFin) == null
+                    ) {
+                        onCrearEventoClick(
+                            NuevoEvento(
+                                nombre = nombre.trim(),
+                                descripcion = descripcion.trim(),
+                                deporte = deporte,
+                                publico = esPublico,
+                                minJugadores = minJugadores,
+                                maxJugadores = maxJugadores,
+                                tipoUbicacion = tipoUbicacion,
+                                ubicacion = ubicacion.trim(),
+                                indicaciones = indicaciones.trim(),
+                                latitud = latitud,
+                                longitud = longitud,
+                                inicioMillis = milisegundosDe(fecha, horaInicio),
+                                finMillis = milisegundosDe(fecha, horaFin),
+                                invitadosIds = invitados.filter { id -> amigos.any { it.id == id } },
+                            )
+                        )
                     }
                 },
             horizontalArrangement = Arrangement.Center,
@@ -429,38 +454,9 @@ internal fun Etiqueta(texto: String, derecha: String? = null, derechaGris: Boole
     }
 }
 
-@Composable
-private fun CampoTexto(
-    valor: String,
-    onCambio: (String) -> Unit,
-    placeholder: String,
-    unaLinea: Boolean,
-    icono: androidx.compose.ui.graphics.vector.ImageVector? = null,
-    accionFinal: (@Composable () -> Unit)? = null,
-) {
-    OutlinedTextField(
-        value = valor,
-        onValueChange = onCambio,
-        modifier = Modifier.fillMaxWidth(),
-        singleLine = unaLinea,
-        minLines = if (unaLinea) 1 else 3,
-        shape = RoundedCornerShape(14.dp),
-        placeholder = { Text(placeholder, color = CreGris, fontSize = 13.sp, maxLines = 1, overflow = TextOverflow.Ellipsis) },
-        leadingIcon = icono?.let { { Icon(it, contentDescription = null, tint = CreSubtitulo) } },
-        trailingIcon = accionFinal,
-        colors = OutlinedTextFieldDefaults.colors(
-            focusedContainerColor = Color.White,
-            unfocusedContainerColor = Color.White,
-            focusedBorderColor = CreVioletaClaro,
-            unfocusedBorderColor = CreLinea,
-            cursorColor = CreVioleta,
-        ),
-    )
-}
-
 /** Campo que no se escribe, se pulsa (fecha y hora). */
 @Composable
-private fun CampoSelector(icono: androidx.compose.ui.graphics.vector.ImageVector, texto: String, onClick: () -> Unit) {
+internal fun CampoSelector(icono: androidx.compose.ui.graphics.vector.ImageVector, texto: String, onClick: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -561,109 +557,10 @@ private fun BotonRedondo(icono: androidx.compose.ui.graphics.vector.ImageVector,
     }
 }
 
-/** Recuadro del mapa. Es un dibujo de relleno: el mapa de verdad se enchufa más adelante. */
-@Composable
-private fun VistaPreviaMapa(onAmpliarClick: () -> Unit) {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(118.dp)
-            .clip(RoundedCornerShape(16.dp))
-            .background(Brush.linearGradient(listOf(Color(0xFFE7EAFB), Color(0xFFDCD7F5))))
-            .border(1.dp, CreLinea, RoundedCornerShape(16.dp)),
-    ) {
-        Column(
-            modifier = Modifier.align(Alignment.Center),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(40.dp)
-                    .clip(CircleShape)
-                    .background(CreBoton),
-                contentAlignment = Alignment.Center,
-            ) {
-                Icon(Icons.Outlined.SportsSoccer, contentDescription = null, tint = Color.White, modifier = Modifier.size(22.dp))
-            }
-            Spacer(Modifier.height(6.dp))
-            Text(
-                text = "Pista 2 reservada",
-                color = CreTinta,
-                fontSize = 10.sp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier
-                    .clip(RoundedCornerShape(50))
-                    .background(Color.White)
-                    .padding(horizontal = 9.dp, vertical = 3.dp),
-            )
-        }
-        Row(
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(8.dp)
-                .clip(RoundedCornerShape(50))
-                .background(CreChip)
-                .clickable(onClick = onAmpliarClick)
-                .padding(horizontal = 9.dp, vertical = 5.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Icon(Icons.Outlined.OpenInFull, contentDescription = null, tint = CreVioleta, modifier = Modifier.size(12.dp))
-            Spacer(Modifier.size(4.dp))
-            Text("Ampliar", color = CreVioleta, fontSize = 10.sp, fontWeight = FontWeight.Bold)
-        }
-    }
-}
-
-@Composable
-private fun FilaAmigoInvitable(amigo: AmigoInvitable, invitado: Boolean, onClick: () -> Unit) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Box(
-            modifier = Modifier
-                .size(38.dp)
-                .clip(CircleShape)
-                .background(CreChip),
-            contentAlignment = Alignment.Center,
-        ) {
-            Text(amigo.nombre.take(1).uppercase(), color = CreVioleta, fontSize = 15.sp, fontWeight = FontWeight.ExtraBold)
-        }
-        Spacer(Modifier.size(10.dp))
-        Column(modifier = Modifier.weight(1f)) {
-            Text(amigo.nombre, color = CreTinta, fontSize = 14.sp, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
-            Text(amigo.detalle, color = CreSubtitulo, fontSize = 11.5.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
-        }
-        Spacer(Modifier.size(8.dp))
-        Row(
-            modifier = Modifier
-                .clip(RoundedCornerShape(50))
-                .background(if (invitado) CreBoton else CreCampo)
-                .clickable(onClick = onClick)
-                .padding(horizontal = 12.dp, vertical = 8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Icon(
-                imageVector = if (invitado) Icons.Outlined.Check else Icons.Outlined.Add,
-                contentDescription = null,
-                tint = if (invitado) Color.White else CreVioleta,
-                modifier = Modifier.size(14.dp),
-            )
-            Spacer(Modifier.size(4.dp))
-            Text(
-                text = if (invitado) "Invitado" else "Invitar",
-                color = if (invitado) Color.White else CreVioleta,
-                fontSize = 12.sp,
-                fontWeight = FontWeight.Bold,
-            )
-        }
-    }
-}
-
 @Preview(showBackground = true, widthDp = 390, heightDp = 1900)
 @Composable
 private fun CrearEventoScreenPreview() {
     GestorDeEventosTheme {
-        CrearEventoScreen()
+        CrearEventoScreen(amigos = amigosInvitablesDeEjemplo)
     }
 }

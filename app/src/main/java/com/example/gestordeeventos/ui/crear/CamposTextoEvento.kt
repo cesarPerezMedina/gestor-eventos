@@ -159,7 +159,7 @@ private fun PieCampo(error: String?, longitud: Int, maximo: Int) {
 }
 
 @Composable
-private fun coloresCampoEvento() = OutlinedTextFieldDefaults.colors(
+internal fun coloresCampoEvento() = OutlinedTextFieldDefaults.colors(
     focusedContainerColor = Color.White,
     unfocusedContainerColor = Color.White,
     errorContainerColor = Color.White,
