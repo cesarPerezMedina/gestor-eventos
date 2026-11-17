@@ -21,6 +21,17 @@ interface UsuarioDao {
     suspend fun cambiarContrasena(correo: String, nueva: String)
 
     /**
+     * Usuarios cuyo nombre de usuario contiene `texto` (sin distinguir mayúsculas), salvo el de `miCorreo`,
+     * ordenados por nombre y con un máximo de `limite`. Usa `instr` y no `LIKE` para que el guion bajo de los
+     * nombres se busque tal cual y no como comodín.
+     */
+    @Query(
+        "SELECT * FROM usuarios WHERE instr(lower(nombreUsuario), lower(:texto)) > 0 " +
+            "AND correo <> :miCorreo COLLATE NOCASE ORDER BY nombreUsuario COLLATE NOCASE LIMIT :limite"
+    )
+    suspend fun buscarPorNombreUsuarioParcial(texto: String, miCorreo: String, limite: Int): List<Usuario>
+
+    /**
      * Busca un usuario por su correo o por su nombre de usuario, sin distinguir mayúsculas
      * (es lo que se escribe en el campo único del login). Devuelve null si no existe.
      */

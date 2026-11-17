@@ -65,6 +65,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.gestordeeventos.ui.theme.GestorDeEventosTheme
+import java.text.Normalizer
 import java.util.Locale
 
 // --- Modelos de la interfaz (solo lo que se pinta; más adelante se rellenarán desde Room) ---
@@ -84,6 +85,44 @@ data class FiltroDeporteBuscar(
     val icono: ImageVector?,
     val cantidad: Int,
 )
+
+
+/** Un evento tal como se pinta en la tarjeta. */
+data class EventoBuscarItem(
+    val id: String,
+    val titulo: String,
+    val icono: ImageVector,
+    val cuando: String,
+    val distanciaKm: Double? = null, // null mientras no se conozca la ubicación del usuario
+    val lugar: String,
+    val apuntados: Int,
+    val maximo: Int,
+    val cupoUnidad: String = "jugadores",
+    val cupoNota: String? = null,
+    val etiqueta: String? = null,
+    val estiloEtiqueta: EstiloEtiqueta = EstiloEtiqueta.NEUTRA,
+    val organizador: String? = null,
+    val avatares: List<String> = emptyList(),
+)
+private val MARCAS_DIACRITICAS = Regex("\\p{InCombiningDiacriticalMarks}+")
+
+/** Minúsculas, sin tildes y sin espacios sobrantes: "  Pádel " -> "padel". */
+private fun String.normalizar(): String =
+    Normalizer.normalize(trim().lowercase(Locale.getDefault()), Normalizer.Form.NFD)
+        .replace(MARCAS_DIACRITICAS, "")
+
+/**
+ * Devuelve los eventos cuyo título contiene TODAS las palabras de la consulta
+ * (sin importar mayúsculas ni tildes). Con la consulta vacía devuelve la lista entera.
+ */
+fun filtrarPorNombre(eventos: List<EventoBuscarItem>, consulta: String): List<EventoBuscarItem> {
+    val palabras = consulta.normalizar().split(Regex("\\s+")).filter { it.isNotEmpty() }
+    if (palabras.isEmpty()) return eventos
+    return eventos.filter { evento ->
+        val titulo = evento.titulo.normalizar()
+        palabras.all { it in titulo }
+    }
+}
 
 /**
  * Pantalla "Buscar eventos" (Issue 54). De momento es solo la interfaz: lo que el usuario toca

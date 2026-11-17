@@ -1,3 +1,4 @@
+
 package com.example.gestordeeventos.ui.crear
 
 import androidx.lifecycle.ViewModel
@@ -71,3 +72,4 @@ class CrearEventoViewModelFactory(
     override fun <T : ViewModel> create(modelClass: Class<T>): T =
         CrearEventoViewModel(repositorio, miId) as T
 }
+ 
