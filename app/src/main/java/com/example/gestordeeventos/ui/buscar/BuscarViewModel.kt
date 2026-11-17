@@ -18,9 +18,11 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
@@ -44,21 +46,28 @@ data class EstadoBuscar(
  * Todo viene de Flows de Room: si alguien crea un evento o se apunta, la lista se actualiza sola.
  */
 @OptIn(ExperimentalCoroutinesApi::class)
-class BuscarViewModel(private val repositorio: EventoRepositorio) : ViewModel() {
+class BuscarViewModel(
+    private val repositorio: EventoRepositorio,
+    /** (suspend) id del usuario con sesión iniciada, o null si no hay sesión. */
+    private val miId: suspend () -> Long?,
+) : ViewModel() {
 
     private val ubicacion = MutableStateFlow<Ubicacion?>(null)
     private val radioKm = MutableStateFlow(RADIOS_KM.first())
     private val buscarCerca = MutableStateFlow(true)
 
-    val estado: StateFlow<EstadoBuscar> = combine(ubicacion, radioKm, buscarCerca) { u, r, cerca ->
-        ParametrosBusqueda(if (cerca) u else null, r)
+    // id de quien mira (-1 si no hay sesión): sirve para saber a qué eventos ya está apuntado
+    private val yo = flow { emit(miId() ?: -1L) }
+
+    val estado: StateFlow<EstadoBuscar> = combine(ubicacion, radioKm, buscarCerca, yo) { u, r, cerca, id ->
+        ParametrosBusqueda(if (cerca) u else null, r, id)
     }.flatMapLatest { parametros ->
         val centro = parametros.centro
         if (centro != null) {
-            repositorio.eventosPublicosCerca(centro, parametros.radioKm.toDouble())
+            repositorio.eventosPublicosCerca(centro, parametros.radioKm.toDouble(), parametros.usuarioId)
                 .map { lista -> lista.filter { it.evento.evento.publico }.map { it.evento to it.distanciaKm }.aEstado() }
         } else {
-            repositorio.eventosPublicosConCupo()
+            repositorio.eventosPublicosConCupo(parametros.usuarioId)
                 .map { lista -> lista.filter { it.evento.publico }.map { it to null }.aEstado() }
         }
     }.stateIn(
@@ -77,19 +86,42 @@ class BuscarViewModel(private val repositorio: EventoRepositorio) : ViewModel() 
         radioKm.value = km
     }
 
+    /**
+     * Botón "Unirme" de una tarjeta (Issue 59): apunta al usuario con sesión a un evento público.
+     * [onResultado] trae el mensaje para enseñar ("Te has apuntado al evento", "El evento está completo"...).
+     * La lista se actualiza sola: la tarjeta pasa a "Ya apuntado" y sube el contador de plazas.
+     */
+    fun unirse(idEvento: String, onResultado: (ok: Boolean, mensaje: String) -> Unit) {
+        val id = idEvento.toLongOrNull()
+        if (id == null) {
+            onResultado(false, "Evento no válido")
+            return
+        }
+        viewModelScope.launch {
+            val yoId = miId()
+            if (yoId == null) {
+                onResultado(false, "Inicia sesión para apuntarte a un evento")
+                return@launch
+            }
+            val resultado = repositorio.apuntarse(id, yoId)
+            onResultado(resultado.ok, resultado.mensaje)
+        }
+    }
+
     /** Pestañas "Cerca de mí" / "Por nombre". */
     fun cambiarModo(modo: ModoBusqueda) {
         buscarCerca.value = modo == ModoBusqueda.CERCA_DE_MI
     }
 }
 
-private data class ParametrosBusqueda(val centro: Ubicacion?, val radioKm: Int)
+private data class ParametrosBusqueda(val centro: Ubicacion?, val radioKm: Int, val usuarioId: Long)
 
 class BuscarViewModelFactory(
     private val repositorio: EventoRepositorio,
+    private val miId: suspend () -> Long?,
 ) : ViewModelProvider.Factory {
     @Suppress("UNCHECKED_CAST")
-    override fun <T : ViewModel> create(modelClass: Class<T>): T = BuscarViewModel(repositorio) as T
+    override fun <T : ViewModel> create(modelClass: Class<T>): T = BuscarViewModel(repositorio, miId) as T
 }
 
 // ---------- De Room a lo que pinta la pantalla ----------
@@ -135,6 +167,7 @@ private fun EventoConCupo.aItem(distanciaKm: Double?): EventoBuscarItem {
         etiquetas = etiquetas,
         distanciaKm = distanciaKm,
         minimo = evento.minParticipantes.takeIf { it > 0 },
+        yoApuntado = yoApuntado,
         notaFaltan = if (maximo > 0 && faltan > 1) "Faltan $faltan jugadores" else null,
         avisoUrgente = if (urgente) "¡ÚLTIMA PLAZA DISPONIBLE! ($apuntados/$maximo)" else null,
         // Todavía no se guardan precio, organizador ni duración: la tarjeta simplemente no enseña esos bloques

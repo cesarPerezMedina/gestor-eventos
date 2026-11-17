@@ -1,5 +1,6 @@
 package com.example.gestordeeventos.ui.buscar
 
+import android.widget.Toast
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -76,6 +77,9 @@ fun BuscarEventoRoute(
         },
         onMapaClick = onMapaClick,
         onDetalleClick = onDetalleClick,
+        onUnirmeClick = { idEvento ->
+            viewModel.unirse(idEvento) { _, mensaje -> Toast.makeText(context, mensaje, Toast.LENGTH_SHORT).show() }
+        },
         onCrearEventoClick = onCrearEventoClick,
     )
 }

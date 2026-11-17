@@ -136,6 +136,8 @@ data class EventoBuscarItem(
     val invitacionDe: String? = null, // "Invitación de @ines_p"
     val invitacionDetalle: String? = null, // "19 partidos jugados juntos • Nivel 3.5"
     val guardado: Boolean = false,
+    /** true si el usuario ya está apuntado: el botón principal pasa a "Ya apuntado" y no hace nada. */
+    val yoApuntado: Boolean = false,
     val textoPrincipal: String? = null, // cambia el texto del botón principal
     val textoSecundario: String? = null, // cambia el texto del botón secundario
 )
@@ -283,6 +285,7 @@ private fun CuerpoEstandar(
         textoPrincipal = evento.textoPrincipal ?: "Unirme al evento",
         iconoPrincipal = Icons.Outlined.PersonAdd,
         completo = completo,
+        apuntado = evento.yoApuntado,
         fondoPrincipal = BusBoton,
         onSecundarioClick = onSecundarioClick,
         onPrincipalClick = onPrincipalClick,
@@ -361,19 +364,36 @@ private fun CuerpoUrgente(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
-            .background(if (completo) Brush.horizontalGradient(listOf(BusLinea, BusLinea)) else Brush.horizontalGradient(listOf(BusAlertaOscuro, BusAlerta)))
-            .clickable(enabled = !completo, onClick = onPrincipalClick)
+            .background(
+                when {
+                    evento.yoApuntado -> Brush.horizontalGradient(listOf(BusChip, BusChip))
+                    completo -> Brush.horizontalGradient(listOf(BusLinea, BusLinea))
+                    else -> Brush.horizontalGradient(listOf(BusAlertaOscuro, BusAlerta))
+                },
+            )
+            .clickable(enabled = !completo && !evento.yoApuntado, onClick = onPrincipalClick)
             .padding(vertical = 14.dp),
         horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        if (!completo) {
+        if (evento.yoApuntado) {
+            Icon(Icons.Outlined.Check, contentDescription = null, tint = BusVioleta, modifier = Modifier.size(18.dp))
+            Spacer(Modifier.width(6.dp))
+        } else if (!completo) {
             Icon(Icons.Outlined.Bolt, contentDescription = null, tint = Color.White, modifier = Modifier.size(18.dp))
             Spacer(Modifier.width(6.dp))
         }
         Text(
-            text = if (completo) "Completo" else (evento.textoPrincipal ?: "¡Reservar mi plaza ahora!"),
-            color = if (completo) BusGris else Color.White,
+            text = when {
+                evento.yoApuntado -> "Ya estás apuntado"
+                completo -> "Completo"
+                else -> evento.textoPrincipal ?: "¡Reservar mi plaza ahora!"
+            },
+            color = when {
+                evento.yoApuntado -> BusVioleta
+                completo -> BusGris
+                else -> Color.White
+            },
             fontSize = 14.sp,
             fontWeight = FontWeight.ExtraBold,
         )
@@ -492,6 +512,7 @@ private fun CuerpoTorneo(
         textoPrincipal = evento.textoPrincipal ?: "Solicitar plaza",
         iconoPrincipal = Icons.Outlined.PersonAdd,
         completo = completo,
+        apuntado = evento.yoApuntado,
         fondoPrincipal = BusVioleta,
         onSecundarioClick = onSecundarioClick,
         onPrincipalClick = onPrincipalClick,
@@ -563,6 +584,7 @@ private fun CuerpoPrivado(
         textoPrincipal = evento.textoPrincipal ?: "Aceptar",
         iconoPrincipal = Icons.Outlined.Check,
         completo = false,
+        apuntado = false,
         fondoPrincipal = BusVioleta,
         onSecundarioClick = onSecundarioClick,
         onPrincipalClick = onPrincipalClick,
@@ -730,10 +752,12 @@ private fun Acciones(
     textoPrincipal: String,
     iconoPrincipal: ImageVector,
     completo: Boolean,
+    apuntado: Boolean,
     fondoPrincipal: Color,
     onSecundarioClick: () -> Unit,
     onPrincipalClick: () -> Unit,
 ) {
+    val principalActivo = !completo && !apuntado
     Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
         Row(
             modifier = Modifier
@@ -755,20 +779,37 @@ private fun Acciones(
             modifier = Modifier
                 .weight(1.25f)
                 .clip(RoundedCornerShape(14.dp))
-                .background(if (completo) BusLinea else fondoPrincipal)
-                .clickable(enabled = !completo, onClick = onPrincipalClick)
+                .background(
+                    when {
+                        apuntado -> BusChip
+                        completo -> BusLinea
+                        else -> fondoPrincipal
+                    },
+                )
+                .clickable(enabled = principalActivo, onClick = onPrincipalClick)
                 .padding(vertical = 12.dp),
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
-                text = if (completo) "Completo" else textoPrincipal,
-                color = if (completo) BusGris else Color.White,
+                text = when {
+                    apuntado -> "Ya apuntado"
+                    completo -> "Completo"
+                    else -> textoPrincipal
+                },
+                color = when {
+                    apuntado -> BusVioleta
+                    completo -> BusGris
+                    else -> Color.White
+                },
                 fontSize = 13.sp,
                 fontWeight = FontWeight.Bold,
                 maxLines = 1,
             )
-            if (!completo) {
+            if (apuntado) {
+                Spacer(Modifier.width(6.dp))
+                Icon(Icons.Outlined.Check, contentDescription = null, tint = BusVioleta, modifier = Modifier.size(16.dp))
+            } else if (!completo) {
                 Spacer(Modifier.width(6.dp))
                 Icon(iconoPrincipal, contentDescription = null, tint = Color.White, modifier = Modifier.size(16.dp))
             }
