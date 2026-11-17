@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Settings screen (Issue 78) -->
+    <string name="ajustes_titulo">Settings</string>
+    <string name="ajustes_volver">Back</string>
+    <string name="ajustes_seccion_apariencia">APPEARANCE</string>
+    <string name="ajustes_seccion_cuenta">ACCOUNT</string>
+    <string name="ajustes_tema_sistema">Follow system</string>
+    <string name="ajustes_tema_claro">Light</string>
+    <string name="ajustes_tema_oscuro">Dark</string>
+</resources>

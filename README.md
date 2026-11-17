@@ -78,6 +78,18 @@ La lógica del registro ya guarda usuarios en la base de datos local. La pantall
 
 Tras registrarse, ya se puede iniciar sesión con ese usuario. Ejemplo de conexión en [`docs/AUTENTICACION.md`](docs/AUTENTICACION.md).
 
+## Novedades: tema claro / oscuro (Issue 78)
+
+En Ajustes ya se puede elegir el aspecto de la app.
+
+- **Tres opciones:** seguir al sistema (por defecto), claro u oscuro. Se aplica al instante en toda la app.
+- **Se recuerda:** la elección se guarda en el móvil (`AjustesRepositorio`) y sigue al cerrar y abrir la app.
+- **Textos en español e inglés** (`strings_ajustes.xml`).
+- **Pruebas automáticas:** `AjustesRepositorioTest` (sin emulador) y `AjustesScreenTest` (con emulador).
+- **Aviso:** las pantallas con colores escritos a mano no cambian hasta que usen `MaterialTheme.colorScheme`.
+
+Detalles y cómo probarlo en [`docs/AJUSTES.md`](docs/AJUSTES.md).
+
 ## Novedades: sesión recordada (Issue 16)
 
 La app ya puede recordar quién ha iniciado sesión, aunque se cierre y se vuelva a abrir.
