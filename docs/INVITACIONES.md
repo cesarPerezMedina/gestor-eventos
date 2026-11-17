@@ -116,3 +116,4 @@ Las listas de eventos del usuario también se actualizan solas. Para la pantalla
 - `InvitacionAceptarTest` (sin emulador): aceptar con plaza, evento completo, sin límite, invitación ajena, inexistente, repetida, rechazada y ya apuntado.
 - `InvitacionesScreenTest` (con emulador): lista, contador, mensaje vacío y avisos de Aceptar, Rechazar y Volver.
 - `InvitacionesViewModelTest` (sin emulador): carga de la lista, aceptar, rechazar, evento completo, invitación ya respondida y aviso único.
+- `FlujoInvitacionesRepositorioTest` (sin emulador) y `FlujoInvitacionesTest` (con emulador): el flujo completo de invitaciones. Resumen y casos en [`PRUEBAS_INVITACIONES.md`](PRUEBAS_INVITACIONES.md).

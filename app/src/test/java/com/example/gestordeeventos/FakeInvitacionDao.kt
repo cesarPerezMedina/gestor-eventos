@@ -48,6 +48,11 @@ class FakeInvitacionDao(
     fun participantesDe(eventoId: Long): List<Long> =
         participaciones.filter { it.eventoId == eventoId }.map { it.usuarioId }
 
+    /** Para los tests: el usuario sale del evento (deja libre su plaza). */
+    fun quitarParticipacion(eventoId: Long, usuarioId: Long) {
+        participaciones.removeAll { it.eventoId == eventoId && it.usuarioId == usuarioId }
+    }
+
     /** Para los tests: el estado actual de una invitación. */
     fun estadoDe(invitacionId: Long): EstadoInvitacion? =
         invitaciones.value.firstOrNull { it.id == invitacionId }?.estado
