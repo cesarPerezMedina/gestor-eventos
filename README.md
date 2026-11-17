@@ -89,15 +89,17 @@ La app ya puede recordar quién ha iniciado sesión, aunque se cierre y se vuelv
 
 Cómo conectarlo a la navegación y al login está en [`docs/AUTENTICACION.md`](docs/AUTENTICACION.md).
 
-## Novedades: validación de eventos (Issues 49 y 50)
+## Novedades: flujo de autenticación completo (Issue 20)
 
-`ValidadorEvento` comprueba un evento antes de guardarlo y devuelve un error por campo, para que el formulario marque cada uno.
+Login, Registro y sesión ya funcionan de extremo a extremo en la app, sobre la base de datos local.
 
-- **Reglas:** nombre de 3 a 60 caracteres, descripción de hasta 500, máximo de jugadores no menor que el mínimo (0 = sin límite), dirección o coordenadas válidas y fecha futura.
-- **Fecha opcional de momento:** se puede dejar de exigir mientras el formulario no pida fecha y hora (Issue 47).
-- **Pruebas automáticas:** `ValidadorEventoTest`, sin emulador.
+- **Login y Registro conectados:** los botones usan `LoginViewModel` y `RegistroViewModel`; los errores salen bajo cada campo y el botón se desactiva mientras se comprueba.
+- **Sesión recordada:** al abrir la app entra directo si ya había una sesión iniciada; si no, muestra el Login.
+- **Inicio con el nombre real:** el dashboard ya muestra el nombre del usuario que ha iniciado sesión, en lugar de uno provisional.
+- **Cerrar sesión:** olvida la sesión completa, para que la app no entre sola al reabrirla.
+- **Correcciones:** restablecer contraseña ya guarda en el formato que entiende el login; se borran los errores obsoletos al reenviar un formulario y la pista de contraseña del registro ya coincide con las reglas reales.
 
-Cómo conectarlo a la creación de eventos está en [`docs/VALIDACION_EVENTO.md`](docs/VALIDACION_EVENTO.md).
+Pasos para probarlo a mano en [`docs/AUTENTICACION.md`](docs/AUTENTICACION.md).
 
 ## Tecnologías
 
