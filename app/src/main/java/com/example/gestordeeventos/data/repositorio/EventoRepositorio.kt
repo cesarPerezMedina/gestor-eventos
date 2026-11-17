@@ -70,11 +70,13 @@ class EventoRepositorio(
      */
     suspend fun crearEvento(evento: Evento, invitadosIds: List<Long>): ResultadoEvento {
         // ... (igual que lo tenías)
+        return TODO("Provide the return value")
     }
 
     /** Apuntarse a un evento. En uno privado solo se puede con invitación. */
     suspend fun apuntarse(eventoId: Long, usuarioId: Long): ResultadoEvento {
         // ... (igual que lo tenías)
+        return TODO("Provide the return value")
     }
 
     companion object {

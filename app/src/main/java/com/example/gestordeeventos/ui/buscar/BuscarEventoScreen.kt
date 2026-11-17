@@ -65,6 +65,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.gestordeeventos.ui.theme.GestorDeEventosTheme
+import java.text.Normalizer
 import java.util.Locale
 
 // --- Colores de la pantalla (mismos tonos que Amigos y Crear evento) ---
@@ -118,7 +119,25 @@ data class EventoBuscarItem(
     val organizador: String? = null,
     val avatares: List<String> = emptyList(),
 )
+private val MARCAS_DIACRITICAS = Regex("\\p{InCombiningDiacriticalMarks}+")
 
+/** Minúsculas, sin tildes y sin espacios sobrantes: "  Pádel " -> "padel". */
+private fun String.normalizar(): String =
+    Normalizer.normalize(trim().lowercase(Locale.getDefault()), Normalizer.Form.NFD)
+        .replace(MARCAS_DIACRITICAS, "")
+
+/**
+ * Devuelve los eventos cuyo título contiene TODAS las palabras de la consulta
+ * (sin importar mayúsculas ni tildes). Con la consulta vacía devuelve la lista entera.
+ */
+fun filtrarPorNombre(eventos: List<EventoBuscarItem>, consulta: String): List<EventoBuscarItem> {
+    val palabras = consulta.normalizar().split(Regex("\\s+")).filter { it.isNotEmpty() }
+    if (palabras.isEmpty()) return eventos
+    return eventos.filter { evento ->
+        val titulo = evento.titulo.normalizar()
+        palabras.all { it in titulo }
+    }
+}
 /**
  * Pantalla "Buscar eventos" (Issue 54). De momento es solo la interfaz: lo que el usuario toca
  * (modo, radio, deporte, texto) se guarda en variables locales y los botones avisan con callbacks.
