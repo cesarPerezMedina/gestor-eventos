@@ -12,4 +12,11 @@
     <string name="invitaciones_rechazar_descripcion">Rechazar la invitación a %1$s</string>
     <string name="invitaciones_vacio_titulo">No tienes invitaciones pendientes</string>
     <string name="invitaciones_vacio_texto">Cuando alguien te invite a un evento, aparecerá aquí.</string>
+    <!-- Avisos al responder (Issue 75) -->
+    <string name="invitaciones_msg_aceptada">Te has apuntado a «%1$s»</string>
+    <string name="invitaciones_msg_rechazada">Has rechazado la invitación a «%1$s»</string>
+    <string name="invitaciones_msg_completo">«%1$s» está completo: no quedan plazas</string>
+    <string name="invitaciones_msg_no_existe">Esa invitación ya no existe</string>
+    <string name="invitaciones_msg_no_es_para_ti">Esa invitación no es tuya</string>
+    <string name="invitaciones_msg_ya_respondida">Esa invitación ya estaba respondida</string>
 </resources>

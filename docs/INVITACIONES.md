@@ -90,9 +90,29 @@ Devuelve el mismo `ResultadoRespuestaInvitacion` que `rechazar`, con un caso má
 `InvitacionRepositorio.crear(context)` crea el repositorio con la transacción real. En los tests se usa
 `InvitacionRepositorio(dao)`, que simplemente ejecuta el bloque.
 
+## Lista que se actualiza sola (Issue 75)
+
+La pantalla de invitaciones ya trabaja con datos reales:
+
+- **`InvitacionesViewModel`** recoge `observarPendientes` (un `Flow` de Room). Al aceptar o rechazar, la invitación
+  desaparece de la lista sin recargar nada, y el contador de arriba baja.
+- **Aviso del resultado:** cada respuesta deja un mensaje ("Te has apuntado a «Fútbol 7»", "«Fútbol 7» está completo",
+  etc.) que `InvitacionesRoute` enseña en un `Snackbar` una sola vez.
+- **Dos toques seguidos** en el mismo botón no responden dos veces.
+- **Navegación:** la campana de Inicio abre la pantalla con las invitaciones del usuario que tiene la sesión.
+
+Las listas de eventos del usuario también se actualizan solas. Para la pantalla "Mis eventos" (Issue 63) hay dos
+`Flow` nuevos en `EventoRepositorio`:
+
+| Función | Qué devuelve |
+|---|---|
+| `observarEventosCreados(usuarioId)` | Los eventos que ha creado. |
+| `observarEventosUnidos(usuarioId)` | Aquellos a los que se ha apuntado. Al **aceptar** una invitación el evento aparece aquí; al **rechazarla** no. |
+
 ## Pruebas
 
 - `InvitacionRepositorioTest` (sin emulador): filtro por usuario y estado, orden, actualización del Flow y todos los casos de `rechazar`.
 - `InvitacionDaoTest` (con emulador): comprueba la consulta SQL real sobre una base de datos en memoria.
 - `InvitacionAceptarTest` (sin emulador): aceptar con plaza, evento completo, sin límite, invitación ajena, inexistente, repetida, rechazada y ya apuntado.
 - `InvitacionesScreenTest` (con emulador): lista, contador, mensaje vacío y avisos de Aceptar, Rechazar y Volver.
+- `InvitacionesViewModelTest` (sin emulador): carga de la lista, aceptar, rechazar, evento completo, invitación ya respondida y aviso único.

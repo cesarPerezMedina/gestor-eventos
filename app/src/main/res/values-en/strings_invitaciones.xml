@@ -12,4 +12,11 @@
     <string name="invitaciones_rechazar_descripcion">Decline the invitation to %1$s</string>
     <string name="invitaciones_vacio_titulo">You have no pending invitations</string>
     <string name="invitaciones_vacio_texto">When someone invites you to an event, it will show up here.</string>
+    <!-- Messages after answering (Issue 75) -->
+    <string name="invitaciones_msg_aceptada">You joined “%1$s”</string>
+    <string name="invitaciones_msg_rechazada">You declined the invitation to “%1$s”</string>
+    <string name="invitaciones_msg_completo">“%1$s” is full: no spots left</string>
+    <string name="invitaciones_msg_no_existe">That invitation no longer exists</string>
+    <string name="invitaciones_msg_no_es_para_ti">That invitation isn\'t yours</string>
+    <string name="invitaciones_msg_ya_respondida">That invitation was already answered</string>
 </resources>
