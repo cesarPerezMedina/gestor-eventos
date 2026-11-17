@@ -21,6 +21,15 @@ class FakeUsuarioDao : UsuarioDao {
 
     override suspend fun buscarPorId(id: Long): Usuario? = usuarios.firstOrNull { it.id == id }
 
+    override suspend fun buscarPorNombreUsuarioParcial(texto: String, miCorreo: String, limite: Int): List<Usuario> {
+        fallo?.let { throw it }
+        return usuarios
+            .filter { it.nombreUsuario.contains(texto, ignoreCase = true) }
+            .filterNot { it.correo.equals(miCorreo, ignoreCase = true) }
+            .sortedBy { it.nombreUsuario.lowercase() }
+            .take(limite)
+    }
+
     override suspend fun buscarPorCorreo(correo: String): Usuario? =
         usuarios.firstOrNull { it.correo.equals(correo, ignoreCase = true) }
 
