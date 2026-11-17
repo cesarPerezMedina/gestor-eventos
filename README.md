@@ -106,6 +106,12 @@ Detalles en [`docs/INVITACIONES.md`](docs/INVITACIONES.md).
 - **Resultado claro:** devuelve `OK`, `NO_EXISTE`, `NO_ES_PARA_TI` o `YA_RESPONDIDA`, para que la pantalla muestre el mensaje adecuado.
 - **Pruebas automáticas:** casos nuevos en `InvitacionRepositorioTest` (sin emulador) y en `InvitacionDaoTest` (con emulador).
 
+## Novedades: pantalla de invitaciones (Issue 71)
+
+- **Pestaña "Invitaciones":** lista las invitaciones recibidas con el evento, quién invita y los botones Aceptar y Rechazar. Se abre desde la campana de Inicio.
+- **Estado vacío y accesibilidad:** mensaje cuando no hay invitaciones, botones con descripción para lectores de pantalla y textos en español e inglés.
+- **Pruebas automáticas:** `InvitacionesScreenTest` (con emulador). Más detalles en [`docs/INVITACIONES.md`](docs/INVITACIONES.md).
+
 ## Tecnologías
 
 | Área | Tecnología |

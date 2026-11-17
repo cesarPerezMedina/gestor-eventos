@@ -53,7 +53,23 @@ fun rechazar(invitacionId: Long) {
 }
 ```
 
+## Pantalla de invitaciones (Issue 71)
+
+`ui/invitaciones/InvitacionesScreen.kt` es la pestaña donde el usuario ve sus invitaciones pendientes. Se llega desde
+la campana de notificaciones de Inicio (ruta `Ruta.Invitaciones`).
+
+- **Cada invitación** es una tarjeta con el icono del deporte, el nombre del evento, deporte y fecha, quién invita y
+  los botones **Aceptar** y **Rechazar**.
+- **Contador** arriba: "1 invitación pendiente" / "N invitaciones pendientes".
+- **Sin invitaciones** enseña un mensaje en vez de una lista vacía.
+- **Sin estado propio:** recibe la lista (`List<InvitacionPendiente>`) y avisa con `onAceptarClick`, `onRechazarClick`
+  y `onBackClick`. De momento enseña datos de ejemplo; la conexión con la base de datos llega en la Issue 75.
+- **Accesibilidad:** los botones tienen una descripción con el nombre del evento ("Aceptar la invitación a Fútbol 7"),
+  el título es un encabezado y los tamaños de texto siguen el ajuste de la Issue 79. Zonas táctiles de 48 dp.
+- **Idiomas:** textos en `strings_invitaciones.xml` (español e inglés).
+
 ## Pruebas
 
 - `InvitacionRepositorioTest` (sin emulador): filtro por usuario y estado, orden, actualización del Flow y todos los casos de `rechazar`.
 - `InvitacionDaoTest` (con emulador): comprueba la consulta SQL real sobre una base de datos en memoria.
+- `InvitacionesScreenTest` (con emulador): lista, contador, mensaje vacío y avisos de Aceptar, Rechazar y Volver.

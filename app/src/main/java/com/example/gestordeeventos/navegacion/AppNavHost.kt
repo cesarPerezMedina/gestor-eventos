@@ -43,6 +43,7 @@ import com.example.gestordeeventos.ui.crear.CrearEventoViewModel
 import com.example.gestordeeventos.ui.crear.CrearEventoViewModelFactory
 import com.example.gestordeeventos.ui.evento.MisEventosScreen
 import com.example.gestordeeventos.ui.inicio.InicioScreen
+import com.example.gestordeeventos.ui.invitaciones.InvitacionesScreen
 import com.example.gestordeeventos.util.SesionManager
 
 
@@ -205,6 +206,7 @@ fun AppNavHost() {
                 InicioScreen(
                     nombreUsuario = usuarioActual?.nombreUsuario ?: "",
                     onAjustesClick = { navController.navigate(Ruta.Ajustes.ruta) },
+                    onNotificacionesClick = { navController.navigate(Ruta.Invitaciones.ruta) },
                     onCrearClick = { irACrear() },
                 )
             }
@@ -234,6 +236,10 @@ fun AppNavHost() {
                     onEliminarClick = { amigosViewModel.eliminarAmigo(it.id) { _, mensaje -> aviso(mensaje) } },
                     onBloquearClick = { amigosViewModel.bloquearAmigo(it.id) { _, mensaje -> aviso(mensaje) } },
                 )
+            }
+
+            composable(Ruta.Invitaciones.ruta) {
+                InvitacionesScreen(onBackClick = { navController.popBackStack() })
             }
 
             composable(Ruta.Ajustes.ruta) {

@@ -10,6 +10,7 @@ sealed class Ruta(val ruta: String) {
     data object Buscar : Ruta("buscar")
     data object Eventos : Ruta("eventos")
     data object Amigos : Ruta("amigos")
+    data object Invitaciones : Ruta("invitaciones")
 
     // Otras pantallas
     data object Crear : Ruta("crear")
