@@ -1,11 +1,19 @@
 package com.example.gestordeeventos.data.repositorio
 
+import android.content.Context
+import com.example.gestordeeventos.data.local.AppDatabase
 import com.example.gestordeeventos.data.local.dao.EventoDao
 import com.example.gestordeeventos.data.local.dao.InvitacionDao
+import com.example.gestordeeventos.data.localizacion.EventoConDistancia
+import com.example.gestordeeventos.data.localizacion.Ubicacion
+import com.example.gestordeeventos.data.localizacion.cajaDelimitadora
+import com.example.gestordeeventos.data.localizacion.distanciaKm
 import com.example.gestordeeventos.data.model.Evento
+import com.example.gestordeeventos.data.model.EventoConCupo
 import com.example.gestordeeventos.data.model.Invitacion
 import com.example.gestordeeventos.data.model.Participacion
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 
 data class ResultadoEvento(val ok: Boolean, val mensaje: String)
 
@@ -21,8 +29,36 @@ class EventoRepositorio(
     /** Eventos que salen en Buscar: solo los públicos, siempre actualizados. */
     fun eventosPublicos(): Flow<List<Evento>> = eventoDao.observarPublicos()
 
+    /** Eventos de Buscar con su número de apuntados: solo los públicos, siempre actualizados. */
+    fun eventosPublicosConCupo(): Flow<List<EventoConCupo>> = eventoDao.observarPublicosConCupo()
+
+    /**
+     * Búsqueda por cercanía (Issue 57): eventos públicos a menos de [radioKm] km de [centro],
+     * del más cercano al más lejano. Primero la base de datos descarta lo que queda fuera de un
+     * rectángulo alrededor del punto; después se calcula la distancia exacta y se filtra por el radio.
+     */
+    fun eventosPublicosCerca(centro: Ubicacion, radioKm: Double): Flow<List<EventoConDistancia>> {
+        val caja = cajaDelimitadora(centro, radioKm)
+        return eventoDao
+            .observarPublicosEnCaja(caja.latMin, caja.latMax, caja.lonMin, caja.lonMax)
+            .map { lista ->
+                lista
+                    .map { EventoConDistancia(it, distanciaKm(centro.latitud, centro.longitud, it.evento.latitud, it.evento.longitud)) }
+                    .filter { it.distanciaKm <= radioKm }
+                    .sortedBy { it.distanciaKm }
+            }
+    }
+
     /** Eventos de "Mis eventos": los que creo, en los que participo o a los que me han invitado. */
     fun misEventos(usuarioId: Long): Flow<List<Evento>> = eventoDao.observarMisEventos(usuarioId)
+
+    /** Eventos creados por el usuario, de más próximos a más lejanos. */
+    suspend fun eventosCreadosPorUsuario(usuarioId: Long): List<Evento> =
+        eventoDao.listarCreadosPorUsuario(usuarioId)
+
+    /** Eventos en los que el usuario tiene una participación. */
+    suspend fun eventosEnLosQueParticipa(usuarioId: Long): List<Evento> =
+        eventoDao.listarEventosParticipadosPorUsuario(usuarioId)
 
     /** Público: cualquiera. Privado: solo el creador, los invitados y los participantes. */
     suspend fun puedeVer(eventoId: Long, usuarioId: Long): Boolean =
@@ -75,5 +111,13 @@ class EventoRepositorio(
         eventoDao.insertarParticipacion(Participacion(eventoId = eventoId, usuarioId = usuarioId))
         eventoDao.aceptarInvitacion(eventoId, usuarioId)
         return ResultadoEvento(true, "Te has apuntado al evento")
+    }
+    
+      companion object {
+        /** Crea el repositorio usando la base de datos local de la aplicación. */
+        fun crear(context: Context): EventoRepositorio {
+            val db = AppDatabase.obtener(context)
+            return EventoRepositorio(db.eventoDao(), db.invitacionDao())
+        }
     }
 }
