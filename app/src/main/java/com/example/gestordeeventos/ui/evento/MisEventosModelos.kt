@@ -3,6 +3,7 @@ package com.example.gestordeeventos.ui.evento
 import com.example.gestordeeventos.data.model.Deporte
 import com.example.gestordeeventos.data.model.EstadoEvento
 import com.example.gestordeeventos.data.model.EventoConCupo
+import com.example.gestordeeventos.data.model.HORAS_HASTA_ARCHIVAR
 import java.text.Normalizer
 import java.time.Instant
 import java.time.ZoneId
@@ -19,9 +20,6 @@ enum class FiltroMisEventos { PROXIMOS, HISTORIAL, BORRADORES, CANCELADOS }
 
 /** Etiqueta pequeña de la tarjeta ("Público", "Privado", "Confirmado"...). */
 enum class EtiquetaEvento { PUBLICO, PRIVADO, CONFIRMADO, BORRADOR, CANCELADO }
-
-/** Horas que un evento sigue en "Próximos" después de su fecha, antes de pasar al historial. */
-const val HORAS_HASTA_ARCHIVAR = 48L
 
 private const val MILIS_POR_HORA = 3_600_000L
 private val IDIOMA_ES: Locale = Locale.forLanguageTag("es-ES")
@@ -90,6 +88,7 @@ fun EventoConCupo.aMiEventoItem(esCreador: Boolean): MiEventoItem = MiEventoItem
 fun MiEventoItem.categoria(ahora: Long): FiltroMisEventos = when (estado) {
     EstadoEvento.BORRADOR -> FiltroMisEventos.BORRADORES
     EstadoEvento.CANCELADO -> FiltroMisEventos.CANCELADOS
+    EstadoEvento.ARCHIVADO -> FiltroMisEventos.HISTORIAL
     EstadoEvento.PUBLICADO ->
         if (fechaHora + HORAS_HASTA_ARCHIVAR * MILIS_POR_HORA > ahora) FiltroMisEventos.PROXIMOS
         else FiltroMisEventos.HISTORIAL

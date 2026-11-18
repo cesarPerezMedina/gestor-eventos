@@ -28,6 +28,11 @@ class EventosViewModel(
     private val miId: suspend () -> Long?,
 ) : ViewModel() {
 
+    init {
+        // Limpieza automática (Issue 66): al entrar en la pantalla se archivan los eventos ya pasados
+        viewModelScope.launch { repositorio.archivarEventosPasados() }
+    }
+
     val estado: StateFlow<EstadoMisEventos> = flow { emit(miId()) }
         .flatMapLatest { id ->
             if (id == null) {

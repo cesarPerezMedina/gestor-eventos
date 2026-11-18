@@ -85,7 +85,7 @@ fun AppNavHost() {
         usuarioActual = sesionRepositorio.usuarioActual()
         if (inicio == null) inicio = if (usuarioActual != null) Ruta.Inicio.ruta else Ruta.Login.ruta
     }
-
+    LaunchedEffect(Unit) { eventoRepositorio.archivarEventosPasados() }
     // Recuerda el correo escrito en "Recuperar" para poder reenviar el código
     var correoRecuperar by remember { mutableStateOf("") }
 
