@@ -130,6 +130,13 @@ Detalles en [`docs/INVITACIONES.md`](docs/INVITACIONES.md).
 - **Dos niveles:** `FlujoInvitacionesRepositorioTest` (sin emulador) y `FlujoInvitacionesTest` (con Room real en memoria).
 - **Casos y cómo ejecutarlas:** [`docs/PRUEBAS_INVITACIONES.md`](docs/PRUEBAS_INVITACIONES.md).
 
+## Novedades: salir de un evento (Issue 67)
+
+- **`EventoRepositorio.salirDeEvento`:** el usuario deja un evento al que se había unido; se libera su plaza y el evento desaparece de sus listas. El creador no puede salirse (puede eliminarlo).
+- **Eventos privados:** al salir hace falta una invitación nueva para volver; en los públicos se puede volver a apuntar.
+- **Confirmación:** cuadro `ConfirmarSalirEventoDialog` listo para usar en las pantallas de eventos.
+- **Pruebas automáticas:** `SalirDeEventoTest` y `DialogosEventoTest` (con emulador). Detalles en [`docs/GESTION_EVENTOS.md`](docs/GESTION_EVENTOS.md).
+
 ## Tecnologías
 
 | Área | Tecnología |
