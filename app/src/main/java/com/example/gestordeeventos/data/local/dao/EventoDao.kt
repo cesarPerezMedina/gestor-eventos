@@ -79,7 +79,26 @@ interface EventoDao {
 
     @Query("SELECT EXISTS(SELECT 1 FROM participaciones WHERE eventoId = :eventoId AND usuarioId = :usuarioId)")
     suspend fun estaApuntado(eventoId: Long, usuarioId: Long): Boolean
+    @Query(
+        "SELECT e.*, (SELECT COUNT(*) FROM participaciones p WHERE p.eventoId = e.id) AS apuntados, " +
+            "EXISTS(SELECT 1 FROM participaciones q WHERE q.eventoId = e.id AND q.usuarioId = :usuarioId) AS yoApuntado " +
+            "FROM eventos e WHERE e.creadorId = :usuarioId ORDER BY e.fechaHora ASC"
+    )
+    fun observarCreadosConCupo(usuarioId: Long): Flow<List<EventoConCupo>>
 
+    @Query(
+        "SELECT e.*, (SELECT COUNT(*) FROM participaciones p WHERE p.eventoId = e.id) AS apuntados, " +
+            "1 AS yoApuntado " +
+            "FROM eventos e INNER JOIN participaciones mi ON mi.eventoId = e.id " +
+            "WHERE mi.usuarioId = :usuarioId AND e.creadorId != :usuarioId ORDER BY e.fechaHora ASC"
+    )
+    fun observarUnidosConCupo(usuarioId: Long): Flow<List<EventoConCupo>>
+
+    @Query("DELETE FROM eventos WHERE id = :eventoId")
+    suspend fun eliminar(eventoId: Long): Int
+
+    @Query("DELETE FROM participaciones WHERE eventoId = :eventoId AND usuarioId = :usuarioId")
+    suspend fun borrarParticipacion(eventoId: Long, usuarioId: Long): Int
     @Query("SELECT COUNT(*) FROM participaciones WHERE eventoId = :eventoId")
     suspend fun contarParticipantes(eventoId: Long): Int
 

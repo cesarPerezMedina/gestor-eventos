@@ -35,5 +35,7 @@ data class Evento(
     val latitud: Double = 0.0,
     val longitud: Double = 0.0,
     val fechaHora: Long,
-    val creadorId: Long
+    val creadorId: Long,
+
+    val estado: EstadoEvento = EstadoEvento.PUBLICADO
 )
