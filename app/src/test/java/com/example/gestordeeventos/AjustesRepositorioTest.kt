@@ -1,5 +1,6 @@
 package com.example.gestordeeventos
 
+import com.example.gestordeeventos.data.model.Deporte
 import com.example.gestordeeventos.data.model.EscalaTexto
 import com.example.gestordeeventos.data.model.ModoTema
 import com.example.gestordeeventos.data.repositorio.AjustesRepositorio
@@ -17,7 +18,7 @@ private class AlmacenAjustesEnMemoria : AlmacenAjustes {
     }
 }
 
-/** Comprueba los ajustes de tema sin necesidad de emulador. */
+/** Comprueba los ajustes (tema, texto, radio, deportes y avisos) sin necesidad de emulador. */
 class AjustesRepositorioTest {
 
     private val almacen = AlmacenAjustesEnMemoria()
@@ -119,5 +120,97 @@ class AjustesRepositorioTest {
         assertEquals(EscalaTexto.NORMAL, EscalaTexto.desdeNombre(null))
         assertEquals(EscalaTexto.NORMAL, EscalaTexto.desdeNombre("xl"))
         assertEquals(EscalaTexto.GRANDE, EscalaTexto.desdeNombre("GRANDE"))
+    }
+
+    // ---------- Preferencias de juego (Issue 77) ----------
+
+    @Test
+    fun porDefectoElRadioEsDiezKm() {
+        assertEquals(10, repositorio.radioBusquedaKm.value)
+    }
+
+    @Test
+    fun cambiarElRadioActualizaYSeRecuerda() {
+        repositorio.cambiarRadioBusquedaKm(25)
+
+        assertEquals(25, repositorio.radioBusquedaKm.value)
+        assertEquals(25, AjustesRepositorio(almacen).radioBusquedaKm.value)
+    }
+
+    @Test
+    fun unRadioQueNoEstaEnLaListaSeIgnora() {
+        repositorio.cambiarRadioBusquedaKm(7)
+
+        assertEquals(10, repositorio.radioBusquedaKm.value)
+        assertEquals(null, almacen.leer("radio_busqueda_km"))
+    }
+
+    @Test
+    fun unRadioGuardadoInvalidoVuelveAlPorDefecto() {
+        almacen.guardar("radio_busqueda_km", "999")
+
+        assertEquals(10, AjustesRepositorio(almacen).radioBusquedaKm.value)
+    }
+
+    @Test
+    fun porDefectoNoHayDeportesFavoritos() {
+        assertTrue(repositorio.deportesFavoritos.value.isEmpty())
+    }
+
+    @Test
+    fun alternarUnDeporteLoMarcaYLoDesmarca() {
+        repositorio.alternarDeporteFavorito(Deporte.PADEL)
+        assertEquals(setOf(Deporte.PADEL), repositorio.deportesFavoritos.value)
+
+        repositorio.alternarDeporteFavorito(Deporte.PADEL)
+        assertTrue(repositorio.deportesFavoritos.value.isEmpty())
+    }
+
+    @Test
+    fun losDeportesFavoritosSeRecuerdan() {
+        repositorio.alternarDeporteFavorito(Deporte.FUTBOL)
+        repositorio.alternarDeporteFavorito(Deporte.TENIS)
+
+        assertEquals(setOf(Deporte.FUTBOL, Deporte.TENIS), AjustesRepositorio(almacen).deportesFavoritos.value)
+    }
+
+    @Test
+    fun losDeportesGuardadosDesconocidosOReservadosSeIgnoran() {
+        almacen.guardar("deportes_favoritos", "FUTBOL,CURLING,OTROS")
+
+        assertEquals(setOf(Deporte.FUTBOL), AjustesRepositorio(almacen).deportesFavoritos.value)
+    }
+
+    @Test
+    fun otrosNoSePuedeElegirComoDeporteFavorito() {
+        assertFalse(Deporte.OTROS in AjustesRepositorio.DEPORTES_FAVORITOS_DISPONIBLES)
+    }
+
+    // ---------- Notificaciones y avisos (Issue 77) ----------
+
+    @Test
+    fun losAvisosTienenSusValoresPorDefecto() {
+        assertTrue(repositorio.recordatorioPartidos.value)
+        assertTrue(repositorio.avisosPlazasVacantes.value)
+        assertFalse(repositorio.invitacionesDirectas.value)
+    }
+
+    @Test
+    fun cambiarCadaAvisoActualizaYSeRecuerda() {
+        repositorio.cambiarRecordatorioPartidos(false)
+        repositorio.cambiarAvisosPlazasVacantes(false)
+        repositorio.cambiarInvitacionesDirectas(true)
+
+        val otro = AjustesRepositorio(almacen)
+        assertFalse(otro.recordatorioPartidos.value)
+        assertFalse(otro.avisosPlazasVacantes.value)
+        assertTrue(otro.invitacionesDirectas.value)
+    }
+
+    @Test
+    fun unAvisoGuardadoConBasuraVuelveAlPorDefecto() {
+        almacen.guardar("aviso_recordatorio_partidos", "quizas")
+
+        assertTrue(AjustesRepositorio(almacen).recordatorioPartidos.value)
     }
 }
