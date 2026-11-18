@@ -39,13 +39,17 @@ import com.example.gestordeeventos.ui.auth.RecuperarScreen
 import com.example.gestordeeventos.ui.auth.RegistroScreen
 import com.example.gestordeeventos.ui.auth.RegistroViewModel
 import com.example.gestordeeventos.ui.auth.RestablecerScreen
-import com.example.gestordeeventos.ui.buscar.BuscarEventoScreen
+import com.example.gestordeeventos.ui.buscar.BuscarEventoRoute
+import com.example.gestordeeventos.ui.buscar.BuscarViewModel
+import com.example.gestordeeventos.ui.buscar.BuscarViewModelFactory
 import com.example.gestordeeventos.ui.componentes.BarraInferior
 import com.example.gestordeeventos.ui.crear.CrearEventoScreen
 import com.example.gestordeeventos.ui.crear.CrearEventoViewModel
 import com.example.gestordeeventos.ui.crear.CrearEventoViewModelFactory
 import com.example.gestordeeventos.ui.evento.MisEventosScreen
 import com.example.gestordeeventos.ui.inicio.InicioScreen
+import com.example.gestordeeventos.ui.inicio.InicioViewModel
+import com.example.gestordeeventos.ui.inicio.InicioViewModelFactory
 import com.example.gestordeeventos.ui.invitaciones.InvitacionesRoute
 import com.example.gestordeeventos.util.SesionManager
 
@@ -85,7 +89,7 @@ fun AppNavHost() {
         usuarioActual = sesionRepositorio.usuarioActual()
         if (inicio == null) inicio = if (usuarioActual != null) Ruta.Inicio.ruta else Ruta.Login.ruta
     }
-    LaunchedEffect(Unit) { eventoRepositorio.archivarEventosPasados() }
+
     // Recuerda el correo escrito en "Recuperar" para poder reenviar el código
     var correoRecuperar by remember { mutableStateOf("") }
 
@@ -207,15 +211,43 @@ fun AppNavHost() {
 
             // ---------- Secciones principales (menú de abajo) ----------
             composable(Ruta.Inicio.ruta) {
+                val inicioViewModel: InicioViewModel = viewModel(
+                    factory = InicioViewModelFactory(
+                        repositorio = eventoRepositorio,
+                        miId = { sesionRepositorio.usuarioActual()?.id },
+                    )
+                )
+                val estadoInicio by inicioViewModel.estado.collectAsStateWithLifecycle()
                 InicioScreen(
                     nombreUsuario = usuarioActual?.nombreUsuario ?: "",
+                    eventos = estadoInicio.eventos,
+                    proximo = estadoInicio.proximo,
+                    cargando = estadoInicio.cargando,
+                    onUnirseClick = { evento ->
+                        inicioViewModel.unirse(evento.id) { _, mensaje -> aviso(mensaje) }
+                    },
                     onAjustesClick = { navController.navigate(Ruta.Ajustes.ruta) },
                     onNotificacionesClick = { navController.navigate(Ruta.Invitaciones.ruta) },
+                    onMensajesClick = { aviso("Los mensajes estarán disponibles próximamente") },
+                    onVerMapaClick = { aviso("El mapa de eventos estará disponible próximamente") },
                     onCrearClick = { irACrear() },
                 )
             }
 
-            composable(Ruta.Buscar.ruta) { BuscarEventoScreen() }
+            composable(Ruta.Buscar.ruta) {
+                val buscarViewModel: BuscarViewModel = viewModel(
+                    factory = BuscarViewModelFactory(
+                        repositorio = eventoRepositorio,
+                        miId = { sesionRepositorio.usuarioActual()?.id },
+                    )
+                )
+                BuscarEventoRoute(
+                    viewModel = buscarViewModel,
+                    onCrearEventoClick = { irACrear() },
+                    onMapaClick = { aviso("El mapa de eventos estará disponible próximamente") },
+                    onDetalleClick = { aviso("Detalle del evento: próximamente") },
+                )
+            }
             composable(Ruta.Eventos.ruta) {
                 val eventosViewModel: EventosViewModel = viewModel(
                     factory = EventosViewModelFactory(

@@ -12,8 +12,6 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -25,20 +23,15 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.EmojiEvents
-import androidx.compose.material.icons.outlined.Event
 import androidx.compose.material.icons.outlined.Flag
 import androidx.compose.material.icons.outlined.FlashOn
 import androidx.compose.material.icons.outlined.GridView
-import androidx.compose.material.icons.outlined.Group
 import androidx.compose.material.icons.outlined.Groups
-import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Mail
 import androidx.compose.material.icons.outlined.NearMe
 import androidx.compose.material.icons.outlined.Notifications
-import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.Place
 import androidx.compose.material.icons.outlined.Schedule
-import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.SportsBasketball
 import androidx.compose.material.icons.outlined.SportsSoccer
@@ -59,6 +52,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -98,29 +92,27 @@ data class ProximoEvento(
     val hora: String,
 )
 
-enum class SeccionNav { INICIO, BUSCAR, EVENTOS, AMIGOS }
-
 val eventosDeEjemplo = listOf(
     EventoResumen(
-        id = "1", titulo = "Fútbol 7 en el parque", deporte = "Fútbol",
+        id = "1", titulo = "Fútbol 7 en el parque", deporte = "FUTBOL",
         detalle = "Sáb 18:00 · a 1,2 km · 8/14 inscritos",
         inscritos = 8, plazas = 14,
         aviso = "6 plazas libres", avisoIcono = Icons.Outlined.Groups,
     ),
     EventoResumen(
-        id = "2", titulo = "Pádel dobles", deporte = "Pádel",
+        id = "2", titulo = "Pádel dobles", deporte = "PADEL",
         detalle = "Dom 11:00 · a 2,8 km · 3/4 inscritos",
         inscritos = 3, plazas = 4,
         aviso = "¡Última plaza disponible!", avisoIcono = Icons.Outlined.FlashOn, urgente = true,
     ),
     EventoResumen(
-        id = "3", titulo = "Carrera 5 km", deporte = "Running",
+        id = "3", titulo = "Carrera 5 km", deporte = "ATLETISMO",
         detalle = "Dom 09:30 · a 0,5 km · 12/30 inscritos",
         inscritos = 12, plazas = 30,
         aviso = "Ruta ribereña parque norte", avisoIcono = Icons.Outlined.Place,
     ),
     EventoResumen(
-        id = "4", titulo = "Baloncesto 3×3", deporte = "Baloncesto",
+        id = "4", titulo = "Baloncesto 3×3", deporte = "BALONCESTO",
         detalle = "Hoy 20:00 · a 0,8 km · 5/6 inscritos",
         inscritos = 5, plazas = 6,
         aviso = "Empieza en 2 horas", avisoIcono = Icons.Outlined.Schedule,
@@ -133,19 +125,24 @@ val proximoEjemplo = ProximoEvento(
     hora = "Hoy, 19:30",
 )
 
-private data class DeporteChip(val nombre: String, val icono: ImageVector)
+private data class DeporteChip(val id: String, val nombre: String, val icono: ImageVector)
 
+private const val FILTRO_TODOS = "todos"
+
+/** Los ids de los deportes son los nombres del enum `Deporte` ("FUTBOL", "PADEL"...), igual que en Buscar. */
 private val deportes = listOf(
-    DeporteChip("Todos", Icons.Outlined.GridView),
-    DeporteChip("Fútbol", Icons.Outlined.SportsSoccer),
-    DeporteChip("Pádel", Icons.Outlined.SportsTennis),
-    DeporteChip("Baloncesto", Icons.Outlined.SportsBasketball),
+    DeporteChip(FILTRO_TODOS, "Todos", Icons.Outlined.GridView),
+    DeporteChip("FUTBOL", "Fútbol", Icons.Outlined.SportsSoccer),
+    DeporteChip("PADEL", "Pádel", Icons.Outlined.SportsTennis),
+    DeporteChip("BALONCESTO", "Baloncesto", Icons.Outlined.SportsBasketball),
+    DeporteChip("TENIS", "Tenis", Icons.Outlined.SportsTennis),
+    DeporteChip("ATLETISMO", "Atletismo", Icons.Outlined.EmojiEvents),
 )
 
 private fun iconoDeporte(deporte: String): ImageVector = when (deporte) {
-    "Fútbol" -> Icons.Outlined.SportsSoccer
-    "Pádel" -> Icons.Outlined.SportsTennis
-    "Baloncesto" -> Icons.Outlined.SportsBasketball
+    "FUTBOL" -> Icons.Outlined.SportsSoccer
+    "PADEL", "TENIS" -> Icons.Outlined.SportsTennis
+    "BALONCESTO" -> Icons.Outlined.SportsBasketball
     else -> Icons.Outlined.EmojiEvents
 }
 
@@ -155,18 +152,16 @@ fun InicioScreen(
     modifier: Modifier = Modifier,
     eventos: List<EventoResumen> = eventosDeEjemplo,
     proximo: ProximoEvento? = proximoEjemplo,
-    seccion: SeccionNav = SeccionNav.INICIO,
+    cargando: Boolean = false,
     onUnirseClick: (EventoResumen) -> Unit = {},
     onCrearClick: () -> Unit = {},
     onVerMapaClick: () -> Unit = {},
     onNotificacionesClick: () -> Unit = {},
     onMensajesClick: () -> Unit = {},
     onAjustesClick: () -> Unit = {},
-    onPerfilClick: () -> Unit = {},
-    onNavegar: (SeccionNav) -> Unit = {},
 ) {
-    var deporteSeleccionado by rememberSaveable { mutableStateOf("Todos") }
-    val visibles = if (deporteSeleccionado == "Todos") {
+    var deporteSeleccionado by rememberSaveable { mutableStateOf(FILTRO_TODOS) }
+    val visibles = if (deporteSeleccionado == FILTRO_TODOS) {
         eventos
     } else {
         eventos.filter { it.deporte == deporteSeleccionado }
@@ -215,18 +210,6 @@ fun InicioScreen(
                         ) {
                             Icon(Icons.Outlined.Notifications, contentDescription = "Notificaciones", tint = IniTinta)
                         }
-                        Spacer(Modifier.size(6.dp))
-                        Box(
-                            modifier = Modifier
-                                .size(40.dp)
-                                .clip(CircleShape)
-                                .background(IniChip)
-                                .clickable(onClick = onPerfilClick),
-                            contentAlignment = Alignment.Center,
-                        ) {
-                            // Cuando tengas foto de perfil, sustituye este icono por la imagen
-                            Icon(Icons.Outlined.Person, contentDescription = "Perfil", tint = IniVioleta)
-                        }
                     }
                 }
 
@@ -251,7 +234,7 @@ fun InicioScreen(
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(Icons.Outlined.NearMe, contentDescription = null, tint = IniVioleta, modifier = Modifier.size(16.dp))
                             Spacer(Modifier.size(6.dp))
-                            Text("Eventos públicos cerca de ti", color = IniSubtitulo, fontSize = 14.sp)
+                            Text("Eventos públicos disponibles", color = IniSubtitulo, fontSize = 14.sp)
                         }
                     }
                     Spacer(Modifier.size(8.dp))
@@ -292,8 +275,8 @@ fun InicioScreen(
                     deportes.forEach { deporte ->
                         ChipDeporte(
                             deporte = deporte,
-                            seleccionado = deporte.nombre == deporteSeleccionado,
-                            onClick = { deporteSeleccionado = deporte.nombre },
+                            seleccionado = deporte.id == deporteSeleccionado,
+                            onClick = { deporteSeleccionado = deporte.id },
                         )
                     }
                 }
@@ -308,13 +291,29 @@ fun InicioScreen(
                 ) {
                     Text("Eventos disponibles", color = IniTinta, fontSize = 20.sp, fontWeight = FontWeight.ExtraBold)
                     Text(
-                        text = "${visibles.size} sugerencias",
+                        text = if (visibles.size == 1) "1 sugerencia" else "${visibles.size} sugerencias",
                         color = IniVioleta,
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Bold,
                     )
                 }
                 Spacer(Modifier.height(12.dp))
+
+                if (visibles.isEmpty() && !cargando) {
+                    Text(
+                        text = if (deporteSeleccionado == FILTRO_TODOS) {
+                            "Ahora mismo no hay eventos públicos a los que unirte. ¡Crea el primero!"
+                        } else {
+                            "No hay eventos de este deporte"
+                        },
+                        color = IniGris,
+                        fontSize = 14.sp,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 20.dp),
+                    )
+                }
 
                 visibles.forEach { evento ->
                     TarjetaEvento(evento = evento, onUnirse = { onUnirseClick(evento) })
@@ -325,12 +324,6 @@ fun InicioScreen(
 
                 Spacer(Modifier.height(24.dp))
             }
-
-            BarraNavegacion(
-                seccion = seccion,
-                onNavegar = onNavegar,
-                onCrearClick = onCrearClick,
-            )
         }
     }
 }
@@ -591,73 +584,6 @@ private fun BannerCrear(onCrearClick: () -> Unit) {
         ) {
             Text("Crear", color = IniVioleta, fontSize = 14.sp, fontWeight = FontWeight.Bold)
         }
-    }
-}
-
-@Composable
-private fun BarraNavegacion(
-    seccion: SeccionNav,
-    onNavegar: (SeccionNav) -> Unit,
-    onCrearClick: () -> Unit,
-) {
-    Box(modifier = Modifier.fillMaxWidth()) {
-        Column(modifier = Modifier.fillMaxWidth().background(Color.White)) {
-            Box(Modifier.fillMaxWidth().height(1.dp).background(IniPista))
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .navigationBarsPadding()
-                    .padding(top = 8.dp, bottom = 8.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                ItemNavegacion(Icons.Outlined.Home, "Inicio", seccion == SeccionNav.INICIO, Modifier.weight(1f)) {
-                    onNavegar(SeccionNav.INICIO)
-                }
-                ItemNavegacion(Icons.Outlined.Search, "Buscar", seccion == SeccionNav.BUSCAR, Modifier.weight(1f)) {
-                    onNavegar(SeccionNav.BUSCAR)
-                }
-                Spacer(Modifier.weight(1f)) // hueco para el botón central
-                ItemNavegacion(Icons.Outlined.Event, "Eventos", seccion == SeccionNav.EVENTOS, Modifier.weight(1f)) {
-                    onNavegar(SeccionNav.EVENTOS)
-                }
-                ItemNavegacion(Icons.Outlined.Group, "Amigos", seccion == SeccionNav.AMIGOS, Modifier.weight(1f)) {
-                    onNavegar(SeccionNav.AMIGOS)
-                }
-            }
-        }
-
-        // Botón central elevado "+"
-        Box(
-            modifier = Modifier
-                .align(Alignment.TopCenter)
-                .offset(y = (-22).dp)
-                .size(58.dp)
-                .shadow(10.dp, CircleShape, spotColor = IniVioleta)
-                .background(Brush.linearGradient(listOf(IniVioletaClaro, IniVioleta)), CircleShape)
-                .clickable(onClick = onCrearClick),
-            contentAlignment = Alignment.Center,
-        ) {
-            Icon(Icons.Outlined.Add, contentDescription = "Crear evento", tint = Color.White, modifier = Modifier.size(30.dp))
-        }
-    }
-}
-
-@Composable
-private fun ItemNavegacion(
-    icono: ImageVector,
-    etiqueta: String,
-    seleccionado: Boolean,
-    modifier: Modifier = Modifier,
-    onClick: () -> Unit,
-) {
-    val color = if (seleccionado) IniBoton else IniGris
-    Column(
-        modifier = modifier.clickable(onClick = onClick),
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        Icon(icono, contentDescription = null, tint = color, modifier = Modifier.size(24.dp))
-        Spacer(Modifier.height(2.dp))
-        Text(etiqueta, color = color, fontSize = 11.sp, fontWeight = FontWeight.Bold)
     }
 }
 

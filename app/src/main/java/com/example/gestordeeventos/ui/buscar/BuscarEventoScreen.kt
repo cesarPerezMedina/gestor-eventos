@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -19,25 +18,20 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AddCircleOutline
-import androidx.compose.material.icons.outlined.CalendarToday
-import androidx.compose.material.icons.outlined.ChevronRight
 import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material.icons.outlined.Map
 import androidx.compose.material.icons.outlined.Navigation
-import androidx.compose.material.icons.outlined.Place
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.SortByAlpha
 import androidx.compose.material.icons.outlined.SportsBasketball
 import androidx.compose.material.icons.outlined.SportsSoccer
 import androidx.compose.material.icons.outlined.SportsTennis
 import androidx.compose.material.icons.outlined.SwapVert
-import androidx.compose.material.icons.outlined.Tune
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
@@ -50,17 +44,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -125,12 +115,12 @@ fun filtrarPorNombre(eventos: List<EventoBuscarItem>, consulta: String): List<Ev
 }
 
 /**
- * Pantalla "Buscar eventos" (Issue 54). De momento es solo la interfaz: lo que el usuario toca
- * (modo, radio, deporte, texto) se guarda en variables locales y los botones avisan con callbacks.
- * Filtrar de verdad y cargar los eventos de la base de datos llegará en las siguientes issues.
+ * Pantalla "Buscar eventos" (Issue 54). Recibe los eventos ya cargados ([BuscarEventoRoute] los trae de Room) y
+ * aplica ella misma el texto del buscador, el chip de deporte y el orden de la pestaña "Por nombre"
+ * ([filtrarEventos]). El modo y el radio se avisan con callbacks, porque cambian la consulta a la base de datos.
  *
  * Todos los parámetros tienen valor por defecto, así que `BuscarEventoScreen()` sigue compilando.
- * La lista y los filtros por defecto son datos de ejemplo para ver el diseño.
+ * La lista y los filtros por defecto son datos de ejemplo, solo para las vistas previas.
  */
 @Composable
 fun BuscarEventoScreen(
@@ -138,8 +128,6 @@ fun BuscarEventoScreen(
     eventos: List<EventoBuscarItem> = eventosBuscarDeEjemplo,
     filtrosDeporte: List<FiltroDeporteBuscar> = filtrosDeporteDeEjemplo,
     onMapaClick: () -> Unit = {},
-    onFiltrosClick: () -> Unit = {},
-    onOrdenClick: () -> Unit = {},
     onModoChange: (ModoBusqueda) -> Unit = {},
     onRadioChange: (Int) -> Unit = {},
     avisoUbicacion: String? = null,
@@ -153,7 +141,24 @@ fun BuscarEventoScreen(
     var consulta by rememberSaveable { mutableStateOf("") }
     var modo by rememberSaveable { mutableStateOf(ModoBusqueda.CERCA_DE_MI) }
     var radioKm by rememberSaveable { mutableStateOf(RADIOS_KM.first()) }
-    var deporteId by rememberSaveable { mutableStateOf(filtrosDeporte.firstOrNull()?.id.orEmpty()) }
+    var deporteElegido by rememberSaveable { mutableStateOf(filtrosDeporte.firstOrNull()?.id.orEmpty()) }
+
+    // Si el deporte elegido ya no tiene eventos (su chip desaparece), se vuelve a "Todos"
+    val deporteId = if (filtrosDeporte.any { it.id == deporteElegido }) deporteElegido else filtrosDeporte.firstOrNull()?.id.orEmpty()
+
+    // Lo que se enseña: el texto del buscador y el chip de deporte se aplican aquí, sobre los eventos recibidos
+    val visibles = filtrarEventos(
+        eventos = eventos,
+        consulta = consulta,
+        deporteId = deporteId,
+        ordenarPorNombre = modo == ModoBusqueda.POR_NOMBRE,
+    )
+    val hayFiltrosPuestos = consulta.isNotBlank() || deporteId != filtrosDeporte.firstOrNull()?.id.orEmpty()
+    val orden = when {
+        modo == ModoBusqueda.POR_NOMBRE -> "A-Z"
+        eventos.any { it.distanciaKm != null } -> "Distancia"
+        else -> "Fecha"
+    }
 
     LazyColumn(
         modifier = modifier
@@ -169,7 +174,6 @@ fun BuscarEventoScreen(
                 consulta = consulta,
                 onCambio = { consulta = it },
                 onBuscar = { onBuscar(consulta.trim()) },
-                onFiltrosClick = onFiltrosClick,
             )
         }
 
@@ -187,19 +191,19 @@ fun BuscarEventoScreen(
             FilaDeportes(
                 filtros = filtrosDeporte,
                 seleccionadoId = deporteId,
-                onCambio = { deporteId = it },
+                onCambio = { deporteElegido = it },
             )
         }
 
         item {
             EncabezadoLista(
                 titulo = if (modo == ModoBusqueda.CERCA_DE_MI) "Eventos cercanos" else "Resultados",
-                disponibles = eventos.size,
-                onOrdenClick = onOrdenClick,
+                disponibles = visibles.size,
+                orden = orden,
             )
         }
 
-        items(eventos, key = { it.id }) { evento ->
+        items(visibles, key = { it.id }) { evento ->
             TarjetaEventoBuscar(
                 evento = evento,
                 onClick = { onDetalleClick(evento.id) },
@@ -212,10 +216,15 @@ fun BuscarEventoScreen(
             )
         }
 
-        if (eventos.isEmpty()) {
+        if (visibles.isEmpty()) {
             item {
                 Text(
-                    text = "No hay eventos con estos filtros",
+                    text = when {
+                        hayFiltrosPuestos && eventos.isNotEmpty() -> "No hay eventos con estos filtros"
+                        modo == ModoBusqueda.CERCA_DE_MI && avisoUbicacion == null ->
+                            "No hay eventos en este radio. Prueba con más km o busca «Por nombre»"
+                        else -> "Todavía no hay eventos públicos. ¡Crea el primero!"
+                    },
                     color = BusGris,
                     fontSize = 14.sp,
                     textAlign = TextAlign.Center,
@@ -272,7 +281,6 @@ private fun BarraBusqueda(
     consulta: String,
     onCambio: (String) -> Unit,
     onBuscar: () -> Unit,
-    onFiltrosClick: () -> Unit,
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -305,21 +313,6 @@ private fun BarraBusqueda(
                 cursorColor = BusVioleta,
             ),
         )
-        Box(
-            modifier = Modifier
-                .size(56.dp)
-                .clip(RoundedCornerShape(14.dp))
-                .background(Color.White)
-                .border(1.dp, BusLinea, RoundedCornerShape(14.dp))
-                .clickable(onClick = onFiltrosClick),
-            contentAlignment = Alignment.Center,
-        ) {
-            Icon(
-                Icons.Outlined.Tune,
-                contentDescription = "Filtros",
-                tint = BusVioleta,
-            )
-        }
     }
 }
 
@@ -444,7 +437,7 @@ private fun FilaDeportes(
 }
 
 @Composable
-private fun EncabezadoLista(titulo: String, disponibles: Int, onOrdenClick: () -> Unit) {
+private fun EncabezadoLista(titulo: String, disponibles: Int, orden: String) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
@@ -454,7 +447,7 @@ private fun EncabezadoLista(titulo: String, disponibles: Int, onOrdenClick: () -
             Text(titulo, color = BusTinta, fontSize = 18.sp, fontWeight = FontWeight.ExtraBold)
             Spacer(Modifier.width(8.dp))
             Text(
-                text = "$disponibles disponibles",
+                text = if (disponibles == 1) "1 disponible" else "$disponibles disponibles",
                 color = BusVioleta,
                 fontSize = 11.sp,
                 fontWeight = FontWeight.Bold,
@@ -465,15 +458,12 @@ private fun EncabezadoLista(titulo: String, disponibles: Int, onOrdenClick: () -
             )
         }
         Row(
-            modifier = Modifier
-                .clip(RoundedCornerShape(8.dp))
-                .clickable(onClick = onOrdenClick)
-                .padding(4.dp),
+            modifier = Modifier.padding(4.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Icon(Icons.Outlined.SwapVert, contentDescription = null, tint = BusSubtitulo, modifier = Modifier.size(16.dp))
             Spacer(Modifier.width(4.dp))
-            Text("Distancia", color = BusSubtitulo, fontSize = 12.sp, fontWeight = FontWeight.Medium)
+            Text("Orden: $orden", color = BusSubtitulo, fontSize = 12.sp, fontWeight = FontWeight.Medium)
         }
     }
 }
