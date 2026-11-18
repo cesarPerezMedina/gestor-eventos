@@ -143,4 +143,13 @@ interface EventoDao {
      */
     @Query("UPDATE invitaciones SET estado = 'RECHAZADA' WHERE eventoId = :eventoId AND paraUsuarioId = :usuarioId AND estado != 'RECHAZADA'")
     suspend fun cerrarInvitaciones(eventoId: Long, usuarioId: Long): Int
+
+    // --- Eliminar un evento propio (Issue 68) ---
+
+    /**
+     * Borra el evento SOLO si [creadorId] es quien lo creó. Devuelve cuántas filas borró (0 si no existe o no es suyo).
+     * Al borrar el evento, Room borra también sus participaciones e invitaciones (claves foráneas en cascada).
+     */
+    @Query("DELETE FROM eventos WHERE id = :eventoId AND creadorId = :creadorId")
+    suspend fun eliminarSiEsCreador(eventoId: Long, creadorId: Long): Int
 }

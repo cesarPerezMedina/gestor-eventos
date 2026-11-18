@@ -70,3 +70,22 @@ fun ConfirmarSalirEventoDialog(
         modifier = modifier,
     )
 }
+
+/** Confirmación antes de eliminar un evento propio (Issue 68). Se borra para todos y no se puede deshacer. */
+@Composable
+fun ConfirmarEliminarEventoDialog(
+    nombreEvento: String,
+    onConfirmar: () -> Unit,
+    onCancelar: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    DialogoConfirmacion(
+        titulo = stringResource(R.string.evento_eliminar_titulo),
+        texto = stringResource(R.string.evento_eliminar_texto, nombreEvento),
+        textoConfirmar = stringResource(R.string.evento_eliminar_confirmar),
+        onConfirmar = onConfirmar,
+        onCancelar = onCancelar,
+        modifier = modifier,
+        peligroso = true,
+    )
+}

@@ -137,6 +137,12 @@ Detalles en [`docs/INVITACIONES.md`](docs/INVITACIONES.md).
 - **Confirmación:** cuadro `ConfirmarSalirEventoDialog` listo para usar en las pantallas de eventos.
 - **Pruebas automáticas:** `SalirDeEventoTest` y `DialogosEventoTest` (con emulador). Detalles en [`docs/GESTION_EVENTOS.md`](docs/GESTION_EVENTOS.md).
 
+## Novedades: eliminar eventos propios (Issue 68)
+
+- **`EventoRepositorio.eliminarEvento`:** solo el creador puede borrar su evento. Se borran también sus participaciones e invitaciones, y desaparece de todas las listas.
+- **Confirmación:** cuadro `ConfirmarEliminarEventoDialog` (botón en rojo) que avisa de que no se puede deshacer.
+- **Pruebas automáticas:** `EliminarEventoTest` y `DialogosEventoTest` (con emulador). Detalles en [`docs/GESTION_EVENTOS.md`](docs/GESTION_EVENTOS.md).
+
 ## Tecnologías
 
 | Área | Tecnología |

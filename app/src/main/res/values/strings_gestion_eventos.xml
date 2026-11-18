@@ -5,4 +5,7 @@
     <string name="evento_salir_titulo">¿Salir del evento?</string>
     <string name="evento_salir_texto">Dejarás de estar apuntado a «%1$s». Si es privado, necesitarás otra invitación para volver.</string>
     <string name="evento_salir_confirmar">Salir</string>
+    <string name="evento_eliminar_titulo">¿Eliminar el evento?</string>
+    <string name="evento_eliminar_texto">Se eliminará «%1$s» para todos los participantes y se borrarán sus invitaciones. No se puede deshacer.</string>
+    <string name="evento_eliminar_confirmar">Eliminar</string>
 </resources>

@@ -6,6 +6,7 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
+import com.example.gestordeeventos.ui.componentes.ConfirmarEliminarEventoDialog
 import com.example.gestordeeventos.ui.componentes.ConfirmarSalirEventoDialog
 import com.example.gestordeeventos.ui.theme.GestorDeEventosTheme
 import org.junit.Assert.assertEquals
@@ -59,5 +60,53 @@ class DialogosEventoTest {
         regla.onNodeWithText(texto(R.string.evento_salir_confirmar)).performClick()
         assertEquals(1, confirmado)
         assertEquals(1, cancelado)
+    }
+
+    @Test
+    fun eliminarAvisaDeQueNoSePuedeDeshacer() {
+        regla.setContent {
+            GestorDeEventosTheme(darkTheme = false) {
+                ConfirmarEliminarEventoDialog(nombreEvento = "Fútbol 7", onConfirmar = {}, onCancelar = {})
+            }
+        }
+
+        regla.onNodeWithText(texto(R.string.evento_eliminar_titulo)).assertIsDisplayed()
+        regla.onNodeWithText(texto(R.string.evento_eliminar_texto, "Fútbol 7")).assertIsDisplayed()
+        regla.onNodeWithText(texto(R.string.evento_eliminar_confirmar)).assertIsDisplayed()
+        regla.onNodeWithText(texto(R.string.evento_cancelar)).assertIsDisplayed()
+    }
+
+    @Test
+    fun cancelarEliminarNoConfirma() {
+        var confirmado = 0
+        var cancelado = 0
+        regla.setContent {
+            GestorDeEventosTheme(darkTheme = false) {
+                ConfirmarEliminarEventoDialog(
+                    nombreEvento = "Fútbol 7",
+                    onConfirmar = { confirmado++ },
+                    onCancelar = { cancelado++ },
+                )
+            }
+        }
+
+        regla.onNodeWithText(texto(R.string.evento_cancelar)).performClick()
+
+        assertEquals(0, confirmado)
+        assertEquals(1, cancelado)
+    }
+
+    @Test
+    fun confirmarEliminarAvisa() {
+        var confirmado = 0
+        regla.setContent {
+            GestorDeEventosTheme(darkTheme = false) {
+                ConfirmarEliminarEventoDialog(nombreEvento = "Fútbol 7", onConfirmar = { confirmado++ }, onCancelar = {})
+            }
+        }
+
+        regla.onNodeWithText(texto(R.string.evento_eliminar_confirmar)).performClick()
+
+        assertEquals(1, confirmado)
     }
 }
