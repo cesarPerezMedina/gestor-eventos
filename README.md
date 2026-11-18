@@ -143,6 +143,11 @@ Detalles en [`docs/INVITACIONES.md`](docs/INVITACIONES.md).
 - **Confirmación:** cuadro `ConfirmarEliminarEventoDialog` (botón en rojo) que avisa de que no se puede deshacer.
 - **Pruebas automáticas:** `EliminarEventoTest` y `DialogosEventoTest` (con emulador). Detalles en [`docs/GESTION_EVENTOS.md`](docs/GESTION_EVENTOS.md).
 
+## Novedades: pruebas del almacenamiento de eventos (Issue 51)
+
+- **Integración con Room real:** `AlmacenamientoEventosTest` comprueba que el evento creado se guarda completo, se recupera ordenado y solo para su creador, y no se guarda si es inválido.
+- **Incluye** visibilidad pública y privada, invitaciones y persistencia al cerrar y reabrir la base de datos. Casos en [`docs/PRUEBAS_EVENTOS.md`](docs/PRUEBAS_EVENTOS.md).
+
 ## Tecnologías
 
 | Área | Tecnología |
