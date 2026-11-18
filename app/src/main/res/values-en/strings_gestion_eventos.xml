@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Confirmation dialogs when managing an event (Issues 67 and 68) -->
+    <string name="evento_cancelar">Cancel</string>
+    <string name="evento_salir_titulo">Leave the event?</string>
+    <string name="evento_salir_texto">You will no longer be signed up for “%1$s”. If it is private, you will need a new invitation to come back.</string>
+    <string name="evento_salir_confirmar">Leave</string>
+</resources>

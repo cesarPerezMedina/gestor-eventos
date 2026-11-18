@@ -121,6 +121,28 @@ class EventoRepositorio(
         eventoDao.aceptarInvitacion(eventoId, usuarioId)
         return ResultadoEvento(true, "Te has apuntado al evento")
     }
+
+    /**
+     * El usuario se sale de un evento al que se había unido (Issue 67).
+     *
+     * - El creador no puede salirse (tendría que eliminar el evento, Issue 68).
+     * - Si no estaba apuntado, no hay nada que hacer.
+     * - Al salir se libera su plaza y su invitación a ese evento, si la había, pasa a rechazada: el evento deja de
+     *   salirle en "Mis eventos" y, si es privado, necesitará otra invitación para volver. En uno público puede
+     *   volver a apuntarse cuando quiera.
+     */
+    suspend fun salirDeEvento(eventoId: Long, usuarioId: Long): ResultadoEvento {
+        val evento = eventoDao.buscarPorId(eventoId)
+            ?: return ResultadoEvento(false, "El evento ya no existe")
+        if (evento.creadorId == usuarioId) {
+            return ResultadoEvento(false, "Eres el creador: no puedes salirte, pero sí eliminar el evento")
+        }
+        if (eventoDao.eliminarParticipacion(eventoId, usuarioId) == 0) {
+            return ResultadoEvento(false, "No estás apuntado a este evento")
+        }
+        eventoDao.cerrarInvitaciones(eventoId, usuarioId)
+        return ResultadoEvento(true, "Has salido del evento")
+    }
     
       companion object {
         /** Crea el repositorio usando la base de datos local de la aplicación. */

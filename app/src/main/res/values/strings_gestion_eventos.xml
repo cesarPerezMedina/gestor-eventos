@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Cuadros de confirmación al gestionar un evento (Issues 67 y 68) -->
+    <string name="evento_cancelar">Cancelar</string>
+    <string name="evento_salir_titulo">¿Salir del evento?</string>
+    <string name="evento_salir_texto">Dejarás de estar apuntado a «%1$s». Si es privado, necesitarás otra invitación para volver.</string>
+    <string name="evento_salir_confirmar">Salir</string>
+</resources>
