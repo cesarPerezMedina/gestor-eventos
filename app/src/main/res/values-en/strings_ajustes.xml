@@ -15,4 +15,35 @@
     <string name="ajustes_texto_normal">Normal</string>
     <string name="ajustes_texto_grande">Large</string>
     <string name="ajustes_texto_muy_grande">Extra large</string>
+
+    <!-- New settings design (Issue 77) -->
+    <string name="ajustes_subtitulo">Preferences and account settings</string>
+    <string name="ajustes_seccion_apariencia_accesibilidad">Appearance and accessibility</string>
+    <string name="ajustes_seccion_juego">Game preferences</string>
+    <string name="ajustes_seccion_notificaciones">Notifications and alerts</string>
+
+    <string name="ajustes_tema_oscuro_titulo">Dark theme</string>
+    <string name="ajustes_tema_oscuro_descripcion">Switch between light and dark</string>
+
+    <string name="ajustes_texto_titulo">Text size</string>
+    <!-- %1$s = size name (e.g. NORMAL), %2$d = percentage (e.g. 100) -->
+    <string name="ajustes_texto_valor">%1$s (%2$d%%)</string>
+    <string name="ajustes_texto_ejemplo">Sample text at the chosen size</string>
+
+    <string name="ajustes_radio_titulo">Match search radius</string>
+    <string name="ajustes_radio_etiqueta">NEARBY</string>
+    <string name="ajustes_radio_km">%1$d km</string>
+
+    <string name="ajustes_deportes_titulo">Favorite sports and alerts</string>
+    <string name="ajustes_deportes_descripcion">You will receive priority invitations for these sports</string>
+
+    <string name="ajustes_notif_recordatorio_titulo">Match reminders</string>
+    <string name="ajustes_notif_recordatorio_descripcion">Alarm 2 hours before it starts</string>
+    <string name="ajustes_notif_plazas_titulo">Open spot alerts</string>
+    <string name="ajustes_notif_plazas_descripcion">When a nearby match is missing 1 player</string>
+    <string name="ajustes_notif_invitaciones_titulo">Direct invitations</string>
+    <string name="ajustes_notif_invitaciones_descripcion">Instant alerts from your friends circle</string>
+
+    <string name="ajustes_pie_version">Eventia v%1$s</string>
+    <string name="ajustes_pie_lema">Designed with passion for the sports community</string>
 </resources>
