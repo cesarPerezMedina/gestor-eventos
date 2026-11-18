@@ -158,6 +158,7 @@ private fun EventoConCupo.aItem(distanciaKm: Double?): EventoBuscarItem {
     return EventoBuscarItem(
         id = evento.id.toString(),
         titulo = evento.nombre,
+        deporteId = evento.deporte.name,
         icono = iconoDe(evento.deporte),
         cuando = textoCuando(evento.fechaHora),
         lugar = evento.direccion.ifBlank { "Sin ubicación" },
@@ -170,12 +171,12 @@ private fun EventoConCupo.aItem(distanciaKm: Double?): EventoBuscarItem {
         yoApuntado = yoApuntado,
         notaFaltan = if (maximo > 0 && faltan > 1) "Faltan $faltan jugadores" else null,
         avisoUrgente = if (urgente) "¡ÚLTIMA PLAZA DISPONIBLE! ($apuntados/$maximo)" else null,
-        // Todavía no se guardan precio, organizador ni duración: la tarjeta simplemente no enseña esos bloques
+        // Todavía no se guardan organizador ni duración: la tarjeta simplemente no enseña esos bloques
     )
 }
 
 /** "Hoy 20:00", "Mañana 17:00", "Sáb 18:00" (esta semana) o "24/12 18:00". */
-private fun textoCuando(millis: Long): String {
+internal fun textoCuando(millis: Long): String {
     val fechaHora = Instant.ofEpochMilli(millis).atZone(ZoneId.systemDefault())
     val hora = String.format(Locale.US, "%02d:%02d", fechaHora.hour, fechaHora.minute)
     val dias = ChronoUnit.DAYS.between(LocalDate.now(), fechaHora.toLocalDate())

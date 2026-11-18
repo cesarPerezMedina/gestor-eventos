@@ -87,7 +87,7 @@ enum class VarianteTarjeta {
     /** Quedan una o dos plazas o empieza pronto: se destaca en magenta. */
     URGENTE,
 
-    /** Torneo o evento con foto, precio y cuadro. */
+    /** Torneo o evento con foto y cuadro. */
     TORNEO,
 
     /** Invitación a un evento privado ("Solo amigos"). */
@@ -110,6 +110,8 @@ data class EtiquetaTarjeta(
 data class EventoBuscarItem(
     val id: String,
     val titulo: String,
+    /** Nombre del enum `Deporte` ("FUTBOL", "PADEL"...). Sirve para filtrar por deporte; null si no se conoce. */
+    val deporteId: String? = null,
     val icono: ImageVector,
     val cuando: String,
     val lugar: String,
@@ -120,8 +122,6 @@ data class EventoBuscarItem(
     val etiquetas: List<EtiquetaTarjeta> = emptyList(),
     val duracion: String? = null, // "90 min"
     val distanciaKm: Double? = null, // null mientras no se conozca la ubicación del usuario
-    val precio: String? = null, // "3,50 €" o "Gratis"
-    val precioNota: String? = null, // "p/p"
     val organizador: String? = null, // "@carlos_m"
     val organizadorDetalle: String? = null, // "★ 4.9 (28 partidos creados)"
     val unidadCupo: String = "plazas ocupadas", // "8 de 14 plazas ocupadas", "5 de 6 confirmados"...
@@ -229,34 +229,24 @@ private fun CuerpoEstandar(
         FilaInfo(Icons.Outlined.Place, evento.lugar, insignia = evento.distanciaKm?.let { textoDistancia(it) })
     }
 
-    // Organizador y coste
-    if (evento.organizador != null || evento.precio != null) {
+    // Organizador
+    if (evento.organizador != null) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            if (evento.organizador != null) {
-                Avatar(evento.organizador.removePrefix("@"), tamano = 36)
-                Spacer(Modifier.width(10.dp))
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = buildAnnotatedString {
-                            withStyle(SpanStyle(fontWeight = FontWeight.ExtraBold, color = BusTinta)) { append(evento.organizador) }
-                            append(" • Org.")
-                        },
-                        color = BusSubtitulo,
-                        fontSize = 12.sp,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                    if (evento.organizadorDetalle != null) {
-                        Text(evento.organizadorDetalle, color = BusGris, fontSize = 11.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                    }
-                }
-            } else {
-                Spacer(Modifier.weight(1f))
-            }
-            if (evento.precio != null) {
-                Column(horizontalAlignment = Alignment.End) {
-                    Text("COSTE", color = BusGris, fontSize = 9.sp, fontWeight = FontWeight.Bold, letterSpacing = 0.6.sp)
-                    Text(evento.precio, color = BusVioleta, fontSize = 20.sp, fontWeight = FontWeight.ExtraBold)
+            Avatar(evento.organizador.removePrefix("@"), tamano = 36)
+            Spacer(Modifier.width(10.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = buildAnnotatedString {
+                        withStyle(SpanStyle(fontWeight = FontWeight.ExtraBold, color = BusTinta)) { append(evento.organizador) }
+                        append(" • Org.")
+                    },
+                    color = BusSubtitulo,
+                    fontSize = 12.sp,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                if (evento.organizadorDetalle != null) {
+                    Text(evento.organizadorDetalle, color = BusGris, fontSize = 11.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 }
             }
         }
@@ -352,10 +342,6 @@ private fun CuerpoUrgente(
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.weight(1f),
             )
-            if (evento.precio != null) {
-                Spacer(Modifier.width(8.dp))
-                Text(evento.precio, color = BusTinta, fontSize = 13.sp, fontWeight = FontWeight.ExtraBold)
-            }
         }
     }
 
@@ -409,20 +395,7 @@ private fun CuerpoTorneo(
     onPrincipalClick: () -> Unit,
     onSecundarioClick: () -> Unit,
 ) {
-    CabeceraTitulo(
-        evento = evento,
-        fondoIcono = BusChip,
-        derecha = {
-            if (evento.precio != null) {
-                Column(horizontalAlignment = Alignment.End) {
-                    Text(evento.precio, color = BusVioleta, fontSize = 20.sp, fontWeight = FontWeight.ExtraBold)
-                    if (evento.precioNota != null) {
-                        Text(evento.precioNota, color = BusGris, fontSize = 10.sp, fontWeight = FontWeight.Bold)
-                    }
-                }
-            }
-        },
-    )
+    CabeceraTitulo(evento = evento, fondoIcono = BusChip)
 
     // Foto con el sitio encima (si no hay foto, un degradado azul)
     Box(
@@ -883,6 +856,7 @@ val eventosBuscarDeEjemplo = listOf(
     EventoBuscarItem(
         id = "1",
         titulo = "Fútbol 7 en el Parque",
+        deporteId = "FUTBOL",
         icono = Icons.Outlined.SportsSoccer,
         cuando = "Sáb 14 Nov • 18:00 - 19:30",
         duracion = "90 min",
@@ -897,13 +871,13 @@ val eventosBuscarDeEjemplo = listOf(
         ),
         organizador = "@carlos_m",
         organizadorDetalle = "★ 4.9 (28 partidos creados)",
-        precio = "3,50 €",
         avatares = listOf("A", "B", "C", "D"),
         notaFaltan = "Faltan 6 jugadores",
     ),
     EventoBuscarItem(
         id = "2",
         titulo = "Basket 3x3 Callejero Nocturno",
+        deporteId = "BALONCESTO",
         icono = Icons.Outlined.SportsBasketball,
         cuando = "Hoy 20:00",
         lugar = "Polideportivo Central",
@@ -918,11 +892,11 @@ val eventosBuscarDeEjemplo = listOf(
         ),
         avisoUrgente = "¡ÚLTIMA PLAZA DISPONIBLE! (5/6)",
         empiezaEn = "Empieza en 2h",
-        precio = "Gratis",
     ),
     EventoBuscarItem(
         id = "3",
         titulo = "Pádel Oro Dobles Mixto",
+        deporteId = "PADEL",
         icono = Icons.Outlined.SportsTennis,
         cuando = "Dom 11:00",
         lugar = "Pádel Club Premium",
@@ -934,8 +908,6 @@ val eventosBuscarDeEjemplo = listOf(
             EtiquetaTarjeta("NIVEL 4.0 - AVANZADO", EstiloEtiqueta.FUERTE),
             EtiquetaTarjeta("Torneo Express", EstiloEtiqueta.INFO),
         ),
-        precio = "6,00 €",
-        precioNota = "p/p",
         imagenTitulo = "Pádel Club Premium • Pista 4 (Panorámica)",
         imagenBadge = "Césped Azul",
         notaFaltan = "Falta 1 pareja mixta",
@@ -943,6 +915,7 @@ val eventosBuscarDeEjemplo = listOf(
     EventoBuscarItem(
         id = "4",
         titulo = "Duelo Tenis Individual 1 vs 1",
+        deporteId = "TENIS",
         icono = Icons.Outlined.SportsTennis,
         cuando = "Mañana 10:00",
         lugar = "Club Deportivo Retiro",
