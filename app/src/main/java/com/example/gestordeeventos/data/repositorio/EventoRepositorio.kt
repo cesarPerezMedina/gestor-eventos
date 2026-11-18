@@ -14,6 +14,7 @@ import com.example.gestordeeventos.data.model.Invitacion
 import com.example.gestordeeventos.data.model.Participacion
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import com.example.gestordeeventos.data.model.EstadoEvento
 
 data class ResultadoEvento(val ok: Boolean, val mensaje: String)
 
@@ -68,6 +69,12 @@ class EventoRepositorio(
      * evento aparece aquí solo; al rechazarla no.
      */
     fun observarEventosUnidos(usuarioId: Long): Flow<List<Evento>> = eventoDao.observarUnidos(usuarioId)
+    fun observarMisCreadosConCupo(usuarioId: Long): Flow<List<EventoConCupo>> =
+        eventoDao.observarCreadosConCupo(usuarioId)
+
+    fun observarMisUnidosConCupo(usuarioId: Long): Flow<List<EventoConCupo>> =
+        eventoDao.observarUnidosConCupo(usuarioId)
+
 
     /** Público: cualquiera. Privado: solo el creador, los invitados y los participantes. */
     suspend fun puedeVer(eventoId: Long, usuarioId: Long): Boolean =
@@ -106,7 +113,9 @@ class EventoRepositorio(
     suspend fun apuntarse(eventoId: Long, usuarioId: Long): ResultadoEvento {
         val evento = eventoDao.buscarPorId(eventoId)
             ?: return ResultadoEvento(false, "El evento ya no existe")
-
+        if (evento.estado != EstadoEvento.PUBLICADO) {
+            return ResultadoEvento(false, "Este evento ya no está disponible")
+        }
         if (eventoDao.estaApuntado(eventoId, usuarioId)) {
             return ResultadoEvento(false, "Ya estás apuntado a este evento")
         }

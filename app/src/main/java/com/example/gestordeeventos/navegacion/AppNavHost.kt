@@ -1,6 +1,8 @@
 package com.example.gestordeeventos.navegacion
 
 import android.widget.Toast
+import com.example.gestordeeventos.ui.evento.EventosViewModel
+import com.example.gestordeeventos.ui.evento.EventosViewModelFactory
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
@@ -214,7 +216,25 @@ fun AppNavHost() {
             }
 
             composable(Ruta.Buscar.ruta) { BuscarEventoScreen() }
-            composable(Ruta.Eventos.ruta) { MisEventosScreen() }
+            composable(Ruta.Eventos.ruta) {
+                val eventosViewModel: EventosViewModel = viewModel(
+                    factory = EventosViewModelFactory(
+                        repositorio = eventoRepositorio,
+                        miId = { sesionRepositorio.usuarioActual()?.id },
+                    )
+                )
+                val estadoEventos by eventosViewModel.estado.collectAsStateWithLifecycle()
+                MisEventosScreen(
+                    estado = estadoEventos,
+                    nombreUsuario = usuarioActual?.nombreUsuario ?: "",
+                    onNotificacionesClick = { navController.navigate(Ruta.Invitaciones.ruta) },
+                    onPerfilClick = { navController.navigate(Ruta.Ajustes.ruta) },
+                    onVerClick = { aviso("Detalle de «${it.nombre}»: próximamente") },
+                    onEliminarConfirmado = { evento ->
+                        eventosViewModel.eliminar(evento) { _, mensaje -> aviso(mensaje) }
+                    },
+                )
+            }
 
             // ---------- Otras pantallas (sin menú de abajo) ----------
             composable(Ruta.Crear.ruta) {
