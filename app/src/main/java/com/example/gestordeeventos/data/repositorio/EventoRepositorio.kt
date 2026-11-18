@@ -143,6 +143,26 @@ class EventoRepositorio(
         eventoDao.cerrarInvitaciones(eventoId, usuarioId)
         return ResultadoEvento(true, "Has salido del evento")
     }
+
+    /**
+     * El creador elimina un evento propio (Issue 68).
+     *
+     * Solo puede quien lo creó. Al borrarlo desaparecen también las participaciones y las invitaciones de ese
+     * evento: nadie lo ve ya en Buscar, "Mis eventos" ni "Invitaciones". No se puede deshacer, así que la
+     * pantalla debe pedir confirmación antes (ver `ConfirmarEliminarEventoDialog`).
+     */
+    suspend fun eliminarEvento(eventoId: Long, usuarioId: Long): ResultadoEvento {
+        val evento = eventoDao.buscarPorId(eventoId)
+            ?: return ResultadoEvento(false, "El evento ya no existe")
+        if (evento.creadorId != usuarioId) {
+            return ResultadoEvento(false, "Solo el creador puede eliminar el evento")
+        }
+        return if (eventoDao.eliminarSiEsCreador(eventoId, usuarioId) > 0) {
+            ResultadoEvento(true, "Evento eliminado")
+        } else {
+            ResultadoEvento(false, "El evento ya no existe")
+        }
+    }
     
       companion object {
         /** Crea el repositorio usando la base de datos local de la aplicación. */
