@@ -52,6 +52,11 @@ class MisEventosModelosTest {
     }
 
     @Test
+    fun evento_archivado_va_al_historial_aunque_su_fecha_sea_futura() {
+        assertEquals(FiltroMisEventos.HISTORIAL, evento(estado = EstadoEvento.ARCHIVADO).categoria(ahora))
+    }
+
+    @Test
     fun contar_solo_cuenta_los_del_chip() {
         val lista = listOf(
             evento(id = 1),

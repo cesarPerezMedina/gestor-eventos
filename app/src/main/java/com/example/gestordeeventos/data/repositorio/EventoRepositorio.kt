@@ -15,9 +15,10 @@ import com.example.gestordeeventos.data.model.Participacion
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import com.example.gestordeeventos.data.model.EstadoEvento
+import com.example.gestordeeventos.data.model.HORAS_HASTA_ARCHIVAR
 
 data class ResultadoEvento(val ok: Boolean, val mensaje: String)
-
+private const val MILIS_POR_HORA = 3_600_000L
 /**
  * Reglas de los eventos, incluida la diferencia entre públicos y privados (Issue 43).
  * Los usuarios se identifican aquí por su id.
@@ -56,6 +57,8 @@ class EventoRepositorio(
     /** Eventos creados por el usuario, de más próximos a más lejanos. */
     suspend fun eventosCreadosPorUsuario(usuarioId: Long): List<Evento> =
         eventoDao.listarCreadosPorUsuario(usuarioId)
+    suspend fun archivarEventosPasados(ahora: Long = System.currentTimeMillis()): Int =
+        eventoDao.archivarPasados(ahora - HORAS_HASTA_ARCHIVAR * MILIS_POR_HORA)
 
     /** Eventos en los que el usuario tiene una participación. */
     suspend fun eventosEnLosQueParticipa(usuarioId: Long): List<Evento> =

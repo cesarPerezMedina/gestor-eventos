@@ -96,7 +96,8 @@ interface EventoDao {
 
     @Query("DELETE FROM eventos WHERE id = :eventoId")
     suspend fun eliminar(eventoId: Long): Int
-
+    @Query("UPDATE eventos SET estado = 'ARCHIVADO' WHERE estado = 'PUBLICADO' AND fechaHora < :limite")
+    suspend fun archivarPasados(limite: Long): Int
     @Query("DELETE FROM participaciones WHERE eventoId = :eventoId AND usuarioId = :usuarioId")
     suspend fun borrarParticipacion(eventoId: Long, usuarioId: Long): Int
     @Query("SELECT COUNT(*) FROM participaciones WHERE eventoId = :eventoId")

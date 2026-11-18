@@ -6,4 +6,5 @@ package com.example.gestordeeventos.data.model
  * - BORRADOR: lo está preparando su creador y todavía no se ve para los demás.
  * - CANCELADO: el creador lo ha cancelado; sigue en "Mis eventos" pero no se puede apuntar nadie.
  */
-enum class EstadoEvento { PUBLICADO, BORRADOR, CANCELADO }
+enum class EstadoEvento { PUBLICADO, BORRADOR, CANCELADO,ARCHIVADO }
+const val HORAS_HASTA_ARCHIVAR = 48L
