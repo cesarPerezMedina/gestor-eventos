@@ -130,4 +130,17 @@ interface EventoDao {
             "ORDER BY e.fechaHora ASC"
     )
     fun observarUnidos(usuarioId: Long): Flow<List<Evento>>
+
+    // --- Salir de un evento (Issue 67) ---
+
+    /** El usuario deja el evento: borra su participación. Devuelve cuántas filas borró (0 si no estaba apuntado). */
+    @Query("DELETE FROM participaciones WHERE eventoId = :eventoId AND usuarioId = :usuarioId")
+    suspend fun eliminarParticipacion(eventoId: Long, usuarioId: Long): Int
+
+    /**
+     * Al salir, su invitación a ese evento (la que aceptó) pasa a RECHAZADA. Así el evento deja de salirle en
+     * "Mis eventos" y, si es privado, ya no puede verlo ni volver a apuntarse sin una invitación nueva.
+     */
+    @Query("UPDATE invitaciones SET estado = 'RECHAZADA' WHERE eventoId = :eventoId AND paraUsuarioId = :usuarioId AND estado != 'RECHAZADA'")
+    suspend fun cerrarInvitaciones(eventoId: Long, usuarioId: Long): Int
 }
