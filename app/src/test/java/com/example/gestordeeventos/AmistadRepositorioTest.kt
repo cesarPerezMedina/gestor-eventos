@@ -4,6 +4,7 @@ import com.example.gestordeeventos.data.local.dao.AmistadDao
 import com.example.gestordeeventos.data.model.Amigo
 import com.example.gestordeeventos.data.model.Amistad
 import com.example.gestordeeventos.data.model.EstadoAmistad
+import com.example.gestordeeventos.data.model.SolicitudRecibida
 import com.example.gestordeeventos.data.model.Usuario
 import com.example.gestordeeventos.data.repositorio.AmistadRepositorio
 import kotlinx.coroutines.flow.Flow
@@ -81,6 +82,8 @@ class FakeAmistadDao : AmistadDao {
     }
 
     override fun observarAmigos(miCorreo: String): Flow<List<Amigo>> = flowOf(emptyList())
+
+    override fun observarSolicitudesRecibidas(miCorreo: String): Flow<List<SolicitudRecibida>> = flowOf(emptyList())
 }
 
 class AmistadRepositorioTest {

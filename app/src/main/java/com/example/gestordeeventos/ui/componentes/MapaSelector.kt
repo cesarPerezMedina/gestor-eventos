@@ -29,6 +29,7 @@ import org.osmdroid.views.MapView
 import org.osmdroid.views.overlay.MapEventsOverlay
 import org.osmdroid.views.overlay.Marker
 import java.io.File
+import com.example.gestordeeventos.ui.theme.PaletaApp
 
 /** Centro del mapa mientras no hay ningún punto elegido (Puerta del Sol, Madrid). */
 private val CENTRO_INICIAL = GeoPoint(40.4168, -3.7038)
@@ -52,7 +53,7 @@ fun MapaSelector(
 ) {
     // Las vistas previas de Android Studio no pueden cargar un MapView: se dibuja un recuadro en su lugar
     if (LocalInspectionMode.current) {
-        Box(modifier.background(Color(0xFFE7EAFB)), contentAlignment = Alignment.Center) {
+        Box(modifier.background(PaletaApp.elegir(Color(0xFFE7EAFB), Color(0xFF2A2838))), contentAlignment = Alignment.Center) {
             Text("Mapa")
         }
         return
@@ -140,12 +141,22 @@ fun MapaSelector(
 }
 
 /**
+ * Identificador que se envía a los servidores de OpenStreetMap con cada petición de mosaicos.
+ *
+ * Su política de uso exige identificar la app con claridad y bloquea los identificadores genéricos: con el
+ * nombre de paquete de una app de plantilla (com.example...) responde "403 Access blocked" y el mapa sale
+ * lleno de carteles amarillos. Por eso lleva el nombre real de la app y dónde encontrar el proyecto.
+ */
+private const val USER_AGENT_MAPA =
+    "GestorEventosDeportivos/1.0 (proyecto educativo; https://github.com/cesarPerezMedina/gestor-eventos)"
+
+/**
  * osmdroid necesita un identificador de la app (si no, los servidores de mapas pueden bloquear las peticiones)
  * y un sitio donde guardar los mosaicos. Se usa la caché de la app para no necesitar permiso de almacenamiento.
  */
 private fun configurarOsmdroid(context: Context) {
     val configuracion = Configuration.getInstance()
-    configuracion.userAgentValue = context.packageName
+    configuracion.userAgentValue = USER_AGENT_MAPA
     val base = File(context.cacheDir, "osmdroid")
     configuracion.osmdroidBasePath = base
     configuracion.osmdroidTileCache = File(base, "tiles")

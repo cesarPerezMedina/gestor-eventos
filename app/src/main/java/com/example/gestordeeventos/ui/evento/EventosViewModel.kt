@@ -41,10 +41,12 @@ class EventosViewModel(
                 combine(
                     repositorio.observarMisCreadosConCupo(id),
                     repositorio.observarMisUnidosConCupo(id),
-                ) { creados, unidos ->
+                    repositorio.observarMisSalidasConCupo(id),
+                ) { creados, unidos, abandonados ->
                     EstadoMisEventos(
                         creados = creados.map { it.aMiEventoItem(esCreador = true) },
-                        unidos = unidos.map { it.aMiEventoItem(esCreador = false) },
+                        unidos = unidos.map { it.aMiEventoItem(esCreador = false) } +
+                            abandonados.map { it.aMiEventoAbandonado() },
                         cargando = false,
                     )
                 }

@@ -6,6 +6,7 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import com.example.gestordeeventos.data.model.Amigo
 import com.example.gestordeeventos.data.model.Amistad
+import com.example.gestordeeventos.data.model.SolicitudRecibida
 import kotlinx.coroutines.flow.Flow
 
 /**
@@ -70,6 +71,15 @@ interface AmistadDao {
 
     @Query("SELECT * FROM amistades WHERE destinatario = :miCorreo AND estado = 'PENDIENTE'")
     suspend fun solicitudesRecibidas(miCorreo: String): List<Amistad>
+
+    /** Solicitudes pendientes que me han enviado, con los datos de quien las envía. Se vuelve a emitir al cambiar. */
+    @Query(
+        "SELECT u.id AS id, u.nombreUsuario AS nombreUsuario, u.correo AS correo FROM amistades a " +
+            "INNER JOIN usuarios u ON u.correo = a.solicitante COLLATE NOCASE " +
+            "WHERE a.destinatario = :miCorreo COLLATE NOCASE AND a.estado = 'PENDIENTE' " +
+            "ORDER BY u.nombreUsuario COLLATE NOCASE"
+    )
+    fun observarSolicitudesRecibidas(miCorreo: String): Flow<List<SolicitudRecibida>>
 
     /** Amigos de un usuario con su ID y nombre de usuario, ordenados alfabéticamente. */
     @Query(

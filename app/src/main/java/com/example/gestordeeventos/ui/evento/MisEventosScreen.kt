@@ -76,6 +76,8 @@ import com.example.gestordeeventos.ui.buscar.BusTinta
 import com.example.gestordeeventos.ui.buscar.BusVioleta
 import com.example.gestordeeventos.ui.buscar.BusVioletaClaro
 import com.example.gestordeeventos.ui.theme.GestorDeEventosTheme
+import com.example.gestordeeventos.ui.theme.SuperficieApp
+import com.example.gestordeeventos.ui.theme.PaletaApp
 
 /**
  * Sección "Mis eventos" (Issue 63): pestañas Creados / Unidos, buscador por deporte o lugar,
@@ -182,7 +184,7 @@ private fun CabeceraEventia(nombreUsuario: String, onNotificacionesClick: () -> 
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color.White.copy(alpha = 0.6f))
+            .background(SuperficieApp.copy(alpha = 0.6f))
             .padding(horizontal = 20.dp, vertical = 10.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
@@ -265,7 +267,7 @@ private fun CampoBusqueda(consulta: String, onConsultaChange: (String) -> Unit) 
             .fillMaxWidth()
             .height(56.dp)
             .shadow(1.dp, forma, ambientColor = BusVioleta.copy(alpha = 0.10f), spotColor = BusVioleta.copy(alpha = 0.10f))
-            .background(Color.White, forma)
+            .background(SuperficieApp, forma)
             .padding(horizontal = 16.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -345,7 +347,7 @@ private fun Segmento(texto: String, cantidad: Int, seleccionado: Boolean, onClic
             fontWeight = FontWeight.Bold,
             modifier = Modifier
                 .clip(CircleShape)
-                .background(if (seleccionado) Color.White else Color(0xFFDADDF0))
+                .background(if (seleccionado) SuperficieApp else PaletaApp.elegir(Color(0xFFDADDF0), Color(0xFF2A2838)))
                 .padding(horizontal = 8.dp, vertical = 2.dp),
         )
     }

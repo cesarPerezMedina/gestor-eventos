@@ -57,6 +57,7 @@ import androidx.compose.ui.unit.sp
 import com.example.gestordeeventos.ui.theme.GestorDeEventosTheme
 import java.text.Normalizer
 import java.util.Locale
+import com.example.gestordeeventos.ui.theme.SuperficieApp
 
 // --- Modelos de la interfaz (solo lo que se pinta; más adelante se rellenarán desde Room) ---
 
@@ -306,8 +307,8 @@ private fun BarraBusqueda(
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
             keyboardActions = KeyboardActions(onSearch = { onBuscar() }),
             colors = OutlinedTextFieldDefaults.colors(
-                focusedContainerColor = Color.White,
-                unfocusedContainerColor = Color.White,
+                focusedContainerColor = SuperficieApp,
+                unfocusedContainerColor = SuperficieApp,
                 focusedBorderColor = BusVioletaClaro,
                 unfocusedBorderColor = BusLinea,
                 cursorColor = BusVioleta,
@@ -332,7 +333,7 @@ private fun PestanasModo(modo: ModoBusqueda, onCambio: (ModoBusqueda) -> Unit) {
                 modifier = Modifier
                     .weight(1f)
                     .clip(RoundedCornerShape(11.dp))
-                    .background(if (activa) Color.White else Color.Transparent)
+                    .background(if (activa) SuperficieApp else Color.Transparent)
                     .clickable { onCambio(opcion) }
                     .padding(vertical = 10.dp),
                 horizontalArrangement = Arrangement.Center,
@@ -409,7 +410,7 @@ private fun FilaDeportes(
             Row(
                 modifier = Modifier
                     .clip(RoundedCornerShape(50))
-                    .background(if (activo) BusBoton else Color.White)
+                    .background(if (activo) BusBoton else SuperficieApp)
                     .border(1.dp, if (activo) BusBoton else BusLinea, RoundedCornerShape(50))
                     .clickable { onCambio(filtro.id) }
                     .padding(horizontal = 14.dp, vertical = 8.dp),
@@ -503,7 +504,7 @@ private fun BannerCrear(onClick: () -> Unit) {
             modifier = Modifier
                 .size(52.dp)
                 .clip(RoundedCornerShape(16.dp))
-                .background(Color.White)
+                .background(SuperficieApp)
                 .clickable(onClick = onClick),
             contentAlignment = Alignment.Center,
         ) {

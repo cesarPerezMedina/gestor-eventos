@@ -32,13 +32,15 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.gestordeeventos.ui.theme.GestorDeEventosTheme
+import com.example.gestordeeventos.ui.theme.PaletaApp
+import com.example.gestordeeventos.ui.theme.SuperficieApp
 
 // --- Reglas de los campos de texto del evento (Issue 41) ---
 const val NOMBRE_EVENTO_MIN = 3
 const val NOMBRE_EVENTO_MAX = 60
 const val DESCRIPCION_EVENTO_MAX = 300
 
-internal val CreError = Color(0xFFD32F2F)
+internal val CreError get() = PaletaApp.elegir(Color(0xFFD32F2F), Color(0xFFEF6B6B))
 
 /**
  * Comprueba el nombre del evento. Devuelve el mensaje de error, o null si es válido.
@@ -160,9 +162,9 @@ private fun PieCampo(error: String?, longitud: Int, maximo: Int) {
 
 @Composable
 internal fun coloresCampoEvento() = OutlinedTextFieldDefaults.colors(
-    focusedContainerColor = Color.White,
-    unfocusedContainerColor = Color.White,
-    errorContainerColor = Color.White,
+    focusedContainerColor = SuperficieApp,
+    unfocusedContainerColor = SuperficieApp,
+    errorContainerColor = SuperficieApp,
     focusedBorderColor = CreVioletaClaro,
     unfocusedBorderColor = CreLinea,
     errorBorderColor = CreError,

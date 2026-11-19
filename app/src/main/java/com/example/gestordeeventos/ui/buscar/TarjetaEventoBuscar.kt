@@ -60,22 +60,24 @@ import androidx.compose.ui.unit.sp
 import com.example.gestordeeventos.ui.theme.GestorDeEventosTheme
 import java.util.Locale
 import kotlin.math.roundToInt
+import com.example.gestordeeventos.ui.theme.PaletaApp
+import com.example.gestordeeventos.ui.theme.SuperficieApp
 
 // --- Colores (mismos tonos que Amigos y Crear evento) ---
-internal val BusPagina = Color(0xFFF6F4FF)
-internal val BusVioleta = Color(0xFF5B0FBF)
-internal val BusVioletaClaro = Color(0xFF7C3AED)
-internal val BusBoton = Color(0xFF6D28D9)
-internal val BusTinta = Color(0xFF1B1B3A)
-internal val BusSubtitulo = Color(0xFF4A5068)
-internal val BusGris = Color(0xFF7D8397)
-internal val BusChip = Color(0xFFE6DDFB)
-internal val BusCampo = Color(0xFFEEF0FF)
-internal val BusLinea = Color(0xFFE3E1F2)
-internal val BusAlerta = Color(0xFFC2185B)
-internal val BusAlertaFondo = Color(0xFFFFE4EC)
+internal val BusPagina get() = PaletaApp.elegir(Color(0xFFF6F4FF), Color(0xFF15131F))
+internal val BusVioleta get() = PaletaApp.elegir(Color(0xFF5B0FBF), Color(0xFF8A5CEB))
+internal val BusVioletaClaro get() = PaletaApp.elegir(Color(0xFF7C3AED), Color(0xFFA78BFA))
+internal val BusBoton get() = PaletaApp.elegir(Color(0xFF6D28D9), Color(0xFF7C3AED))
+internal val BusTinta get() = PaletaApp.elegir(Color(0xFF1B1B3A), Color(0xFFECEAFB))
+internal val BusSubtitulo get() = PaletaApp.elegir(Color(0xFF4A5068), Color(0xFFB9BDD3))
+internal val BusGris get() = PaletaApp.elegir(Color(0xFF7D8397), Color(0xFF9AA0B5))
+internal val BusChip get() = PaletaApp.elegir(Color(0xFFE6DDFB), Color(0xFF332A52))
+internal val BusCampo get() = PaletaApp.elegir(Color(0xFFEEF0FF), Color(0xFF25223A))
+internal val BusLinea get() = PaletaApp.elegir(Color(0xFFE3E1F2), Color(0xFF363350))
+internal val BusAlerta get() = PaletaApp.elegir(Color(0xFFC2185B), Color(0xFFF06292))
+internal val BusAlertaFondo get() = PaletaApp.elegir(Color(0xFFFFE4EC), Color(0xFF3D2230))
 private val BusAlertaOscuro = Color(0xFF9F1239)
-private val BusNeutroFondo = Color(0xFFEFEFF4)
+private val BusNeutroFondo get() = PaletaApp.elegir(Color(0xFFEFEFF4), Color(0xFF2A2838))
 
 // --- Modelos de la tarjeta (solo lo que se pinta; se rellenan desde Room en el ViewModel) ---
 
@@ -169,7 +171,7 @@ fun TarjetaEventoBuscar(
             .fillMaxWidth()
             .shadow(4.dp, RoundedCornerShape(24.dp), spotColor = Color(0x1A000000))
             .clip(RoundedCornerShape(24.dp))
-            .background(Color.White)
+            .background(SuperficieApp)
             .clickable(onClick = onClick)
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -201,7 +203,7 @@ private fun CuerpoEstandar(
                 modifier = Modifier
                     .size(36.dp)
                     .clip(RoundedCornerShape(12.dp))
-                    .background(Color.White)
+                    .background(SuperficieApp)
                     .border(1.dp, BusLinea, RoundedCornerShape(12.dp))
                     .clickable(onClick = onGuardarClick),
                 contentAlignment = Alignment.Center,
@@ -297,7 +299,7 @@ private fun CuerpoUrgente(
                     .weight(1f, fill = false)
                     .clip(RoundedCornerShape(50))
                     .background(BusAlertaFondo)
-                    .border(1.dp, Color(0xFFF8BBD0), RoundedCornerShape(50))
+                    .border(1.dp, PaletaApp.elegir(Color(0xFFF8BBD0), Color(0xFF7A2E4A)), RoundedCornerShape(50))
                     .padding(horizontal = 10.dp, vertical = 5.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
@@ -508,7 +510,7 @@ private fun CuerpoPrivado(
                 modifier = Modifier
                     .size(36.dp)
                     .clip(RoundedCornerShape(12.dp))
-                    .background(Color.White)
+                    .background(SuperficieApp)
                     .border(1.dp, BusLinea, RoundedCornerShape(12.dp)),
                 contentAlignment = Alignment.Center,
             ) {
@@ -665,7 +667,7 @@ private fun Insignia(texto: String) {
         maxLines = 1,
         modifier = Modifier
             .clip(RoundedCornerShape(8.dp))
-            .background(Color.White)
+            .background(SuperficieApp)
             .border(1.dp, BusLinea, RoundedCornerShape(8.dp))
             .padding(horizontal = 8.dp, vertical = 3.dp),
     )

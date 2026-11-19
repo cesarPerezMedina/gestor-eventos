@@ -43,6 +43,7 @@ import com.example.gestordeeventos.ui.buscar.BuscarEventoRoute
 import com.example.gestordeeventos.ui.buscar.BuscarViewModel
 import com.example.gestordeeventos.ui.buscar.BuscarViewModelFactory
 import com.example.gestordeeventos.ui.componentes.BarraInferior
+import com.example.gestordeeventos.ui.crear.AmigoInvitable
 import com.example.gestordeeventos.ui.crear.CrearEventoScreen
 import com.example.gestordeeventos.ui.crear.CrearEventoViewModel
 import com.example.gestordeeventos.ui.crear.CrearEventoViewModelFactory
@@ -270,8 +271,9 @@ fun AppNavHost() {
 
             // ---------- Otras pantallas (sin menú de abajo) ----------
             composable(Ruta.Crear.ruta) {
+                val amigosParaInvitar by amigosViewModel.amigos.collectAsStateWithLifecycle()
                 CrearEventoScreen(
-                    amigos = emptyList(),
+                    amigos = amigosParaInvitar.map { AmigoInvitable(it.id, it.usuario, it.idTag) },
                     onBackClick = { navController.popBackStack() },
                     onCrearEventoClick = { nuevo ->
                         crearEventoViewModel.crearEvento(nuevo) { ok, mensaje ->
@@ -285,8 +287,18 @@ fun AppNavHost() {
             }
             composable(Ruta.Amigos.ruta) {
                 val amigos by amigosViewModel.amigos.collectAsStateWithLifecycle()
+                val solicitudes by amigosViewModel.solicitudes.collectAsStateWithLifecycle()
                 AmigosScreen(
+                    miId = usuarioActual?.id?.toString().orEmpty(),
                     amigos = amigos,
+                    solicitudes = solicitudes,
+                    onBuscarClick = { consulta, _ ->
+                        amigosViewModel.enviarSolicitud(consulta) { _, mensaje -> aviso(mensaje) }
+                    },
+                    onAceptarSolicitud = { amigosViewModel.aceptarSolicitud(it.correo) { _, mensaje -> aviso(mensaje) } },
+                    onRechazarSolicitud = { amigosViewModel.rechazarSolicitud(it.correo) { _, mensaje -> aviso(mensaje) } },
+                    onNotificacionesClick = { navController.navigate(Ruta.Invitaciones.ruta) },
+                    onMensajeClick = { aviso("Los mensajes estarán disponibles próximamente") },
                     onEliminarClick = { amigosViewModel.eliminarAmigo(it.id) { _, mensaje -> aviso(mensaje) } },
                     onBloquearClick = { amigosViewModel.bloquearAmigo(it.id) { _, mensaje -> aviso(mensaje) } },
                 )

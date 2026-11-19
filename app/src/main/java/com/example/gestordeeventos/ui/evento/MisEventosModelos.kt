@@ -19,7 +19,7 @@ enum class PestanaMisEventos { CREADOS, UNIDOS }
 enum class FiltroMisEventos { PROXIMOS, HISTORIAL, BORRADORES, CANCELADOS }
 
 /** Etiqueta pequeña de la tarjeta ("Público", "Privado", "Confirmado"...). */
-enum class EtiquetaEvento { PUBLICO, PRIVADO, CONFIRMADO, BORRADOR, CANCELADO }
+enum class EtiquetaEvento { PUBLICO, PRIVADO, CONFIRMADO, BORRADOR, CANCELADO, ABANDONADO }
 
 private const val MILIS_POR_HORA = 3_600_000L
 private val IDIOMA_ES: Locale = Locale.forLanguageTag("es-ES")
@@ -41,6 +41,8 @@ data class MiEventoItem(
     val estado: EstadoEvento,
     /** true en la pestaña Creados (puede eliminarlo); false en Unidos (solo puede salir). */
     val esCreador: Boolean,
+    /** true si me uní y luego salí: el evento sigue saliendo en Unidos > Cancelados, como "Abandonado". */
+    val abandonado: Boolean = false,
 ) {
     val completo: Boolean get() = maximo > 0 && apuntados >= maximo
     val faltanParaJugar: Int get() = (minimo - apuntados).coerceAtLeast(0)
@@ -51,6 +53,7 @@ data class MiEventoItem(
 
     val etiqueta: EtiquetaEvento
         get() = when {
+            abandonado -> EtiquetaEvento.ABANDONADO
             estado == EstadoEvento.BORRADOR -> EtiquetaEvento.BORRADOR
             estado == EstadoEvento.CANCELADO -> EtiquetaEvento.CANCELADO
             completo -> EtiquetaEvento.CONFIRMADO
@@ -62,6 +65,7 @@ data class MiEventoItem(
 /** Lo que recibe la pantalla: las dos listas ya cargadas desde Room. */
 data class EstadoMisEventos(
     val creados: List<MiEventoItem> = emptyList(),
+    /** Incluye los que he abandonado (con [MiEventoItem.abandonado] en true). */
     val unidos: List<MiEventoItem> = emptyList(),
     val cargando: Boolean = true,
 )
@@ -81,11 +85,14 @@ fun EventoConCupo.aMiEventoItem(esCreador: Boolean): MiEventoItem = MiEventoItem
     esCreador = esCreador,
 )
 
+/** Un evento que el usuario abandonó, tal como se pinta en Unidos > Cancelados. */
+fun EventoConCupo.aMiEventoAbandonado(): MiEventoItem = aMiEventoItem(esCreador = false).copy(abandonado = true)
+
 /**
  * En qué chip cae el evento. Un evento publicado sigue en "Próximos" hasta [HORAS_HASTA_ARCHIVAR] horas
  * después de su fecha (todavía no se guarda cuánto dura) y luego pasa al historial.
  */
-fun MiEventoItem.categoria(ahora: Long): FiltroMisEventos = when (estado) {
+fun MiEventoItem.categoria(ahora: Long): FiltroMisEventos = if (abandonado) FiltroMisEventos.CANCELADOS else when (estado) {
     EstadoEvento.BORRADOR -> FiltroMisEventos.BORRADORES
     EstadoEvento.CANCELADO -> FiltroMisEventos.CANCELADOS
     EstadoEvento.ARCHIVADO -> FiltroMisEventos.HISTORIAL

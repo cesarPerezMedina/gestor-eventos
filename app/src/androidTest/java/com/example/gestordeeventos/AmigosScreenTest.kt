@@ -1,17 +1,20 @@
 package com.example.gestordeeventos
 
+import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.junit4.createComposeRule
-import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.example.gestordeeventos.ui.amigos.AmigoItem
 import com.example.gestordeeventos.ui.amigos.AmigosScreen
 import com.example.gestordeeventos.ui.amigos.FiltroBusqueda
-import com.example.gestordeeventos.ui.amigos.InvitacionRecibida
+import com.example.gestordeeventos.ui.amigos.SolicitudItem
 import com.example.gestordeeventos.ui.theme.GestorDeEventosTheme
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -20,11 +23,11 @@ import org.junit.Test
 import org.junit.runner.RunWith
 
 /**
- * Pruebas de interfaz de la sección de Amigos (Issue 37).
+ * Pruebas de interfaz de la sección de Amigos (Issue 37, revisadas en la Issue de correcciones).
  *
- * Comprueban la interacción visible del usuario con AmigosScreen.
- * La lógica de persistencia y de amistad se prueba por separado en los
- * tests de repositorio/ViewModel.
+ * Comprueban la interacción visible del usuario con AmigosScreen: las tres pestañas (Mis Amigos, Buscar / ID y
+ * Solicitudes), el envío de solicitudes y aceptar / rechazar. La lógica de persistencia y de amistad se prueba
+ * por separado en los tests de repositorio/ViewModel.
  */
 @RunWith(AndroidJUnit4::class)
 class AmigosScreenTest {
@@ -39,41 +42,38 @@ class AmigosScreenTest {
         idTag = "#1234",
     )
 
-    private val invitacion = InvitacionRecibida(
-        id = "1",
-        titulo = "Partido de tenis",
-        etiqueta = "Privado",
-        de = "@luis_g",
-        fecha = "Hoy 19:00",
-        lugar = "Pistas Canal",
+    private val solicitud = SolicitudItem(
+        correo = "luis@correo.com",
+        usuario = "luis_g",
+        idTag = "#55",
     )
 
     private fun mostrarPantalla(
         amigos: List<AmigoItem> = listOf(amigo),
-        invitaciones: List<InvitacionRecibida> = listOf(invitacion),
+        solicitudes: List<SolicitudItem> = listOf(solicitud),
         onBuscarClick: (String, FiltroBusqueda) -> Unit = { _, _ -> },
-        onEscanearQrClick: () -> Unit = {},
-        onAceptarInvitacion: (InvitacionRecibida) -> Unit = {},
-        onRechazarInvitacion: (InvitacionRecibida) -> Unit = {},
+        onAceptarSolicitud: (SolicitudItem) -> Unit = {},
+        onRechazarSolicitud: (SolicitudItem) -> Unit = {},
         onEliminarClick: (AmigoItem) -> Unit = {},
         onBloquearClick: (AmigoItem) -> Unit = {},
     ) {
         regla.setContent {
             GestorDeEventosTheme {
                 AmigosScreen(
-                    miId = "#EVA-0001",
+                    miId = "7",
                     amigos = amigos,
-                    invitaciones = invitaciones,
+                    solicitudes = solicitudes,
                     onBuscarClick = onBuscarClick,
-                    onEscanearQrClick = onEscanearQrClick,
-                    onAceptarInvitacion = onAceptarInvitacion,
-                    onRechazarInvitacion = onRechazarInvitacion,
+                    onAceptarSolicitud = onAceptarSolicitud,
+                    onRechazarSolicitud = onRechazarSolicitud,
                     onEliminarClick = onEliminarClick,
                     onBloquearClick = onBloquearClick,
                 )
             }
         }
     }
+
+    // ---------- Mis Amigos ----------
 
     @Test
     fun muestraLaSeccionDeAmigosYLosDatosPrincipales() {
@@ -85,76 +85,28 @@ class AmigosScreenTest {
         regla.onNodeWithText("Solicitudes").assertIsDisplayed()
         regla.onNodeWithText("Amigos agregados").assertIsDisplayed()
         regla.onNodeWithText("ana_p").assertIsDisplayed()
-        regla.onNodeWithText("#1234").assertIsDisplayed()
-        regla.onNodeWithText("Invitaciones recibidas").assertIsDisplayed()
-        regla.onNodeWithText("Partido de tenis").assertIsDisplayed()
+        regla.onNodeWithText("#1234", substring = true).assertIsDisplayed()
     }
 
     @Test
-    fun alBuscarEntregaLaConsultaSinEspaciosYElFiltroSeleccionado() {
-        var consultaRecibida: String? = null
-        var filtroRecibido: FiltroBusqueda? = null
+    fun sinAmigosNiSolicitudesNoSalenDatosDeEjemplo() {
+        regla.setContent { GestorDeEventosTheme { AmigosScreen() } }
 
-        mostrarPantalla(
-            onBuscarClick = { consulta, filtro ->
-                consultaRecibida = consulta
-                filtroRecibido = filtro
-            },
-        )
-
-        regla.onNodeWithText("#ID").performClick()
-
-        val campo = regla.onAllNodes(hasSetTextAction())[0]
-        campo.performTextInput("  #1234  ")
-
-        regla.onNodeWithText("Añadir").performClick()
-
-        assertEquals("#1234", consultaRecibida)
-        assertEquals(FiltroBusqueda.ID_TAG, filtroRecibido)
+        regla.onNodeWithText("Todavía no tienes amigos agregados.").assertIsDisplayed()
+        regla.onAllNodesWithText("Pádel dobles semifinal").assertCountEquals(0)
+        regla.onAllNodesWithText("carlos_m").assertCountEquals(0)
+        regla.onAllNodesWithText("Invitaciones recibidas").assertCountEquals(0)
     }
 
     @Test
-    fun noEjecutaLaBusquedaConElCampoVacio() {
-        var seHaBuscado = false
+    fun noHayBotonDePerfilNiCodigoQr() {
+        mostrarPantalla()
+        regla.onAllNodesWithContentDescription("Perfil").assertCountEquals(0)
 
-        mostrarPantalla(onBuscarClick = { _, _ -> seHaBuscado = true })
+        regla.onNodeWithText("Buscar / ID").performClick()
 
-        regla.onNodeWithText("Añadir").performClick()
-
-        assertTrue(!seHaBuscado)
-    }
-
-    @Test
-    fun alPulsarEscanearCodigoQrEjecutaLaAccion() {
-        var pulsado = false
-
-        mostrarPantalla(onEscanearQrClick = { pulsado = true })
-
-        regla.onNodeWithText("Escanear código QR en pista").performClick()
-
-        assertTrue(pulsado)
-    }
-
-    @Test
-    fun alAceptarUnaInvitacionEntregaLaInvitacionCorrecta() {
-        var recibida: InvitacionRecibida? = null
-
-        mostrarPantalla(onAceptarInvitacion = { recibida = it })
-
-        regla.onNodeWithText("Aceptar").performClick()
-
-        assertEquals(invitacion, recibida)
-    }
-
-    @Test
-    fun alRechazarUnaInvitacionEntregaLaInvitacionCorrecta() {
-        var recibida: InvitacionRecibida? = null
-
-        mostrarPantalla(onRechazarInvitacion = { recibida = it })
-
-        regla.onNodeWithText("Rechazar").performClick()
-
-        assertEquals(invitacion, recibida)
+        regla.onAllNodesWithText("Escanear código QR en pista").assertCountEquals(0)
+        regla.onAllNodesWithText("Ver mi código").assertCountEquals(0)
     }
 
     @Test
@@ -195,5 +147,108 @@ class AmigosScreenTest {
         regla.onNodeWithText("Bloquear").performClick()
 
         assertEquals(amigo, bloqueado)
+    }
+
+    // ---------- Buscar / ID ----------
+
+    @Test
+    fun alBuscarEntregaLaConsultaSinEspaciosYElFiltroSeleccionado() {
+        var consultaRecibida: String? = null
+        var filtroRecibido: FiltroBusqueda? = null
+
+        mostrarPantalla(
+            onBuscarClick = { consulta, filtro ->
+                consultaRecibida = consulta
+                filtroRecibido = filtro
+            },
+        )
+
+        regla.onNodeWithText("Buscar / ID").performClick()
+        regla.onNodeWithText("#ID").performClick()
+
+        val campo = regla.onAllNodes(hasSetTextAction())[0]
+        campo.performTextInput("  12  ")
+
+        regla.onNodeWithText("Añadir").performClick()
+
+        assertEquals("12", consultaRecibida)
+        assertEquals(FiltroBusqueda.ID_TAG, filtroRecibido)
+    }
+
+    @Test
+    fun noEjecutaLaBusquedaConElCampoVacio() {
+        var seHaBuscado = false
+
+        mostrarPantalla(onBuscarClick = { _, _ -> seHaBuscado = true })
+
+        regla.onNodeWithText("Buscar / ID").performClick()
+        regla.onNodeWithText("Añadir").performClick()
+
+        assertTrue(!seHaBuscado)
+    }
+
+    @Test
+    fun laTarjetaDeBusquedaMuestraMiIdReal() {
+        mostrarPantalla()
+
+        regla.onNodeWithText("Buscar / ID").performClick()
+
+        regla.onNodeWithText("Tu ID: 7").assertIsDisplayed()
+    }
+
+    @Test
+    fun elBotonDeAnadirAmigoAbreLaPestanaDeBusqueda() {
+        mostrarPantalla()
+
+        regla.onNodeWithText("Mis Amigos").performClick()
+        regla.onNodeWithContentDescription("Añadir amigo").performClick()
+
+        regla.onNodeWithText("Añadir por ID o Usuario").assertIsDisplayed()
+    }
+
+    // ---------- Solicitudes ----------
+
+    @Test
+    fun laPestanaSolicitudesMuestraLasSolicitudesRecibidas() {
+        mostrarPantalla()
+
+        regla.onNodeWithText("Solicitudes", substring = false).performClick()
+
+        regla.onNodeWithText("Solicitudes recibidas").assertIsDisplayed()
+        regla.onNodeWithText("@luis_g").assertIsDisplayed()
+        regla.onNodeWithText("Quiere ser tu amigo • #55").assertIsDisplayed()
+    }
+
+    @Test
+    fun sinSolicitudesLaPestanaLoDice() {
+        mostrarPantalla(solicitudes = emptyList())
+
+        regla.onNodeWithText("Solicitudes").performClick()
+
+        regla.onNodeWithText("No tienes solicitudes de amistad pendientes.").assertIsDisplayed()
+    }
+
+    @Test
+    fun alAceptarUnaSolicitudEntregaLaSolicitudCorrecta() {
+        var recibida: SolicitudItem? = null
+
+        mostrarPantalla(onAceptarSolicitud = { recibida = it })
+
+        regla.onNodeWithText("Solicitudes").performClick()
+        regla.onNodeWithText("Aceptar").performClick()
+
+        assertEquals(solicitud, recibida)
+    }
+
+    @Test
+    fun alRechazarUnaSolicitudEntregaLaSolicitudCorrecta() {
+        var recibida: SolicitudItem? = null
+
+        mostrarPantalla(onRechazarSolicitud = { recibida = it })
+
+        regla.onNodeWithText("Solicitudes").performClick()
+        regla.onNodeWithText("Rechazar").performClick()
+
+        assertEquals(solicitud, recibida)
     }
 }
