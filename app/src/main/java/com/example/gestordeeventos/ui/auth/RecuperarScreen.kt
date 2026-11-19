@@ -59,17 +59,19 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.gestordeeventos.ui.theme.PaletaApp
+import com.example.gestordeeventos.ui.theme.SuperficieApp
 
 // --- Colores de la pantalla (puedes moverlos a tu Theme / Color.kt) ---
-private val RecViolet = Color(0xFF6D28D9)
-private val RecInkDark = Color(0xFF0F1222)
-private val RecLabel = Color(0xFF1F2333)
-private val RecSubtitle = Color(0xFF3F465C)
-private val RecFieldBackground = Color(0xFFEEF0FF)
-private val RecIconGray = Color(0xFF7D8397)
-private val RecHint = Color(0xFF6B7186)
-private val RecPageBackground = Color(0xFFF7F7FD)
-private val RecLogoInner = Color(0xFFD9D9DE)
+private val RecViolet get() = PaletaApp.elegir(Color(0xFF6D28D9), Color(0xFF7C3AED))
+private val RecInkDark get() = PaletaApp.elegir(Color(0xFF0F1222), Color(0xFFECEAFB))
+private val RecLabel get() = PaletaApp.elegir(Color(0xFF1F2333), Color(0xFFE3E1F2))
+private val RecSubtitle get() = PaletaApp.elegir(Color(0xFF3F465C), Color(0xFFB9BDD3))
+private val RecFieldBackground get() = PaletaApp.elegir(Color(0xFFEEF0FF), Color(0xFF25223A))
+private val RecIconGray get() = PaletaApp.elegir(Color(0xFF7D8397), Color(0xFF9AA0B5))
+private val RecHint get() = PaletaApp.elegir(Color(0xFF6B7186), Color(0xFF9AA0B5))
+private val RecPageBackground get() = PaletaApp.elegir(Color(0xFFF7F7FD), Color(0xFF15131F))
+private val RecLogoInner get() = PaletaApp.elegir(Color(0xFFD9D9DE), Color(0xFF2A2838))
 
 @Composable
 fun RecuperarScreen(
@@ -149,7 +151,7 @@ fun RecuperarScreen(
                     modifier = Modifier
                         .size(88.dp)
                         .shadow(12.dp, RoundedCornerShape(22.dp), spotColor = Color(0xFF8B5CF6))
-                        .background(Color.White, RoundedCornerShape(22.dp)),
+                        .background(SuperficieApp, RoundedCornerShape(22.dp)),
                     contentAlignment = Alignment.Center,
                 ) {
                     Box(
@@ -204,7 +206,7 @@ fun RecuperarScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .shadow(6.dp, RoundedCornerShape(20.dp), spotColor = Color(0x1A000000))
-                    .background(Color.White, RoundedCornerShape(20.dp))
+                    .background(SuperficieApp, RoundedCornerShape(20.dp))
                     .padding(20.dp),
             ) {
                 Text(
@@ -380,7 +382,7 @@ private fun InfoTile(
         Box(
             modifier = Modifier
                 .size(32.dp)
-                .background(Color(0xFFE1E4FB), RoundedCornerShape(10.dp)),
+                .background(PaletaApp.elegir(Color(0xFFE1E4FB), Color(0xFF2B3150)), RoundedCornerShape(10.dp)),
             contentAlignment = Alignment.Center,
         ) {
             Icon(

@@ -78,3 +78,13 @@ data class Amigo(
     val id: Long,
     val nombreUsuario: String
 )
+
+/**
+ * Una solicitud de amistad pendiente que me han enviado: quién la envía (su ID, nombre de usuario y correo).
+ * No es una tabla: es el resultado de unir "amistades" con "usuarios" (ver `AmistadDao.observarSolicitudesRecibidas`).
+ */
+data class SolicitudRecibida(
+    val id: Long,
+    val nombreUsuario: String,
+    val correo: String
+)

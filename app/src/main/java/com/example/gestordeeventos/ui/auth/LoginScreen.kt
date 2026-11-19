@@ -61,18 +61,19 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.gestordeeventos.ui.theme.PaletaApp
 
 // --- Colores de la pantalla (puedes moverlos a tu Theme / Color.kt) ---
-private val Violet = Color(0xFF6D3FE8)
+private val Violet get() = PaletaApp.elegir(Color(0xFF6D3FE8), Color(0xFFA78BFA))
 private val GradientStart = Color(0xFF7C3AED)
 private val GradientEnd = Color(0xFF4F46E5)
-private val InkDark = Color(0xFF0F1222)
-private val LabelColor = Color(0xFF1F2333)
-private val FieldBackground = Color(0xFFF5F6FB)
-private val FieldBorder = Color(0xFFE2E5F0)
-private val IconGray = Color(0xFF8A90A6)
-private val LogoTile = Color(0xFFEDEDF0)
-private val PinPurple = Color(0xFF6D28D9)
+private val InkDark get() = PaletaApp.elegir(Color(0xFF0F1222), Color(0xFFECEAFB))
+private val LabelColor get() = PaletaApp.elegir(Color(0xFF1F2333), Color(0xFFE3E1F2))
+private val FieldBackground get() = PaletaApp.elegir(Color(0xFFF5F6FB), Color(0xFF25223A))
+private val FieldBorder get() = PaletaApp.elegir(Color(0xFFE2E5F0), Color(0xFF363350))
+private val IconGray get() = PaletaApp.elegir(Color(0xFF8A90A6), Color(0xFF9AA0B5))
+private val LogoTile get() = PaletaApp.elegir(Color(0xFFEDEDF0), Color(0xFF2A2838))
+private val PinPurple get() = PaletaApp.elegir(Color(0xFF6D28D9), Color(0xFF7C3AED))
 
 @Composable
 fun LoginScreen(
@@ -274,7 +275,7 @@ fun LoginScreen(
             ) {
                 Text(
                     text = "¿No tienes una cuenta?",
-                    color = Color(0xFF4A5068),
+                    color = PaletaApp.elegir(Color(0xFF4A5068), Color(0xFFB9BDD3)),
                     fontSize = 13.sp,
                 )
                 Spacer(Modifier.size(6.dp))

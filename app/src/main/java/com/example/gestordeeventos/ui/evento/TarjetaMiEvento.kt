@@ -58,13 +58,15 @@ import com.example.gestordeeventos.ui.buscar.BusSubtitulo
 import com.example.gestordeeventos.ui.buscar.BusTinta
 import com.example.gestordeeventos.ui.buscar.BusVioleta
 import com.example.gestordeeventos.ui.buscar.BusVioletaClaro
+import com.example.gestordeeventos.ui.theme.PaletaApp
+import com.example.gestordeeventos.ui.theme.SuperficieApp
 
 private val FormaTarjeta = RoundedCornerShape(20.dp)
-private val NeutroFondo = Color(0xFFEFEFF4)
-private val ConfirmadoFondo = Color(0xFFDCE1F5)
-private val ConfirmadoTexto = Color(0xFF3E4A7D)
-private val BorradorFondo = Color(0xFFFFF3D6)
-private val BorradorTexto = Color(0xFF8A5A00)
+private val NeutroFondo get() = PaletaApp.elegir(Color(0xFFEFEFF4), Color(0xFF2A2838))
+private val ConfirmadoFondo get() = PaletaApp.elegir(Color(0xFFDCE1F5), Color(0xFF2B3150))
+private val ConfirmadoTexto get() = PaletaApp.elegir(Color(0xFF3E4A7D), Color(0xFFB8C2F0))
+private val BorradorFondo get() = PaletaApp.elegir(Color(0xFFFFF3D6), Color(0xFF3D3418))
+private val BorradorTexto get() = PaletaApp.elegir(Color(0xFF8A5A00), Color(0xFFF2C867))
 
 /**
  * Tarjeta de un evento en "Mis eventos" (Issue 63): icono del deporte, nombre, etiqueta, fecha y lugar,
@@ -85,7 +87,7 @@ fun TarjetaMiEvento(
         modifier = modifier
             .fillMaxWidth()
             .shadow(2.dp, FormaTarjeta, ambientColor = BusVioleta.copy(alpha = 0.10f), spotColor = BusVioleta.copy(alpha = 0.10f))
-            .background(Color.White, FormaTarjeta)
+            .background(SuperficieApp, FormaTarjeta)
             .padding(16.dp),
     ) {
         CabeceraTarjeta(evento)
@@ -153,6 +155,7 @@ private fun EtiquetaDeEvento(etiqueta: EtiquetaEvento) {
         EtiquetaEvento.CONFIRMADO -> Triple(R.string.mis_eventos_etiqueta_confirmado, ConfirmadoFondo, ConfirmadoTexto)
         EtiquetaEvento.BORRADOR -> Triple(R.string.mis_eventos_etiqueta_borrador, BorradorFondo, BorradorTexto)
         EtiquetaEvento.CANCELADO -> Triple(R.string.mis_eventos_etiqueta_cancelado, NeutroFondo, BusGris)
+        EtiquetaEvento.ABANDONADO -> Triple(R.string.mis_eventos_etiqueta_abandonado, NeutroFondo, BusGris)
     }
     Text(
         text = stringResource(texto),
@@ -185,7 +188,7 @@ private fun CupoTarjeta(evento: MiEventoItem, mostrarNota: Boolean) {
             BarraCupo(
                 fraccion = evento.apuntados.toFloat() / evento.maximo,
                 completo = evento.completo,
-                apagada = evento.estado == EstadoEvento.CANCELADO,
+                apagada = evento.estado == EstadoEvento.CANCELADO || evento.abandonado,
             )
         }
     }
@@ -252,14 +255,17 @@ private fun AccionesTarjeta(evento: MiEventoItem, onVerClick: () -> Unit, onElim
         horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.End),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        BotonTarjeta(
-            texto = stringResource(if (evento.esCreador) R.string.mis_eventos_eliminar else R.string.mis_eventos_salir),
-            icono = Icons.Outlined.HighlightOff,
-            fondo = BusCampo,
-            contenido = BusSubtitulo,
-            iconoAlFinal = false,
-            onClick = onEliminarClick,
-        )
+        // Un evento que ya abandoné no tiene nada que "salir": solo se puede consultar
+        if (!evento.abandonado) {
+            BotonTarjeta(
+                texto = stringResource(if (evento.esCreador) R.string.mis_eventos_eliminar else R.string.mis_eventos_salir),
+                icono = Icons.Outlined.HighlightOff,
+                fondo = BusCampo,
+                contenido = BusSubtitulo,
+                iconoAlFinal = false,
+                onClick = onEliminarClick,
+            )
+        }
         BotonTarjeta(
             texto = stringResource(R.string.mis_eventos_ver),
             icono = Icons.Outlined.ChevronRight,

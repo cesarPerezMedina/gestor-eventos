@@ -7,6 +7,7 @@ import androidx.room.Query
 import com.example.gestordeeventos.data.model.Evento
 import com.example.gestordeeventos.data.model.EventoConCupo
 import com.example.gestordeeventos.data.model.Participacion
+import com.example.gestordeeventos.data.model.SalidaEvento
 import kotlinx.coroutines.flow.Flow
 
 /**
@@ -163,6 +164,25 @@ interface EventoDao {
      */
     @Query("UPDATE invitaciones SET estado = 'RECHAZADA' WHERE eventoId = :eventoId AND paraUsuarioId = :usuarioId AND estado != 'RECHAZADA'")
     suspend fun cerrarInvitaciones(eventoId: Long, usuarioId: Long): Int
+
+    // --- Eventos abandonados (aparecen en Mis eventos > Unidos > Cancelados) ---
+
+    /** Deja constancia de que el usuario salió del evento. Si ya constaba, se queda una sola fila. */
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun registrarSalida(salida: SalidaEvento): Long
+
+    /** Al volver a apuntarse, el evento deja de contar como abandonado. */
+    @Query("DELETE FROM salidas WHERE eventoId = :eventoId AND usuarioId = :usuarioId")
+    suspend fun borrarSalida(eventoId: Long, usuarioId: Long): Int
+
+    /** Eventos que el usuario abandonó (y no es el creador), los más próximos primero. */
+    @Query(
+        "SELECT e.*, (SELECT COUNT(*) FROM participaciones p WHERE p.eventoId = e.id) AS apuntados, " +
+            "0 AS yoApuntado " +
+            "FROM eventos e INNER JOIN salidas s ON s.eventoId = e.id " +
+            "WHERE s.usuarioId = :usuarioId AND e.creadorId != :usuarioId ORDER BY e.fechaHora ASC"
+    )
+    fun observarSalidasConCupo(usuarioId: Long): Flow<List<EventoConCupo>>
 
     // --- Eliminar un evento propio (Issue 68) ---
 

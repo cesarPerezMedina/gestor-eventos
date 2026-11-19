@@ -9,12 +9,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import com.example.gestordeeventos.R
+import com.example.gestordeeventos.ui.theme.PaletaApp
+import com.example.gestordeeventos.ui.theme.SuperficieApp
 
 // Mismos colores que el resto de la app: violeta para el texto principal, rojo para lo que no se puede deshacer
-private val DialogoTinta = Color(0xFF1B1B3A)
-private val DialogoSubtitulo = Color(0xFF4A5068)
-private val DialogoAccion = Color(0xFF5B0FBF)
-private val DialogoPeligro = Color(0xFFBA1A1A)
+private val DialogoTinta get() = PaletaApp.elegir(Color(0xFF1B1B3A), Color(0xFFECEAFB))
+private val DialogoSubtitulo get() = PaletaApp.elegir(Color(0xFF4A5068), Color(0xFFB9BDD3))
+private val DialogoAccion get() = PaletaApp.elegir(Color(0xFF5B0FBF), Color(0xFF8A5CEB))
+private val DialogoPeligro get() = PaletaApp.elegir(Color(0xFFBA1A1A), Color(0xFFF2B8B5))
 
 /**
  * Cuadro de confirmación genérico: título, texto y dos botones. No guarda estado; quien lo usa decide cuándo
@@ -33,7 +35,7 @@ fun DialogoConfirmacion(
     AlertDialog(
         modifier = modifier,
         onDismissRequest = onCancelar,
-        containerColor = Color.White,
+        containerColor = SuperficieApp,
         title = { Text(titulo, color = DialogoTinta, fontWeight = FontWeight.Bold) },
         text = { Text(texto, color = DialogoSubtitulo) },
         confirmButton = {

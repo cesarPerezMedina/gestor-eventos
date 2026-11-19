@@ -57,20 +57,22 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.gestordeeventos.ui.theme.PaletaApp
+import com.example.gestordeeventos.ui.theme.SuperficieApp
 
 // --- Colores de la pantalla (puedes moverlos a tu Theme / Color.kt) ---
-private val IniPagina = Color(0xFFF6F4FF)
-private val IniVioleta = Color(0xFF5B0FBF)
-private val IniVioletaClaro = Color(0xFF7C3AED)
-private val IniBoton = Color(0xFF6D28D9)
-private val IniTinta = Color(0xFF1B1B3A)
-private val IniSubtitulo = Color(0xFF4A5068)
-private val IniGris = Color(0xFF7D8397)
-private val IniChip = Color(0xFFE6DDFB)
-private val IniCampo = Color(0xFFEEF0FF)
-private val IniPie = Color(0xFFF6F5FF)
-private val IniPista = Color(0xFFE0E3F5)
-private val IniUrgente = Color(0xFFC2185B)
+private val IniPagina get() = PaletaApp.elegir(Color(0xFFF6F4FF), Color(0xFF15131F))
+private val IniVioleta get() = PaletaApp.elegir(Color(0xFF5B0FBF), Color(0xFF8A5CEB))
+private val IniVioletaClaro get() = PaletaApp.elegir(Color(0xFF7C3AED), Color(0xFFA78BFA))
+private val IniBoton get() = PaletaApp.elegir(Color(0xFF6D28D9), Color(0xFF7C3AED))
+private val IniTinta get() = PaletaApp.elegir(Color(0xFF1B1B3A), Color(0xFFECEAFB))
+private val IniSubtitulo get() = PaletaApp.elegir(Color(0xFF4A5068), Color(0xFFB9BDD3))
+private val IniGris get() = PaletaApp.elegir(Color(0xFF7D8397), Color(0xFF9AA0B5))
+private val IniChip get() = PaletaApp.elegir(Color(0xFFE6DDFB), Color(0xFF332A52))
+private val IniCampo get() = PaletaApp.elegir(Color(0xFFEEF0FF), Color(0xFF25223A))
+private val IniPie get() = PaletaApp.elegir(Color(0xFFF6F5FF), Color(0xFF1A1826))
+private val IniPista get() = PaletaApp.elegir(Color(0xFFE0E3F5), Color(0xFF363350))
+private val IniUrgente get() = PaletaApp.elegir(Color(0xFFC2185B), Color(0xFFF06292))
 
 // --- Modelos de datos (más adelante se rellenarán desde Room) ---
 
@@ -425,7 +427,7 @@ private fun ChipDeporte(deporte: DeporteChip, seleccionado: Boolean, onClick: ()
     Row(
         modifier = Modifier
             .clip(RoundedCornerShape(50))
-            .background(if (seleccionado) IniBoton else Color.White)
+            .background(if (seleccionado) IniBoton else SuperficieApp)
             .clickable(onClick = onClick)
             .padding(horizontal = 14.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -460,7 +462,7 @@ private fun TarjetaEvento(evento: EventoResumen, onUnirse: () -> Unit) {
             .fillMaxWidth()
             .shadow(6.dp, RoundedCornerShape(20.dp), spotColor = Color(0x1A000000))
             .clip(RoundedCornerShape(20.dp))
-            .background(Color.White),
+            .background(SuperficieApp),
     ) {
         Row(
             modifier = Modifier.padding(14.dp),
@@ -563,7 +565,7 @@ private fun BannerCrear(onCrearClick: () -> Unit) {
             modifier = Modifier
                 .size(42.dp)
                 .clip(CircleShape)
-                .background(Color.White),
+                .background(SuperficieApp),
             contentAlignment = Alignment.Center,
         ) {
             Icon(Icons.Outlined.Add, contentDescription = null, tint = IniBoton)
@@ -577,7 +579,7 @@ private fun BannerCrear(onCrearClick: () -> Unit) {
         Box(
             modifier = Modifier
                 .clip(RoundedCornerShape(12.dp))
-                .background(Color(0xFFDCE1FB))
+                .background(PaletaApp.elegir(Color(0xFFDCE1FB), Color(0xFF2B3150)))
                 .clickable(onClick = onCrearClick)
                 .padding(horizontal = 18.dp, vertical = 10.dp),
             contentAlignment = Alignment.Center,

@@ -73,23 +73,25 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
+import com.example.gestordeeventos.ui.theme.PaletaApp
+import com.example.gestordeeventos.ui.theme.SuperficieApp
 
 // --- Colores de la pantalla (puedes moverlos a tu Theme / Color.kt) ---
-private val RestViolet = Color(0xFF5B0FBF)
+private val RestViolet get() = PaletaApp.elegir(Color(0xFF5B0FBF), Color(0xFF8A5CEB))
 private val RestVioletSoft = Color(0xFF8B5CF6)
 private val RestGradientStart = Color(0xFF4A0E8F)
 private val RestGradientEnd = Color(0xFF6535BB)
-private val RestInkDark = Color(0xFF1B1B3A)
-private val RestLabel = Color(0xFF1F2333)
-private val RestSubtitle = Color(0xFF4A5068)
-private val RestFieldBackground = Color(0xFFEEF0FF)
-private val RestDigitFilled = Color(0xFFDFE4FB)
-private val RestFieldBorder = Color(0xFFC4C7DB)
-private val RestIconGray = Color(0xFF7D8397)
-private val RestPageBackground = Color(0xFFF6F4FF)
-private val RestLogoInner = Color(0xFFD9D9DE)
-private val RestChipBackground = Color(0xFFE6DDFB)
-private val RestTrack = Color(0xFFE0E3F5)
+private val RestInkDark get() = PaletaApp.elegir(Color(0xFF1B1B3A), Color(0xFFECEAFB))
+private val RestLabel get() = PaletaApp.elegir(Color(0xFF1F2333), Color(0xFFE3E1F2))
+private val RestSubtitle get() = PaletaApp.elegir(Color(0xFF4A5068), Color(0xFFB9BDD3))
+private val RestFieldBackground get() = PaletaApp.elegir(Color(0xFFEEF0FF), Color(0xFF25223A))
+private val RestDigitFilled get() = PaletaApp.elegir(Color(0xFFDFE4FB), Color(0xFF2B3150))
+private val RestFieldBorder get() = PaletaApp.elegir(Color(0xFFC4C7DB), Color(0xFF4A4766))
+private val RestIconGray get() = PaletaApp.elegir(Color(0xFF7D8397), Color(0xFF9AA0B5))
+private val RestPageBackground get() = PaletaApp.elegir(Color(0xFFF6F4FF), Color(0xFF15131F))
+private val RestLogoInner get() = PaletaApp.elegir(Color(0xFFD9D9DE), Color(0xFF2A2838))
+private val RestChipBackground get() = PaletaApp.elegir(Color(0xFFE6DDFB), Color(0xFF332A52))
+private val RestTrack get() = PaletaApp.elegir(Color(0xFFE0E3F5), Color(0xFF363350))
 
 private const val CODE_LENGTH = 6
 private const val RESEND_SECONDS = 60
@@ -190,7 +192,7 @@ fun RestablecerScreen(
                 modifier = Modifier
                     .size(88.dp)
                     .shadow(12.dp, RoundedCornerShape(22.dp), spotColor = RestVioletSoft)
-                    .background(Color.White, RoundedCornerShape(22.dp)),
+                    .background(SuperficieApp, RoundedCornerShape(22.dp)),
                 contentAlignment = Alignment.Center,
             ) {
                 Box(
@@ -229,7 +231,7 @@ fun RestablecerScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .shadow(6.dp, RoundedCornerShape(20.dp), spotColor = Color(0x1A000000))
-                    .background(Color.White, RoundedCornerShape(20.dp))
+                    .background(SuperficieApp, RoundedCornerShape(20.dp))
                     .padding(horizontal = 16.dp, vertical = 18.dp),
             ) {
                 Row(
@@ -309,7 +311,7 @@ fun RestablecerScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .shadow(6.dp, RoundedCornerShape(20.dp), spotColor = Color(0x1A000000))
-                    .background(Color.White, RoundedCornerShape(20.dp))
+                    .background(SuperficieApp, RoundedCornerShape(20.dp))
                     .padding(16.dp),
             ) {
                 if (!codeComplete) {

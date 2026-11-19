@@ -1,6 +1,8 @@
 package com.example.gestordeeventos.ui.componentes
 
 import com.example.gestordeeventos.navegacion.Ruta
+import com.example.gestordeeventos.ui.theme.PaletaApp
+import com.example.gestordeeventos.ui.theme.SuperficieApp
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -35,11 +37,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
-private val BarVioleta = Color(0xFF5B0FBF)
-private val BarVioletaClaro = Color(0xFF7C3AED)
-private val BarBoton = Color(0xFF6D28D9)
-private val BarGris = Color(0xFF7D8397)
-private val BarLinea = Color(0xFFE0E3F5)
+private val BarVioleta get() = PaletaApp.elegir(Color(0xFF5B0FBF), Color(0xFF8A5CEB))
+private val BarVioletaClaro get() = PaletaApp.elegir(Color(0xFF7C3AED), Color(0xFFA78BFA))
+private val BarBoton get() = PaletaApp.elegir(Color(0xFF6D28D9), Color(0xFF7C3AED))
+private val BarGris get() = PaletaApp.elegir(Color(0xFF7D8397), Color(0xFF9AA0B5))
+private val BarLinea get() = PaletaApp.elegir(Color(0xFFE0E3F5), Color(0xFF363350))
 
 private data class ItemBarra(val ruta: String, val etiqueta: String, val icono: ImageVector)
 
@@ -68,7 +70,7 @@ fun BarraInferior(
     modifier: Modifier = Modifier,
 ) {
     Box(modifier = modifier.fillMaxWidth()) {
-        Column(modifier = Modifier.fillMaxWidth().background(Color.White)) {
+        Column(modifier = Modifier.fillMaxWidth().background(SuperficieApp)) {
             Box(Modifier.fillMaxWidth().height(1.dp).background(BarLinea))
             Row(
                 modifier = Modifier

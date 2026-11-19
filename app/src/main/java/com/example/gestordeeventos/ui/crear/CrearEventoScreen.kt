@@ -67,18 +67,20 @@ import java.time.LocalDate
 import java.time.LocalTime
 import com.example.gestordeeventos.ui.componentes.SelectorDeporte
 import com.example.gestordeeventos.ui.theme.GestorDeEventosTheme
+import com.example.gestordeeventos.ui.theme.PaletaApp
+import com.example.gestordeeventos.ui.theme.SuperficieApp
 
 // --- Colores de la pantalla (mismos tonos que la pantalla de Amigos) ---
-internal val CrePagina = Color(0xFFF6F4FF)
-internal val CreVioleta = Color(0xFF5B0FBF)
-internal val CreVioletaClaro = Color(0xFF7C3AED)
-internal val CreBoton = Color(0xFF6D28D9)
-internal val CreTinta = Color(0xFF1B1B3A)
-internal val CreSubtitulo = Color(0xFF4A5068)
-internal val CreGris = Color(0xFF7D8397)
-internal val CreChip = Color(0xFFE6DDFB)
-internal val CreCampo = Color(0xFFEEF0FF)
-internal val CreLinea = Color(0xFFE3E1F2)
+internal val CrePagina get() = PaletaApp.elegir(Color(0xFFF6F4FF), Color(0xFF15131F))
+internal val CreVioleta get() = PaletaApp.elegir(Color(0xFF5B0FBF), Color(0xFF8A5CEB))
+internal val CreVioletaClaro get() = PaletaApp.elegir(Color(0xFF7C3AED), Color(0xFFA78BFA))
+internal val CreBoton get() = PaletaApp.elegir(Color(0xFF6D28D9), Color(0xFF7C3AED))
+internal val CreTinta get() = PaletaApp.elegir(Color(0xFF1B1B3A), Color(0xFFECEAFB))
+internal val CreSubtitulo get() = PaletaApp.elegir(Color(0xFF4A5068), Color(0xFFB9BDD3))
+internal val CreGris get() = PaletaApp.elegir(Color(0xFF7D8397), Color(0xFF9AA0B5))
+internal val CreChip get() = PaletaApp.elegir(Color(0xFFE6DDFB), Color(0xFF332A52))
+internal val CreCampo get() = PaletaApp.elegir(Color(0xFFEEF0FF), Color(0xFF25223A))
+internal val CreLinea get() = PaletaApp.elegir(Color(0xFFE3E1F2), Color(0xFF363350))
 
 /** Un amigo al que se puede invitar al evento (más adelante saldrá de la lista de amigos de Room). */
 data class AmigoInvitable(
@@ -262,7 +264,7 @@ fun CrearEventoScreen(
                 .fillMaxWidth()
                 .shadow(4.dp, RoundedCornerShape(18.dp), spotColor = Color(0x1A000000))
                 .clip(RoundedCornerShape(18.dp))
-                .background(Color.White)
+                .background(SuperficieApp)
                 .padding(14.dp),
             horizontalArrangement = Arrangement.spacedBy(16.dp),
         ) {
@@ -462,7 +464,7 @@ internal fun CampoSelector(icono: androidx.compose.ui.graphics.vector.ImageVecto
             .fillMaxWidth()
             .height(54.dp)
             .clip(RoundedCornerShape(14.dp))
-            .background(Color.White)
+            .background(SuperficieApp)
             .border(1.dp, CreLinea, RoundedCornerShape(14.dp))
             .clickable(onClick = onClick)
             .padding(horizontal = 14.dp),
@@ -481,7 +483,7 @@ private fun SelectorVisibilidad(esPublico: Boolean, onCambio: (Boolean) -> Unit)
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(14.dp))
-            .background(Color.White)
+            .background(SuperficieApp)
             .border(1.dp, CreLinea, RoundedCornerShape(14.dp))
             .padding(4.dp),
         horizontalArrangement = Arrangement.spacedBy(4.dp),

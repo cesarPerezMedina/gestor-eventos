@@ -28,8 +28,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.gestordeeventos.ui.theme.PaletaApp
 
-private val Rojo = Color(0xFFD32F2F)
+private val Rojo get() = PaletaApp.elegir(Color(0xFFD32F2F), Color(0xFFEF6B6B))
 
 /** Botón rojo suave de ancho completo. Al pulsarlo pide confirmación antes de cerrar la sesión. */
 @Composable

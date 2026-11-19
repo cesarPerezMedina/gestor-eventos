@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- "My events" screen (Issue 63) -->
+    <string name="mis_eventos_seccion">EVENTS</string>
+    <string name="mis_eventos_titulo">My events</string>
+    <string name="mis_eventos_subtitulo">Manage your matches and meetups</string>
+    <string name="mis_eventos_notificaciones">Notifications</string>
+    <string name="mis_eventos_perfil">Profile</string>
+
+    <string name="mis_eventos_buscar_placeholder">Search by sport or place…</string>
+    <string name="mis_eventos_buscar_limpiar">Clear search</string>
+
+    <string name="mis_eventos_pestana_creados">Created</string>
+    <string name="mis_eventos_pestana_unidos">Joined</string>
+    <string name="mis_eventos_filtro_proximos">Upcoming</string>
+    <string name="mis_eventos_filtro_historial">History</string>
+    <string name="mis_eventos_filtro_borradores">Drafts</string>
+    <string name="mis_eventos_filtro_cancelados">Cancelled</string>
+
+    <string name="mis_eventos_etiqueta_publico">Public</string>
+    <string name="mis_eventos_etiqueta_privado">Private</string>
+    <string name="mis_eventos_etiqueta_confirmado">Confirmed</string>
+    <string name="mis_eventos_etiqueta_borrador">Draft</string>
+    <string name="mis_eventos_etiqueta_cancelado">Cancelled</string>
+    <string name="mis_eventos_etiqueta_abandonado">Left</string>
+
+    <string name="mis_eventos_plazas">%1$d/%2$d spots</string>
+    <string name="mis_eventos_inscritos">%1$d/%2$d registered</string>
+    <string name="mis_eventos_completo">Full</string>
+    <string name="mis_eventos_sin_ubicacion">No location</string>
+    <plurals name="mis_eventos_apuntados">
+        <item quantity="one">%1$d person joined</item>
+        <item quantity="other">%1$d people joined</item>
+    </plurals>
+    <plurals name="mis_eventos_faltan_para_jugar">
+        <item quantity="one">%1$d more needed to play</item>
+        <item quantity="other">%1$d more needed to play</item>
+    </plurals>
+    <plurals name="mis_eventos_plazas_libres">
+        <item quantity="one">%1$d spot left</item>
+        <item quantity="other">%1$d spots left</item>
+    </plurals>
+
+    <string name="mis_eventos_ver">View</string>
+    <string name="mis_eventos_eliminar">Delete</string>
+    <string name="mis_eventos_salir">Leave</string>
+    <string name="mis_eventos_cancelar">Cancel</string>
+    <string name="mis_eventos_ver_descripcion">View event %1$s</string>
+    <string name="mis_eventos_eliminar_titulo">Delete this event?</string>
+    <string name="mis_eventos_eliminar_mensaje">“%1$s” will be deleted for you and everyone who joined. This can\'t be undone.</string>
+    <string name="mis_eventos_salir_titulo">Leave this event?</string>
+    <string name="mis_eventos_salir_mensaje">You will no longer be signed up for “%1$s”.</string>
+
+    <string name="mis_eventos_vacio_proximos">You have no upcoming events</string>
+    <string name="mis_eventos_vacio_proximos_ayuda">Create one with the + button or join one from Search.</string>
+    <string name="mis_eventos_vacio_historial">There are no events in your history yet</string>
+    <string name="mis_eventos_vacio_borradores">You have no drafts</string>
+    <string name="mis_eventos_vacio_cancelados">You have no cancelled or abandoned events</string>
+    <string name="mis_eventos_vacio_busqueda">No events match your search</string>
+
+    <string name="mis_eventos_aviso_archivado">Past events are archived automatically 48 hours after they end to keep your agenda clean.</string>
+    <string name="mis_eventos_aviso_historial">View past events history</string>
+</resources>

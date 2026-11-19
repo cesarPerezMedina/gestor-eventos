@@ -58,15 +58,16 @@ import com.example.gestordeeventos.data.model.InvitacionPendiente
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import com.example.gestordeeventos.ui.theme.PaletaApp
 
 // Colores de la pantalla (los mismos que Inicio y el resto de la app, en violeta)
-private val InvPagina = Color(0xFFF6F4FF)
-private val InvVioleta = Color(0xFF5B0FBF)
-private val InvBoton = Color(0xFF6D28D9)
-private val InvTinta = Color(0xFF1B1B3A)
-private val InvSubtitulo = Color(0xFF4A5068)
-private val InvBorde = Color(0xFFE0E3F5)
-private val InvChip = Color(0xFFE6DDFB)
+private val InvPagina get() = PaletaApp.elegir(Color(0xFFF6F4FF), Color(0xFF15131F))
+private val InvVioleta get() = PaletaApp.elegir(Color(0xFF5B0FBF), Color(0xFF8A5CEB))
+private val InvBoton get() = PaletaApp.elegir(Color(0xFF6D28D9), Color(0xFF7C3AED))
+private val InvTinta get() = PaletaApp.elegir(Color(0xFF1B1B3A), Color(0xFFECEAFB))
+private val InvSubtitulo get() = PaletaApp.elegir(Color(0xFF4A5068), Color(0xFFB9BDD3))
+private val InvBorde get() = PaletaApp.elegir(Color(0xFFE0E3F5), Color(0xFF363350))
+private val InvChip get() = PaletaApp.elegir(Color(0xFFE6DDFB), Color(0xFF332A52))
 
 /**
  * Pantalla "Invitaciones" (Issue 71): las invitaciones a eventos que has recibido y todavía no has

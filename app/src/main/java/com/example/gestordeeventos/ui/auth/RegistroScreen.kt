@@ -60,19 +60,21 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.gestordeeventos.ui.theme.PaletaApp
+import com.example.gestordeeventos.ui.theme.SuperficieApp
 
 // --- Colores de la pantalla (puedes moverlos a tu Theme / Color.kt) ---
-private val RegViolet = Color(0xFF5B0FBF)
+private val RegViolet get() = PaletaApp.elegir(Color(0xFF5B0FBF), Color(0xFF8A5CEB))
 private val RegGradientStart = Color(0xFF8B5CF6)
 private val RegGradientEnd = Color(0xFF5B0FBF)
-private val RegInkDark = Color(0xFF0F1222)
-private val RegLabel = Color(0xFF1F2333)
-private val RegSubtitle = Color(0xFF3F465C)
-private val RegFieldBackground = Color(0xFFEEF0FF)
-private val RegIconGray = Color(0xFF7D8397)
-private val RegHint = Color(0xFF6B7186)
-private val RegLogoTile = Color(0xFFEDEDF0)
-private val RegPin = Color(0xFF6D28D9)
+private val RegInkDark get() = PaletaApp.elegir(Color(0xFF0F1222), Color(0xFFECEAFB))
+private val RegLabel get() = PaletaApp.elegir(Color(0xFF1F2333), Color(0xFFE3E1F2))
+private val RegSubtitle get() = PaletaApp.elegir(Color(0xFF3F465C), Color(0xFFB9BDD3))
+private val RegFieldBackground get() = PaletaApp.elegir(Color(0xFFEEF0FF), Color(0xFF25223A))
+private val RegIconGray get() = PaletaApp.elegir(Color(0xFF7D8397), Color(0xFF9AA0B5))
+private val RegHint get() = PaletaApp.elegir(Color(0xFF6B7186), Color(0xFF9AA0B5))
+private val RegLogoTile get() = PaletaApp.elegir(Color(0xFFEDEDF0), Color(0xFF2A2838))
+private val RegPin get() = PaletaApp.elegir(Color(0xFF6D28D9), Color(0xFF7C3AED))
 
 @Composable
 fun RegistroScreen(
@@ -88,7 +90,7 @@ fun RegistroScreen(
     var passwordVisible by rememberSaveable { mutableStateOf(false) }
     var repeatVisible by rememberSaveable { mutableStateOf(false) }
 
-    Surface(modifier = modifier.fillMaxSize(), color = Color(0xFFF7F7FC)) {
+    Surface(modifier = modifier.fillMaxSize(), color = PaletaApp.elegir(Color(0xFFF7F7FC), Color(0xFF15131F))) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -147,7 +149,7 @@ fun RegistroScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .shadow(6.dp, RoundedCornerShape(20.dp), spotColor = Color(0x1A000000))
-                    .background(Color.White, RoundedCornerShape(20.dp))
+                    .background(SuperficieApp, RoundedCornerShape(20.dp))
                     .padding(20.dp),
             ) {
                 FieldLabel("Nombre de usuario")

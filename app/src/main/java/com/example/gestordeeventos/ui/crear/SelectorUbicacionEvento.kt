@@ -49,6 +49,7 @@ import androidx.compose.ui.unit.sp
 import com.example.gestordeeventos.data.localizacion.Ubicacion
 import com.example.gestordeeventos.ui.componentes.MapaSelector
 import com.example.gestordeeventos.ui.theme.GestorDeEventosTheme
+import com.example.gestordeeventos.ui.theme.SuperficieApp
 
 /** Dónde se juega el evento (Issue 45): recinto público, polideportivo o descampado. */
 enum class TipoUbicacion(
@@ -249,7 +250,7 @@ fun SelectorUbicacionEvento(
                     .align(Alignment.TopStart)
                     .padding(8.dp)
                     .clip(RoundedCornerShape(50))
-                    .background(Color.White)
+                    .background(SuperficieApp)
                     .padding(horizontal = 9.dp, vertical = 3.dp),
             )
         }
@@ -273,7 +274,7 @@ private fun OpcionTipoUbicacion(
     Column(
         modifier = modifier
             .clip(forma)
-            .background(if (seleccionada) CreChip else Color.White)
+            .background(if (seleccionada) CreChip else SuperficieApp)
             .border(if (seleccionada) 2.dp else 1.dp, if (seleccionada) CreVioletaClaro else CreLinea, forma)
             .selectable(selected = seleccionada, onClick = onClick, role = Role.RadioButton)
             .padding(10.dp),

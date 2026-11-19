@@ -12,6 +12,7 @@ import com.example.gestordeeventos.data.model.Evento
 import com.example.gestordeeventos.data.model.EventoConCupo
 import com.example.gestordeeventos.data.model.Invitacion
 import com.example.gestordeeventos.data.model.Participacion
+import com.example.gestordeeventos.data.model.SalidaEvento
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import com.example.gestordeeventos.data.model.EstadoEvento
@@ -78,6 +79,10 @@ class EventoRepositorio(
     fun observarMisUnidosConCupo(usuarioId: Long): Flow<List<EventoConCupo>> =
         eventoDao.observarUnidosConCupo(usuarioId)
 
+    /** Eventos que el usuario abandonó: en "Mis eventos" salen en Unidos > Cancelados. */
+    fun observarMisSalidasConCupo(usuarioId: Long): Flow<List<EventoConCupo>> =
+        eventoDao.observarSalidasConCupo(usuarioId)
+
 
     /** Público: cualquiera. Privado: solo el creador, los invitados y los participantes. */
     suspend fun puedeVer(eventoId: Long, usuarioId: Long): Boolean =
@@ -131,6 +136,7 @@ class EventoRepositorio(
 
         eventoDao.insertarParticipacion(Participacion(eventoId = eventoId, usuarioId = usuarioId))
         eventoDao.aceptarInvitacion(eventoId, usuarioId)
+        eventoDao.borrarSalida(eventoId, usuarioId) // si lo había abandonado, vuelve a ser suyo
         return ResultadoEvento(true, "Te has apuntado al evento")
     }
 
@@ -153,6 +159,7 @@ class EventoRepositorio(
             return ResultadoEvento(false, "No estás apuntado a este evento")
         }
         eventoDao.cerrarInvitaciones(eventoId, usuarioId)
+        eventoDao.registrarSalida(SalidaEvento(eventoId = eventoId, usuarioId = usuarioId))
         return ResultadoEvento(true, "Has salido del evento")
     }
 

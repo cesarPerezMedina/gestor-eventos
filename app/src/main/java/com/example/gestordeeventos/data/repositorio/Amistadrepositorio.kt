@@ -6,6 +6,7 @@ import com.example.gestordeeventos.data.model.Amistad
 import com.example.gestordeeventos.data.model.EstadoAmistad
 import kotlinx.coroutines.flow.Flow
 import com.example.gestordeeventos.data.model.Amigo
+import com.example.gestordeeventos.data.model.SolicitudRecibida
 
 data class ResultadoAmistad(val ok: Boolean, val mensaje: String)
 
@@ -20,7 +21,7 @@ class AmistadRepositorio(
 
     /** Envía una solicitud a quien coincida con el ID o nombre de usuario escrito. */
     suspend fun enviarSolicitud(miCorreo: String, consulta: String): ResultadoAmistad {
-        val texto = consulta.trim().removePrefix("@")
+        val texto = consulta.trim().removePrefix("@").removePrefix("#").trim()
         if (texto.isEmpty()) {
             return ResultadoAmistad(false, "Escribe un ID o un nombre de usuario")
         }
@@ -44,7 +45,9 @@ class AmistadRepositorio(
             }
         }
 
-        amistadDao.insertar(Amistad(solicitante = miCorreo, destinatario = destino.correo))
+        amistadDao.insertar(
+            Amistad(solicitante = miCorreo, destinatario = destino.correo, estado = EstadoAmistad.PENDIENTE)
+        )
         return ResultadoAmistad(true, "Solicitud enviada a $texto")
     }
 
@@ -93,6 +96,10 @@ class AmistadRepositorio(
     /** Solicitudes pendientes que he recibido. */
     suspend fun solicitudesRecibidas(miCorreo: String): List<Amistad> =
         amistadDao.solicitudesRecibidas(miCorreo)
+
+    /** Solicitudes pendientes que he recibido, siempre actualizadas (la pestaña "Solicitudes" se refresca sola). */
+    fun observarSolicitudesRecibidas(miCorreo: String): Flow<List<SolicitudRecibida>> =
+        amistadDao.observarSolicitudesRecibidas(miCorreo)
 
     /** Amigos aceptados, siempre actualizados. */
     fun observarAmigos(miCorreo: String): Flow<List<Amigo>> =

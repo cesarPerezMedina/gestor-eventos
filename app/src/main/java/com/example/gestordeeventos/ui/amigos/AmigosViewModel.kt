@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.gestordeeventos.data.model.Amigo
+import com.example.gestordeeventos.data.model.SolicitudRecibida
 import com.example.gestordeeventos.data.repositorio.AmistadRepositorio
 import com.example.gestordeeventos.data.repositorio.ResultadoAmistad
 import kotlinx.coroutines.flow.SharingStarted
@@ -36,6 +37,27 @@ class AmigosViewModel(
             emitAll(
                 repositorio.observarAmigos(yo)
                     .map { lista -> lista.map { it.aAmigoItem() } }
+            )
+        }
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5_000),
+        initialValue = emptyList(),
+    )
+
+    /**
+     * Solicitudes de amistad pendientes que me han enviado (pestaña "Solicitudes").
+     * También viene de un Flow de Room: aparecen solas cuando otra cuenta me envía una y desaparecen al
+     * aceptarlas o rechazarlas.
+     */
+    val solicitudes: StateFlow<List<SolicitudItem>> = flow {
+        val yo = miCorreo()
+        if (yo == null) {
+            emit(emptyList())
+        } else {
+            emitAll(
+                repositorio.observarSolicitudesRecibidas(yo)
+                    .map { lista -> lista.map { it.aSolicitudItem() } }
             )
         }
     }.stateIn(
@@ -107,6 +129,13 @@ private fun Amigo.aAmigoItem(): AmigoItem = AmigoItem(
     deportes = "Amigo",
     idTag = "#$id",
     conectado = false,
+)
+
+/** De Room a lo que pinta la pantalla. */
+private fun SolicitudRecibida.aSolicitudItem(): SolicitudItem = SolicitudItem(
+    correo = correo,
+    usuario = nombreUsuario,
+    idTag = "#$id",
 )
 
 // Hace falta para poder darle el repositorio al ViewModel

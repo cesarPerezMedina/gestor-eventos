@@ -9,8 +9,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.gestordeeventos.ui.theme.PaletaApp
 
-private val ColorError = Color(0xFFD32F2F)
+private val ColorError get() = PaletaApp.elegir(Color(0xFFD32F2F), Color(0xFFEF6B6B))
 
 /** Mensaje de error bajo un campo (o general). No dibuja nada si [mensaje] es null. */
 @Composable

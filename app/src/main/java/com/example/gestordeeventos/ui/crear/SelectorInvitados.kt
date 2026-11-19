@@ -42,6 +42,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.gestordeeventos.ui.theme.GestorDeEventosTheme
+import com.example.gestordeeventos.ui.theme.SuperficieApp
 
 /** Cuántos amigos se enseñan antes de pulsar "Ver lista completa". */
 private const val AMIGOS_VISIBLES = 3
@@ -138,7 +139,7 @@ fun SelectorInvitados(
                 .fillMaxWidth()
                 .shadow(4.dp, RoundedCornerShape(18.dp), spotColor = Color(0x1A000000))
                 .clip(RoundedCornerShape(18.dp))
-                .background(Color.White)
+                .background(SuperficieApp)
                 .padding(12.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {

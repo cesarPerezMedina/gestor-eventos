@@ -75,6 +75,9 @@ fun GestorDeEventosTheme(
     escalaTexto: Float = 1f,
     content: @Composable () -> Unit
 ) {
+    // Los colores propios de cada pantalla (PaletaApp) siguen el mismo modo que el tema de Material
+    PaletaApp.oscuro = darkTheme
+
     val densidad = LocalDensity.current
     val densidadEscalada = Density(
         density = densidad.density,

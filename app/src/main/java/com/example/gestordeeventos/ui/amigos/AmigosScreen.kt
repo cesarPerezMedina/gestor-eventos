@@ -24,16 +24,12 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ChatBubbleOutline
 import androidx.compose.material.icons.outlined.Flag
 import androidx.compose.material.icons.outlined.Group
-import androidx.compose.material.icons.outlined.KeyboardArrowDown
 import androidx.compose.material.icons.outlined.Mail
 import androidx.compose.material.icons.outlined.Notifications
-import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.PersonAdd
 import androidx.compose.material.icons.outlined.PersonRemove
 import androidx.compose.material.icons.outlined.PersonSearch
-import androidx.compose.material.icons.outlined.QrCodeScanner
 import androidx.compose.material.icons.outlined.Search
-import androidx.compose.material.icons.outlined.SportsTennis
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
@@ -58,42 +54,44 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.gestordeeventos.ui.theme.PaletaApp
+import com.example.gestordeeventos.ui.theme.SuperficieApp
 
 // --- Colores de la pantalla (puedes moverlos a tu Theme / Color.kt) ---
-private val AmiPagina = Color(0xFFF6F4FF)
-private val AmiVioleta = Color(0xFF5B0FBF)
-private val AmiVioletaClaro = Color(0xFF7C3AED)
-private val AmiBoton = Color(0xFF6D28D9)
-private val AmiBotonOscuro = Color(0xFF4A0E8F)
-private val AmiTinta = Color(0xFF1B1B3A)
-private val AmiSubtitulo = Color(0xFF4A5068)
-private val AmiGris = Color(0xFF7D8397)
-private val AmiChip = Color(0xFFE6DDFB)
-private val AmiCampo = Color(0xFFEEF0FF)
-private val AmiLinea = Color(0xFFE8E8F5)
-private val AmiRojo = Color(0xFFD32F2F)
-private val AmiRojoClaro = Color(0xFFFDECEE)
+private val AmiPagina get() = PaletaApp.elegir(Color(0xFFF6F4FF), Color(0xFF15131F))
+private val AmiVioleta get() = PaletaApp.elegir(Color(0xFF5B0FBF), Color(0xFF8A5CEB))
+private val AmiVioletaClaro get() = PaletaApp.elegir(Color(0xFF7C3AED), Color(0xFFA78BFA))
+private val AmiBoton get() = PaletaApp.elegir(Color(0xFF6D28D9), Color(0xFF7C3AED))
+private val AmiBotonOscuro get() = PaletaApp.elegir(Color(0xFF4A0E8F), Color(0xFF5B21B6))
+private val AmiTinta get() = PaletaApp.elegir(Color(0xFF1B1B3A), Color(0xFFECEAFB))
+private val AmiSubtitulo get() = PaletaApp.elegir(Color(0xFF4A5068), Color(0xFFB9BDD3))
+private val AmiGris get() = PaletaApp.elegir(Color(0xFF7D8397), Color(0xFF9AA0B5))
+private val AmiChip get() = PaletaApp.elegir(Color(0xFFE6DDFB), Color(0xFF332A52))
+private val AmiCampo get() = PaletaApp.elegir(Color(0xFFEEF0FF), Color(0xFF25223A))
+private val AmiLinea get() = PaletaApp.elegir(Color(0xFFE8E8F5), Color(0xFF363350))
+private val AmiRojo get() = PaletaApp.elegir(Color(0xFFD32F2F), Color(0xFFEF6B6B))
+private val AmiRojoClaro get() = PaletaApp.elegir(Color(0xFFFDECEE), Color(0xFF3F2328))
 private val AmiVerde = Color(0xFF22C55E)
 
-// --- Modelos de datos (más adelante se rellenarán desde Room) ---
+// --- Modelos de datos (los rellena AmigosViewModel desde Room) ---
 
 /** Tipo de búsqueda que se elige con los chips de la tarjeta "Añadir por ID o Usuario". */
 enum class FiltroBusqueda(val etiqueta: String, val ejemplo: String) {
     NOMBRE("@Usuario", "Ej: carlos_m"),
-    ID_TAG("#ID", "Ej: #EVA-0281"),
+    ID_TAG("#ID", "Ej: 12"),
 }
 
-data class InvitacionRecibida(
-    val id: String,
-    val titulo: String,
-    val etiqueta: String,
-    val de: String,
-    val fecha: String,
-    val lugar: String,
+/** Una solicitud de amistad que me han enviado y está pendiente de aceptar o rechazar. */
+data class SolicitudItem(
+    /** Correo de quien la envía: es lo que necesita el repositorio para aceptar o rechazar. */
+    val correo: String,
+    val usuario: String,
+    val idTag: String,
 )
 
 data class AmigoItem(
@@ -105,11 +103,7 @@ data class AmigoItem(
     val etiqueta: String? = null,
 )
 
-val invitacionesDeEjemplo = listOf(
-    InvitacionRecibida("1", "Pádel dobles semifinal", "Privado", "@carlos_m", "Domingo 11:00", "Club Moraleja"),
-    InvitacionRecibida("2", "Partido amistoso tenis", "Amateur", "@ines_p", "Lunes 19:00", "Pistas Canal"),
-)
-
+/** Solo para las vistas previas de Android Studio: la app real usa los datos de Room. */
 val amigosDeEjemplo = listOf(
     AmigoItem("1", "carlos_m", "Pádel / Fútbol", "#4802", conectado = true),
     AmigoItem("2", "ines_p", "Tenis Individual", "#5512"),
@@ -120,18 +114,14 @@ val amigosDeEjemplo = listOf(
 @Composable
 fun AmigosScreen(
     modifier: Modifier = Modifier,
-    miId: String = "#EVA-0281",
-    invitaciones: List<InvitacionRecibida> = invitacionesDeEjemplo,
-    amigos: List<AmigoItem> = amigosDeEjemplo,
+    /** Mi ID (el número que otros escriben en "#ID" para añadirme). */
+    miId: String = "",
+    amigos: List<AmigoItem> = emptyList(),
+    solicitudes: List<SolicitudItem> = emptyList(),
     onBuscarClick: (consulta: String, filtro: FiltroBusqueda) -> Unit = { _, _ -> },
-    onEscanearQrClick: () -> Unit = {},
-    onVerMiCodigoClick: () -> Unit = {},
-    onAnadirAmigoClick: () -> Unit = {},
     onNotificacionesClick: () -> Unit = {},
-    onPerfilClick: () -> Unit = {},
-    onVerTodasInvitacionesClick: () -> Unit = {},
-    onAceptarInvitacion: (InvitacionRecibida) -> Unit = {},
-    onRechazarInvitacion: (InvitacionRecibida) -> Unit = {},
+    onAceptarSolicitud: (SolicitudItem) -> Unit = {},
+    onRechazarSolicitud: (SolicitudItem) -> Unit = {},
     onMensajeClick: (AmigoItem) -> Unit = {},
     onEliminarClick: (AmigoItem) -> Unit = {},
     onBloquearClick: (AmigoItem) -> Unit = {},
@@ -151,11 +141,11 @@ fun AmigosScreen(
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 16.dp),
         ) {
-            BarraSuperior(onNotificacionesClick, onPerfilClick)
+            BarraSuperior(onNotificacionesClick)
 
             Spacer(Modifier.height(8.dp))
 
-            // Título + botón de añadir amigo
+            // Título + botón de añadir amigo (lleva a la pestaña de búsqueda)
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -177,7 +167,7 @@ fun AmigosScreen(
                         .size(42.dp)
                         .clip(RoundedCornerShape(14.dp))
                         .background(AmiChip)
-                        .clickable(onClick = onAnadirAmigoClick),
+                        .clickable { pestana = 1 },
                     contentAlignment = Alignment.Center,
                 ) {
                     Icon(Icons.Outlined.PersonAdd, contentDescription = "Añadir amigo", tint = AmiVioleta)
@@ -191,97 +181,46 @@ fun AmigosScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(16.dp))
-                    .background(Color.White)
+                    .background(SuperficieApp)
                     .padding(4.dp),
                 horizontalArrangement = Arrangement.spacedBy(4.dp),
             ) {
                 Pestana("Mis Amigos", Icons.Outlined.Group, pestana == 0, Modifier.weight(1f), contador = amigos.size.toString()) { pestana = 0 }
                 Pestana("Buscar / ID", Icons.Outlined.PersonSearch, pestana == 1, Modifier.weight(1f)) { pestana = 1 }
-                Pestana("Solicitudes", Icons.Outlined.Mail, pestana == 2, Modifier.weight(1f), aviso = true) { pestana = 2 }
+                Pestana(
+                    texto = "Solicitudes",
+                    icono = Icons.Outlined.Mail,
+                    seleccionada = pestana == 2,
+                    modifier = Modifier.weight(1f),
+                    contador = solicitudes.size.takeIf { it > 0 }?.toString(),
+                ) { pestana = 2 }
             }
 
             Spacer(Modifier.height(16.dp))
 
-            // ---------- Issue 30: buscar usuarios por ID o nombre de usuario ----------
-            TarjetaBuscarUsuario(
-                miId = miId,
-                consulta = consulta,
-                onConsultaChange = { consulta = it },
-                filtro = filtro,
-                onFiltroChange = { filtroIndice = it.ordinal },
-                onBuscar = { onBuscarClick(consulta.trim(), filtro) },
-                onEscanearQrClick = onEscanearQrClick,
-                onVerMiCodigoClick = onVerMiCodigoClick,
-            )
-
-            Spacer(Modifier.height(22.dp))
-
-            // Invitaciones recibidas
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text("Invitaciones recibidas", color = AmiTinta, fontSize = 17.sp, fontWeight = FontWeight.ExtraBold)
-                    Spacer(Modifier.size(8.dp))
-                    Box(
-                        modifier = Modifier.size(20.dp).background(AmiRojo, CircleShape),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        Text(invitaciones.size.toString(), color = Color.White, fontSize = 11.sp, fontWeight = FontWeight.Bold)
-                    }
-                }
-                Text(
-                    text = "Ver todas",
-                    color = AmiVioleta,
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.clickable(onClick = onVerTodasInvitacionesClick),
+            when (pestana) {
+                0 -> SeccionAmigos(
+                    amigos = amigos,
+                    onBuscarAmigosClick = { pestana = 1 },
+                    onMensaje = onMensajeClick,
+                    onEliminar = { amigoSeleccionado = it },
                 )
-            }
-            Spacer(Modifier.height(12.dp))
-            invitaciones.forEach { invitacion ->
-                TarjetaInvitacion(
-                    invitacion = invitacion,
-                    onAceptar = { onAceptarInvitacion(invitacion) },
-                    onRechazar = { onRechazarInvitacion(invitacion) },
+                1 -> TarjetaBuscarUsuario(
+                    miId = miId,
+                    consulta = consulta,
+                    onConsultaChange = { consulta = it },
+                    filtro = filtro,
+                    onFiltroChange = { filtroIndice = it.ordinal },
+                    onBuscar = {
+                        onBuscarClick(consulta.trim(), filtro)
+                        consulta = ""
+                    },
                 )
-                Spacer(Modifier.height(12.dp))
-            }
-
-            Spacer(Modifier.height(24.dp))
-
-            // Amigos agregados
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Row(verticalAlignment = Alignment.Bottom) {
-                    Text("Amigos agregados", color = AmiTinta, fontSize = 17.sp, fontWeight = FontWeight.ExtraBold)
-                    Spacer(Modifier.size(6.dp))
-                    Text("(${amigos.size})", color = AmiGris, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
-                }
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text("Ordenar por actividad", color = AmiSubtitulo, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
-                    Icon(Icons.Outlined.KeyboardArrowDown, contentDescription = null, tint = AmiSubtitulo, modifier = Modifier.size(18.dp))
-                }
-            }
-            Spacer(Modifier.height(12.dp))
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .shadow(6.dp, RoundedCornerShape(20.dp), spotColor = Color(0x1A000000))
-                    .clip(RoundedCornerShape(20.dp))
-                    .background(Color.White),
-            ) {
-                amigos.forEachIndexed { indice, amigo ->
-                    FilaAmigo(amigo, onMensaje = { onMensajeClick(amigo) }, onEliminar = { amigoSeleccionado = amigo })
-                    if (indice < amigos.lastIndex) {
-                        Box(Modifier.fillMaxWidth().padding(horizontal = 14.dp).height(1.dp).background(AmiLinea))
-                    }
-                }
+                else -> SeccionSolicitudes(
+                    solicitudes = solicitudes,
+                    onAceptar = onAceptarSolicitud,
+                    onRechazar = onRechazarSolicitud,
+                )
             }
 
             Spacer(Modifier.height(24.dp))
@@ -291,7 +230,7 @@ fun AmigosScreen(
     amigoSeleccionado?.let { amigo ->
         AlertDialog(
             onDismissRequest = { amigoSeleccionado = null },
-            containerColor = Color.White,
+            containerColor = SuperficieApp,
             title = {
                 Text("@${amigo.usuario}", color = AmiTinta, fontWeight = FontWeight.ExtraBold)
             },
@@ -327,8 +266,113 @@ fun AmigosScreen(
     }
 }
 
+/** Pestaña "Mis Amigos": la lista de amigos aceptados. */
 @Composable
-private fun BarraSuperior(onNotificacionesClick: () -> Unit, onPerfilClick: () -> Unit) {
+private fun SeccionAmigos(
+    amigos: List<AmigoItem>,
+    onBuscarAmigosClick: () -> Unit,
+    onMensaje: (AmigoItem) -> Unit,
+    onEliminar: (AmigoItem) -> Unit,
+) {
+    Row(verticalAlignment = Alignment.Bottom) {
+        Text("Amigos agregados", color = AmiTinta, fontSize = 17.sp, fontWeight = FontWeight.ExtraBold)
+        Spacer(Modifier.size(6.dp))
+        Text("(${amigos.size})", color = AmiGris, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+    }
+    Spacer(Modifier.height(12.dp))
+
+    if (amigos.isEmpty()) {
+        MensajeVacio(
+            texto = "Todavía no tienes amigos agregados.",
+            accion = "Buscar usuarios",
+            onAccionClick = onBuscarAmigosClick,
+        )
+        return
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .shadow(6.dp, RoundedCornerShape(20.dp), spotColor = Color(0x1A000000))
+            .clip(RoundedCornerShape(20.dp))
+            .background(SuperficieApp),
+    ) {
+        amigos.forEachIndexed { indice, amigo ->
+            FilaAmigo(amigo, onMensaje = { onMensaje(amigo) }, onEliminar = { onEliminar(amigo) })
+            if (indice < amigos.lastIndex) {
+                Box(Modifier.fillMaxWidth().padding(horizontal = 14.dp).height(1.dp).background(AmiLinea))
+            }
+        }
+    }
+}
+
+/** Pestaña "Solicitudes": las solicitudes de amistad que me han enviado, con Aceptar y Rechazar. */
+@Composable
+private fun SeccionSolicitudes(
+    solicitudes: List<SolicitudItem>,
+    onAceptar: (SolicitudItem) -> Unit,
+    onRechazar: (SolicitudItem) -> Unit,
+) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Text("Solicitudes recibidas", color = AmiTinta, fontSize = 17.sp, fontWeight = FontWeight.ExtraBold)
+        if (solicitudes.isNotEmpty()) {
+            Spacer(Modifier.size(8.dp))
+            Box(
+                modifier = Modifier.size(20.dp).background(AmiRojo, CircleShape),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(solicitudes.size.toString(), color = Color.White, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+            }
+        }
+    }
+    Spacer(Modifier.height(12.dp))
+
+    if (solicitudes.isEmpty()) {
+        MensajeVacio(texto = "No tienes solicitudes de amistad pendientes.")
+        return
+    }
+
+    solicitudes.forEach { solicitud ->
+        TarjetaSolicitud(
+            solicitud = solicitud,
+            onAceptar = { onAceptar(solicitud) },
+            onRechazar = { onRechazar(solicitud) },
+        )
+        Spacer(Modifier.height(12.dp))
+    }
+}
+
+/** Mensaje de lista vacía, con un botón opcional. */
+@Composable
+private fun MensajeVacio(texto: String, accion: String? = null, onAccionClick: () -> Unit = {}) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(20.dp))
+            .background(SuperficieApp)
+            .padding(20.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Text(texto, color = AmiSubtitulo, fontSize = 14.sp, textAlign = TextAlign.Center)
+        if (accion != null) {
+            Spacer(Modifier.height(12.dp))
+            Text(
+                text = accion,
+                color = Color.White,
+                fontSize = 13.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(AmiBoton)
+                    .clickable(onClick = onAccionClick)
+                    .padding(horizontal = 18.dp, vertical = 10.dp),
+            )
+        }
+    }
+}
+
+@Composable
+private fun BarraSuperior(onNotificacionesClick: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -349,7 +393,7 @@ private fun BarraSuperior(onNotificacionesClick: () -> Unit, onPerfilClick: () -
             Spacer(Modifier.size(10.dp))
             Column {
                 Text("Eventia", color = AmiTinta, fontSize = 18.sp, fontWeight = FontWeight.ExtraBold)
-                Text("INICIO", color = AmiVioleta, fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 0.6.sp)
+                Text("AMIGOS", color = AmiVioleta, fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 0.6.sp)
             }
         }
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -358,13 +402,6 @@ private fun BarraSuperior(onNotificacionesClick: () -> Unit, onPerfilClick: () -
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(Icons.Outlined.Notifications, contentDescription = "Notificaciones", tint = AmiTinta)
-            }
-            Spacer(Modifier.size(6.dp))
-            Box(
-                modifier = Modifier.size(40.dp).clip(CircleShape).background(AmiChip).clickable(onClick = onPerfilClick),
-                contentAlignment = Alignment.Center,
-            ) {
-                Icon(Icons.Outlined.Person, contentDescription = "Perfil", tint = AmiVioleta)
             }
         }
     }
@@ -423,8 +460,6 @@ private fun TarjetaBuscarUsuario(
     filtro: FiltroBusqueda,
     onFiltroChange: (FiltroBusqueda) -> Unit,
     onBuscar: () -> Unit,
-    onEscanearQrClick: () -> Unit,
-    onVerMiCodigoClick: () -> Unit,
 ) {
     val puedeBuscar = consulta.isNotBlank()
 
@@ -433,7 +468,7 @@ private fun TarjetaBuscarUsuario(
             .fillMaxWidth()
             .shadow(6.dp, RoundedCornerShape(20.dp), spotColor = Color(0x1A000000))
             .clip(RoundedCornerShape(20.dp))
-            .background(Color.White)
+            .background(SuperficieApp)
             .padding(16.dp),
     ) {
         Row(
@@ -520,35 +555,12 @@ private fun TarjetaBuscarUsuario(
             }
         }
 
-        Spacer(Modifier.height(12.dp))
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Row(
-                modifier = Modifier.clickable(onClick = onEscanearQrClick),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Icon(Icons.Outlined.QrCodeScanner, contentDescription = null, tint = AmiVioleta, modifier = Modifier.size(16.dp))
-                Spacer(Modifier.size(6.dp))
-                Text("Escanear código QR en pista", color = AmiSubtitulo, fontSize = 12.sp)
-            }
-            Text(
-                text = "Ver mi código",
-                color = AmiVioleta,
-                fontSize = 12.sp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.clickable(onClick = onVerMiCodigoClick),
-            )
-        }
     }
 }
 
 @Composable
-private fun TarjetaInvitacion(
-    invitacion: InvitacionRecibida,
+private fun TarjetaSolicitud(
+    solicitud: SolicitudItem,
     onAceptar: () -> Unit,
     onRechazar: () -> Unit,
 ) {
@@ -557,43 +569,34 @@ private fun TarjetaInvitacion(
             .fillMaxWidth()
             .shadow(6.dp, RoundedCornerShape(20.dp), spotColor = Color(0x1A000000))
             .clip(RoundedCornerShape(20.dp))
-            .background(Color.White)
+            .background(SuperficieApp)
             .padding(14.dp),
     ) {
-        Row(verticalAlignment = Alignment.Top) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
             Box(
-                modifier = Modifier.size(44.dp).clip(RoundedCornerShape(14.dp)).background(AmiCampo),
+                modifier = Modifier.size(44.dp).clip(CircleShape).background(AmiChip),
                 contentAlignment = Alignment.Center,
             ) {
-                Icon(Icons.Outlined.SportsTennis, contentDescription = null, tint = AmiBoton, modifier = Modifier.size(24.dp))
+                Text(
+                    text = solicitud.usuario.take(1).uppercase(),
+                    color = AmiVioleta,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                )
             }
             Spacer(Modifier.size(12.dp))
             Column(modifier = Modifier.weight(1f)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        text = invitacion.titulo,
-                        color = AmiTinta,
-                        fontSize = 15.sp,
-                        fontWeight = FontWeight.Bold,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.weight(1f, fill = false),
-                    )
-                    Spacer(Modifier.size(8.dp))
-                    Text(
-                        text = invitacion.etiqueta,
-                        color = AmiVioleta,
-                        fontSize = 10.sp,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(50))
-                            .background(AmiChip)
-                            .padding(horizontal = 8.dp, vertical = 3.dp),
-                    )
-                }
+                Text(
+                    text = "@${solicitud.usuario}",
+                    color = AmiTinta,
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
                 Spacer(Modifier.height(3.dp))
                 Text(
-                    text = "De ${invitacion.de} • ${invitacion.fecha} • ${invitacion.lugar}",
+                    text = "Quiere ser tu amigo • ${solicitud.idTag}",
                     color = AmiSubtitulo,
                     fontSize = 12.sp,
                     maxLines = 1,
@@ -654,7 +657,7 @@ private fun FilaAmigo(amigo: AmigoItem, onMensaje: () -> Unit, onEliminar: () ->
                     modifier = Modifier
                         .align(Alignment.TopEnd)
                         .size(13.dp)
-                        .background(Color.White, CircleShape)
+                        .background(SuperficieApp, CircleShape)
                         .padding(2.dp)
                         .background(AmiVerde, CircleShape),
                 )
@@ -725,5 +728,9 @@ private fun FilaAmigo(amigo: AmigoItem, onMensaje: () -> Unit, onEliminar: () ->
 @Preview(showBackground = true, widthDp = 390, heightDp = 1200)
 @Composable
 private fun AmigosScreenPreview() {
-    AmigosScreen()
+    AmigosScreen(
+        miId = "7",
+        amigos = amigosDeEjemplo,
+        solicitudes = listOf(SolicitudItem("carlos@correo.com", "carlos_m", "#4802")),
+    )
 }
