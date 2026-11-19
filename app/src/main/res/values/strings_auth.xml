@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Errores del inicio de sesión (Issue 10) -->
+    <string name="login_error_identificador_vacio">Introduce tu correo o nombre de usuario</string>
+    <string name="login_error_clave_vacia">Introduce tu contraseña</string>
+    <string name="login_error_credenciales">Correo, usuario o contraseña incorrectos</string>
+    <string name="login_error_generico">No se ha podido iniciar sesión. Inténtalo de nuevo</string>
+
+    <!-- Errores del registro (Issue 13) -->
+    <string name="registro_error_correo_en_uso">Ya existe una cuenta con ese correo</string>
+    <string name="registro_error_nombre_en_uso">Ese nombre de usuario ya está en uso</string>
+    <string name="registro_error_generico">No se ha podido crear la cuenta. Inténtalo de nuevo</string>
+</resources>

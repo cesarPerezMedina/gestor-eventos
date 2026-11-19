@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Pantalla "Mis eventos" (Issue 63) -->
+    <string name="mis_eventos_seccion">EVENTOS</string>
+    <string name="mis_eventos_titulo">Mis eventos</string>
+    <string name="mis_eventos_subtitulo">Gestiona tus partidos y quedadas</string>
+    <string name="mis_eventos_notificaciones">Notificaciones</string>
+    <string name="mis_eventos_perfil">Perfil</string>
+
+    <string name="mis_eventos_buscar_placeholder">Buscar por deporte o lugar…</string>
+    <string name="mis_eventos_buscar_limpiar">Borrar búsqueda</string>
+
+    <string name="mis_eventos_pestana_creados">Creados</string>
+    <string name="mis_eventos_pestana_unidos">Unidos</string>
+    <string name="mis_eventos_filtro_proximos">Próximos</string>
+    <string name="mis_eventos_filtro_historial">Historial</string>
+    <string name="mis_eventos_filtro_borradores">Borradores</string>
+    <string name="mis_eventos_filtro_cancelados">Cancelados</string>
+
+    <string name="mis_eventos_etiqueta_publico">Público</string>
+    <string name="mis_eventos_etiqueta_privado">Privado</string>
+    <string name="mis_eventos_etiqueta_confirmado">Confirmado</string>
+    <string name="mis_eventos_etiqueta_borrador">Borrador</string>
+    <string name="mis_eventos_etiqueta_cancelado">Cancelado</string>
+    <string name="mis_eventos_etiqueta_abandonado">Abandonado</string>
+
+    <string name="mis_eventos_plazas">%1$d/%2$d plazas</string>
+    <string name="mis_eventos_inscritos">%1$d/%2$d inscritos</string>
+    <string name="mis_eventos_completo">Completo</string>
+    <string name="mis_eventos_sin_ubicacion">Sin ubicación</string>
+    <plurals name="mis_eventos_apuntados">
+        <item quantity="one">%1$d persona apuntada</item>
+        <item quantity="other">%1$d personas apuntadas</item>
+    </plurals>
+    <plurals name="mis_eventos_faltan_para_jugar">
+        <item quantity="one">Falta %1$d para jugar</item>
+        <item quantity="other">Faltan %1$d para jugar</item>
+    </plurals>
+    <plurals name="mis_eventos_plazas_libres">
+        <item quantity="one">Queda %1$d plaza</item>
+        <item quantity="other">Quedan %1$d plazas</item>
+    </plurals>
+
+    <string name="mis_eventos_ver">Ver</string>
+    <string name="mis_eventos_eliminar">Eliminar</string>
+    <string name="mis_eventos_salir">Salir</string>
+    <string name="mis_eventos_cancelar">Cancelar</string>
+    <string name="mis_eventos_ver_descripcion">Ver el evento %1$s</string>
+    <string name="mis_eventos_eliminar_titulo">¿Eliminar este evento?</string>
+    <string name="mis_eventos_eliminar_mensaje">«%1$s» se eliminará para ti y para todos los que se hayan apuntado. No se puede deshacer.</string>
+    <string name="mis_eventos_salir_titulo">¿Salir de este evento?</string>
+    <string name="mis_eventos_salir_mensaje">Dejarás de estar apuntado a «%1$s».</string>
+
+    <string name="mis_eventos_vacio_proximos">No tienes eventos próximos</string>
+    <string name="mis_eventos_vacio_proximos_ayuda">Crea uno con el botón + o únete a alguno desde Buscar.</string>
+    <string name="mis_eventos_vacio_historial">Todavía no hay eventos en tu historial</string>
+    <string name="mis_eventos_vacio_borradores">No tienes borradores</string>
+    <string name="mis_eventos_vacio_cancelados">No tienes eventos cancelados ni abandonados</string>
+    <string name="mis_eventos_vacio_busqueda">Ningún evento coincide con tu búsqueda</string>
+
+    <string name="mis_eventos_aviso_archivado">Los eventos pasados se archivan automáticamente 48 horas después de terminar para mantener tu agenda ordenada.</string>
+    <string name="mis_eventos_aviso_historial">Ver historial de eventos pasados</string>
+</resources>

@@ -13,4 +13,47 @@ interface UsuarioDao {
 
     @Query("SELECT * FROM usuarios WHERE id = :id")
     suspend fun buscarPorId(id: Long): Usuario?
+
+    @Query("SELECT * FROM usuarios WHERE correo = :correo LIMIT 1")//Significa: “busca en la tabla de usuarios uno con este correo”. Devuelve el usuario si existe, o null (nada) si no. La usamos para saber si el correo que escribió la persona está registrado.
+    suspend fun buscarPorCorreo(correo: String): Usuario?
+  
+    @Query("UPDATE usuarios SET claveHash = :nueva WHERE correo = :correo")// cambiar contraseña por esta
+    suspend fun cambiarContrasena(correo: String, nueva: String)
+
+    /**
+     * Usuarios cuyo nombre de usuario contiene `texto` (sin distinguir mayúsculas), salvo el de `miCorreo`,
+     * ordenados por nombre y con un máximo de `limite`. Usa `instr` y no `LIKE` para que el guion bajo de los
+     * nombres se busque tal cual y no como comodín.
+     */
+    @Query(
+        "SELECT * FROM usuarios WHERE instr(lower(nombreUsuario), lower(:texto)) > 0 " +
+            "AND correo <> :miCorreo COLLATE NOCASE ORDER BY nombreUsuario COLLATE NOCASE LIMIT :limite"
+    )
+    suspend fun buscarPorNombreUsuarioParcial(texto: String, miCorreo: String, limite: Int): List<Usuario>
+
+    /**
+     * Busca un usuario por su correo o por su nombre de usuario, sin distinguir mayúsculas
+     * (es lo que se escribe en el campo único del login). Devuelve null si no existe.
+     */
+    @Query(
+        "SELECT * FROM usuarios WHERE correo = :identificador COLLATE NOCASE " +
+            "OR nombreUsuario = :identificador COLLATE NOCASE LIMIT 1"
+    )
+    suspend fun buscarPorCorreoONombreUsuario(identificador: String): Usuario?
+
+    /** true si ya hay un usuario con ese correo (sin distinguir mayúsculas). */
+    @Query("SELECT EXISTS(SELECT 1 FROM usuarios WHERE correo = :correo COLLATE NOCASE)")
+    suspend fun existeCorreo(correo: String): Boolean
+
+    /** true si ya hay un usuario con ese nombre de usuario (sin distinguir mayúsculas). */
+    @Query("SELECT EXISTS(SELECT 1 FROM usuarios WHERE nombreUsuario = :nombreUsuario COLLATE NOCASE)")
+    suspend fun existeNombreUsuario(nombreUsuario: String): Boolean
+
+    suspend fun buscarPorUsuarioOCorreo(identificador: String): Usuario? {
+        val porCorreoONombre = buscarPorCorreoONombreUsuario(identificador)
+        if (porCorreoONombre != null) return porCorreoONombre
+        val idLong = identificador.toLongOrNull()
+        return if (idLong != null) buscarPorId(idLong) else null
+    }
+
 }

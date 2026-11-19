@@ -13,6 +13,7 @@ import com.example.gestordeeventos.data.model.Amistad
 import com.example.gestordeeventos.data.model.Evento
 import com.example.gestordeeventos.data.model.Invitacion
 import com.example.gestordeeventos.data.model.Participacion
+import com.example.gestordeeventos.data.model.SalidaEvento
 import com.example.gestordeeventos.data.model.Usuario
 
 /**
@@ -23,8 +24,8 @@ import com.example.gestordeeventos.data.model.Usuario
  * subir `version` en 1.
  */
 @Database(
-    entities = [Usuario::class, Evento::class, Participacion::class, Invitacion::class, Amistad::class],
-    version = 2,
+    entities = [Usuario::class, Evento::class, Participacion::class, Invitacion::class, Amistad::class, SalidaEvento::class],
+    version = 3,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {

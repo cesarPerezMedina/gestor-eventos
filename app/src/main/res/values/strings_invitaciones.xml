@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Pantalla "Invitaciones" (Issue 71) -->
+    <string name="invitaciones_titulo">Invitaciones</string>
+    <string name="invitaciones_volver">Volver</string>
+    <string name="invitaciones_contador_una">1 invitación pendiente</string>
+    <string name="invitaciones_contador_varias">%1$d invitaciones pendientes</string>
+    <string name="invitaciones_de">Invitación de @%1$s</string>
+    <string name="invitaciones_aceptar">Aceptar</string>
+    <string name="invitaciones_rechazar">Rechazar</string>
+    <string name="invitaciones_aceptar_descripcion">Aceptar la invitación a %1$s</string>
+    <string name="invitaciones_rechazar_descripcion">Rechazar la invitación a %1$s</string>
+    <string name="invitaciones_vacio_titulo">No tienes invitaciones pendientes</string>
+    <string name="invitaciones_vacio_texto">Cuando alguien te invite a un evento, aparecerá aquí.</string>
+    <!-- Avisos al responder (Issue 75) -->
+    <string name="invitaciones_msg_aceptada">Te has apuntado a «%1$s»</string>
+    <string name="invitaciones_msg_rechazada">Has rechazado la invitación a «%1$s»</string>
+    <string name="invitaciones_msg_completo">«%1$s» está completo: no quedan plazas</string>
+    <string name="invitaciones_msg_no_existe">Esa invitación ya no existe</string>
+    <string name="invitaciones_msg_no_es_para_ti">Esa invitación no es tuya</string>
+    <string name="invitaciones_msg_ya_respondida">Esa invitación ya estaba respondida</string>
+</resources>

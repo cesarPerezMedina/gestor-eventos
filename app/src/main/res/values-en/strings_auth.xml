@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Sign-in errors (Issue 10) -->
+    <string name="login_error_identificador_vacio">Enter your email or username</string>
+    <string name="login_error_clave_vacia">Enter your password</string>
+    <string name="login_error_credenciales">Incorrect email, username or password</string>
+    <string name="login_error_generico">Could not sign in. Please try again</string>
+
+    <!-- Sign-up errors (Issue 13) -->
+    <string name="registro_error_correo_en_uso">An account with that email already exists</string>
+    <string name="registro_error_nombre_en_uso">That username is already taken</string>
+    <string name="registro_error_generico">Could not create the account. Please try again</string>
+</resources>

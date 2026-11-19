@@ -1,2 +1,193 @@
 package com.example.gestordeeventos.data.repositorio
 
+import android.content.Context
+import com.example.gestordeeventos.data.local.AppDatabase
+import com.example.gestordeeventos.data.local.dao.EventoDao
+import com.example.gestordeeventos.data.local.dao.InvitacionDao
+import com.example.gestordeeventos.data.localizacion.EventoConDistancia
+import com.example.gestordeeventos.data.localizacion.Ubicacion
+import com.example.gestordeeventos.data.localizacion.cajaDelimitadora
+import com.example.gestordeeventos.data.localizacion.distanciaKm
+import com.example.gestordeeventos.data.model.Evento
+import com.example.gestordeeventos.data.model.EventoConCupo
+import com.example.gestordeeventos.data.model.Invitacion
+import com.example.gestordeeventos.data.model.Participacion
+import com.example.gestordeeventos.data.model.SalidaEvento
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
+import com.example.gestordeeventos.data.model.EstadoEvento
+import com.example.gestordeeventos.data.model.HORAS_HASTA_ARCHIVAR
+
+data class ResultadoEvento(val ok: Boolean, val mensaje: String)
+private const val MILIS_POR_HORA = 3_600_000L
+/**
+ * Reglas de los eventos, incluida la diferencia entre públicos y privados (Issue 43).
+ * Los usuarios se identifican aquí por su id.
+ */
+class EventoRepositorio(
+    private val eventoDao: EventoDao,
+    private val invitacionDao: InvitacionDao,
+) {
+
+    /** Eventos que salen en Buscar: solo los públicos, siempre actualizados. */
+    fun eventosPublicos(): Flow<List<Evento>> = eventoDao.observarPublicos()
+
+    /** Eventos de Buscar con su número de apuntados y si [usuarioId] ya está apuntado: solo los públicos, siempre actualizados. */
+    fun eventosPublicosConCupo(usuarioId: Long): Flow<List<EventoConCupo>> = eventoDao.observarPublicosConCupo(usuarioId)
+
+    /**
+     * Búsqueda por cercanía (Issue 57): eventos públicos a menos de [radioKm] km de [centro],
+     * del más cercano al más lejano. Primero la base de datos descarta lo que queda fuera de un
+     * rectángulo alrededor del punto; después se calcula la distancia exacta y se filtra por el radio.
+     */
+    fun eventosPublicosCerca(centro: Ubicacion, radioKm: Double, usuarioId: Long): Flow<List<EventoConDistancia>> {
+        val caja = cajaDelimitadora(centro, radioKm)
+        return eventoDao
+            .observarPublicosEnCaja(caja.latMin, caja.latMax, caja.lonMin, caja.lonMax, usuarioId)
+            .map { lista ->
+                lista
+                    .map { EventoConDistancia(it, distanciaKm(centro.latitud, centro.longitud, it.evento.latitud, it.evento.longitud)) }
+                    .filter { it.distanciaKm <= radioKm }
+                    .sortedBy { it.distanciaKm }
+            }
+    }
+
+    /** Eventos de "Mis eventos": los que creo, en los que participo o a los que me han invitado. */
+    fun misEventos(usuarioId: Long): Flow<List<Evento>> = eventoDao.observarMisEventos(usuarioId)
+
+    /** Eventos creados por el usuario, de más próximos a más lejanos. */
+    suspend fun eventosCreadosPorUsuario(usuarioId: Long): List<Evento> =
+        eventoDao.listarCreadosPorUsuario(usuarioId)
+    suspend fun archivarEventosPasados(ahora: Long = System.currentTimeMillis()): Int =
+        eventoDao.archivarPasados(ahora - HORAS_HASTA_ARCHIVAR * MILIS_POR_HORA)
+
+    /** Eventos en los que el usuario tiene una participación. */
+    suspend fun eventosEnLosQueParticipa(usuarioId: Long): List<Evento> =
+        eventoDao.listarEventosParticipadosPorUsuario(usuarioId)
+
+    /** Eventos creados por el usuario, siempre actualizados (Issue 75). */
+    fun observarEventosCreados(usuarioId: Long): Flow<List<Evento>> = eventoDao.observarCreados(usuarioId)
+
+    /**
+     * Eventos a los que se ha unido el usuario, siempre actualizados (Issue 75). Al aceptar una invitación el
+     * evento aparece aquí solo; al rechazarla no.
+     */
+    fun observarEventosUnidos(usuarioId: Long): Flow<List<Evento>> = eventoDao.observarUnidos(usuarioId)
+    fun observarMisCreadosConCupo(usuarioId: Long): Flow<List<EventoConCupo>> =
+        eventoDao.observarCreadosConCupo(usuarioId)
+
+    fun observarMisUnidosConCupo(usuarioId: Long): Flow<List<EventoConCupo>> =
+        eventoDao.observarUnidosConCupo(usuarioId)
+
+    /** Eventos que el usuario abandonó: en "Mis eventos" salen en Unidos > Cancelados. */
+    fun observarMisSalidasConCupo(usuarioId: Long): Flow<List<EventoConCupo>> =
+        eventoDao.observarSalidasConCupo(usuarioId)
+
+
+    /** Público: cualquiera. Privado: solo el creador, los invitados y los participantes. */
+    suspend fun puedeVer(eventoId: Long, usuarioId: Long): Boolean =
+        eventoDao.puedeVer(eventoId, usuarioId)
+
+    /**
+     * Guarda el evento y, si hay invitados, crea una invitación para cada uno.
+     * La visibilidad sale de [Evento.publico]; el creador siempre es quien tiene la sesión.
+     */
+    suspend fun crearEvento(evento: Evento, invitadosIds: List<Long>): ResultadoEvento {
+        if (evento.nombre.trim().length < 3) {
+            return ResultadoEvento(false, "El nombre debe tener al menos 3 caracteres")
+        }
+        if (evento.maxParticipantes in 1 until evento.minParticipantes) {
+            return ResultadoEvento(false, "El máximo de jugadores no puede ser menor que el mínimo")
+        }
+
+        val eventoId = eventoDao.insertar(evento.copy(nombre = evento.nombre.trim(), descripcion = evento.descripcion.trim()))
+
+        invitadosIds
+            .distinct()
+            .filter { it != evento.creadorId }
+            .forEach { invitado ->
+                invitacionDao.insertar(
+                    Invitacion(eventoId = eventoId, deUsuarioId = evento.creadorId, paraUsuarioId = invitado)
+                )
+            }
+
+        return ResultadoEvento(
+            ok = true,
+            mensaje = if (evento.publico) "Evento público creado" else "Evento privado creado",
+        )
+    }
+
+    /** Apuntarse a un evento. En uno privado solo se puede con invitación. */
+    suspend fun apuntarse(eventoId: Long, usuarioId: Long): ResultadoEvento {
+        val evento = eventoDao.buscarPorId(eventoId)
+            ?: return ResultadoEvento(false, "El evento ya no existe")
+        if (evento.estado != EstadoEvento.PUBLICADO) {
+            return ResultadoEvento(false, "Este evento ya no está disponible")
+        }
+        if (eventoDao.estaApuntado(eventoId, usuarioId)) {
+            return ResultadoEvento(false, "Ya estás apuntado a este evento")
+        }
+        if (!evento.publico && evento.creadorId != usuarioId && !eventoDao.tieneInvitacion(eventoId, usuarioId)) {
+            return ResultadoEvento(false, "Este evento es privado: necesitas una invitación")
+        }
+        if (evento.maxParticipantes > 0 && eventoDao.contarParticipantes(eventoId) >= evento.maxParticipantes) {
+            return ResultadoEvento(false, "El evento está completo")
+        }
+
+        eventoDao.insertarParticipacion(Participacion(eventoId = eventoId, usuarioId = usuarioId))
+        eventoDao.aceptarInvitacion(eventoId, usuarioId)
+        eventoDao.borrarSalida(eventoId, usuarioId) // si lo había abandonado, vuelve a ser suyo
+        return ResultadoEvento(true, "Te has apuntado al evento")
+    }
+
+    /**
+     * El usuario se sale de un evento al que se había unido (Issue 67).
+     *
+     * - El creador no puede salirse (tendría que eliminar el evento, Issue 68).
+     * - Si no estaba apuntado, no hay nada que hacer.
+     * - Al salir se libera su plaza y su invitación a ese evento, si la había, pasa a rechazada: el evento deja de
+     *   salirle en "Mis eventos" y, si es privado, necesitará otra invitación para volver. En uno público puede
+     *   volver a apuntarse cuando quiera.
+     */
+    suspend fun salirDeEvento(eventoId: Long, usuarioId: Long): ResultadoEvento {
+        val evento = eventoDao.buscarPorId(eventoId)
+            ?: return ResultadoEvento(false, "El evento ya no existe")
+        if (evento.creadorId == usuarioId) {
+            return ResultadoEvento(false, "Eres el creador: no puedes salirte, pero sí eliminar el evento")
+        }
+        if (eventoDao.eliminarParticipacion(eventoId, usuarioId) == 0) {
+            return ResultadoEvento(false, "No estás apuntado a este evento")
+        }
+        eventoDao.cerrarInvitaciones(eventoId, usuarioId)
+        eventoDao.registrarSalida(SalidaEvento(eventoId = eventoId, usuarioId = usuarioId))
+        return ResultadoEvento(true, "Has salido del evento")
+    }
+
+    /**
+     * El creador elimina un evento propio (Issue 68).
+     *
+     * Solo puede quien lo creó. Al borrarlo desaparecen también las participaciones y las invitaciones de ese
+     * evento: nadie lo ve ya en Buscar, "Mis eventos" ni "Invitaciones". No se puede deshacer, así que la
+     * pantalla debe pedir confirmación antes (ver `ConfirmarEliminarEventoDialog`).
+     */
+    suspend fun eliminarEvento(eventoId: Long, usuarioId: Long): ResultadoEvento {
+        val evento = eventoDao.buscarPorId(eventoId)
+            ?: return ResultadoEvento(false, "El evento ya no existe")
+        if (evento.creadorId != usuarioId) {
+            return ResultadoEvento(false, "Solo el creador puede eliminar el evento")
+        }
+        return if (eventoDao.eliminarSiEsCreador(eventoId, usuarioId) > 0) {
+            ResultadoEvento(true, "Evento eliminado")
+        } else {
+            ResultadoEvento(false, "El evento ya no existe")
+        }
+    }
+    
+      companion object {
+        /** Crea el repositorio usando la base de datos local de la aplicación. */
+        fun crear(context: Context): EventoRepositorio {
+            val db = AppDatabase.obtener(context)
+            return EventoRepositorio(db.eventoDao(), db.invitacionDao())
+        }
+    }
+}

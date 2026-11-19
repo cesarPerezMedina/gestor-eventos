@@ -6,8 +6,8 @@ import androidx.room.PrimaryKey
 
 /**
  * Tabla "usuarios". Correo y nombre de usuario son únicos.
- * claveHash guarda la contraseña ya transformada (nunca en texto plano); el cálculo del hash
- * se implementa en el registro (Issue 13).
+ * claveHash guarda la contraseña ya transformada (nunca en texto plano), con el formato que genera
+ * `ClaveHash.generar` (util/ClaveHash.kt). Se comprueba con `ClaveHash.verificar`.
  */
 @Entity(
     tableName = "usuarios",

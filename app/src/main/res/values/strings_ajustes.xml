@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Pantalla de Ajustes: tema (Issue 78) -->
+    <string name="ajustes_titulo">Ajustes</string>
+    <string name="ajustes_volver">Volver</string>
+    <string name="ajustes_seccion_apariencia">APARIENCIA</string>
+    <string name="ajustes_seccion_cuenta">CUENTA</string>
+    <string name="ajustes_tema_sistema">Seguir al sistema</string>
+    <string name="ajustes_tema_claro">Claro</string>
+    <string name="ajustes_tema_oscuro">Oscuro</string>
+
+    <!-- Tamaño del texto (Issue 79) -->
+    <string name="ajustes_seccion_texto">TAMAÑO DEL TEXTO</string>
+    <string name="ajustes_texto_pequeno">Pequeño</string>
+    <string name="ajustes_texto_normal">Normal</string>
+    <string name="ajustes_texto_grande">Grande</string>
+    <string name="ajustes_texto_muy_grande">Muy grande</string>
+
+    <!-- Nuevo diseño de Ajustes (Issue 77) -->
+    <string name="ajustes_subtitulo">Preferencias y configuración de cuenta</string>
+    <string name="ajustes_seccion_apariencia_accesibilidad">Apariencia y accesibilidad</string>
+    <string name="ajustes_seccion_juego">Preferencias de juego</string>
+    <string name="ajustes_seccion_notificaciones">Notificaciones y avisos</string>
+
+    <string name="ajustes_tema_oscuro_titulo">Tema oscuro</string>
+    <string name="ajustes_tema_oscuro_descripcion">Cambiar entre claro y oscuro</string>
+
+    <string name="ajustes_texto_titulo">Tamaño del texto</string>
+    <!-- %1$s = nombre del tamaño (p. ej. NORMAL), %2$d = porcentaje (p. ej. 100) -->
+    <string name="ajustes_texto_valor">%1$s (%2$d%%)</string>
+    <string name="ajustes_texto_ejemplo">Texto de ejemplo con el tamaño elegido</string>
+
+    <string name="ajustes_radio_titulo">Radio de búsqueda de partidos</string>
+    <string name="ajustes_radio_etiqueta">CERCANÍA</string>
+    <string name="ajustes_radio_km">%1$d km</string>
+
+    <string name="ajustes_deportes_titulo">Deportes favoritos y alertas</string>
+    <string name="ajustes_deportes_descripcion">Recibirás invitaciones prioritarias de estos deportes</string>
+
+    <string name="ajustes_notif_recordatorio_titulo">Recordatorio de partidos</string>
+    <string name="ajustes_notif_recordatorio_descripcion">Alarma previa 2 horas antes de empezar</string>
+    <string name="ajustes_notif_plazas_titulo">Avisos de plazas vacantes</string>
+    <string name="ajustes_notif_plazas_descripcion">Cuando a un partido cercano le falte 1 jugador</string>
+    <string name="ajustes_notif_invitaciones_titulo">Invitaciones directas</string>
+    <string name="ajustes_notif_invitaciones_descripcion">Alertas instantáneas de tu círculo de amigos</string>
+
+    <string name="ajustes_pie_version">Eventia v%1$s</string>
+    <string name="ajustes_pie_lema">Diseñado con pasión para la comunidad deportiva</string>
+</resources>
