@@ -208,7 +208,7 @@ Notas técnicas por funcionalidad en [`docs/`](docs/), pruebas de aceptación en
 
 ## Forma de trabajo
 
-El proyecto se organiza en un GitHub Project con unas 80 Issues repartidas entre los tres miembros del equipo. Cada Issue se desarrolla en una rama propia creada desde `dev` y se incorpora a `dev` mediante Pull Request, para ver el progreso paso a paso. La versión de entrega sale de `dev`.
+El proyecto se organiza en un GitHub Project con unas 80 Issues repartidas entre los tres miembros del equipo. Cada Issue se desarrolla en una rama propia creada desde `dev` y se incorpora a `dev` mediante Pull Request, para ver el progreso paso a paso. Cuando una versión está probada, `dev` se pasa a `main`, que es la rama definitiva y de la que sale la versión de entrega.
 
 ## Posibles mejoras futuras
 
