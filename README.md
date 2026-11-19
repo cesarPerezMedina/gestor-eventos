@@ -9,10 +9,10 @@ Aplicación Android diseñada para crear, buscar y gestionar eventos deportivos,
 - **Registro e inicio de sesión:** creación de cuentas y recuperación de contraseñas.
 - **Crear eventos:** organizar actividades deportivas indicando nombre, descripción, fecha, hora, ubicación y número de participantes.
 - **Buscar eventos:** encontrar eventos públicos por nombre o proximidad.
-- **Mis eventos:** consultar, abandonar o eliminar eventos.
+- **Mis eventos:** consultar los eventos creados y a los que te has unido (próximos, historial, borradores y cancelados), abandonarlos o eliminarlos.
 - **Invitaciones:** aceptar o rechazar invitaciones a eventos.
-- **Amigos:** añadir usuarios mediante su ID o nombre de usuario.
-- **Ajustes:** personalizar el tema claro u oscuro y el tamaño del texto.
+- **Amigos:** enviar solicitudes de amistad por ID o nombre de usuario, aceptarlas o rechazarlas, y eliminar o bloquear amigos.
+- **Ajustes:** personalizar el tema claro u oscuro (en toda la aplicación) y el tamaño del texto.
 - **Cerrar sesión:** salir de la cuenta.
 
 ## Deportes disponibles
@@ -143,6 +143,21 @@ Detalles en [`docs/INVITACIONES.md`](docs/INVITACIONES.md).
 - **Confirmación:** cuadro `ConfirmarEliminarEventoDialog` (botón en rojo) que avisa de que no se puede deshacer.
 - **Pruebas automáticas:** `EliminarEventoTest` y `DialogosEventoTest` (con emulador). Detalles en [`docs/GESTION_EVENTOS.md`](docs/GESTION_EVENTOS.md).
 
+## Novedades: correcciones de Eventos, Amigos y mapa
+
+- **Eventos en español y abandonados:** nueva tabla `salidas` (base de datos versión 3). Un evento del que sales aparece en Unidos > Cancelados con la etiqueta «Abandonado».
+- **Solicitudes de amistad:** el botón «Añadir» envía la solicitud como pendiente y la otra persona la acepta o rechaza en la pestaña Solicitudes. Los amigos aceptados se pueden invitar a eventos al crearlos.
+- **Mapa:** la app se identifica ante OpenStreetMap para evitar el error 403 «Access blocked».
+- **Cambio de base de datos:** al actualizar desde una versión anterior se recrea la base de datos y hay que volver a registrarse. Detalles en [`docs/CORRECCIONES_EVENTOS_AMIGOS_MAPA.md`](docs/CORRECCIONES_EVENTOS_AMIGOS_MAPA.md).
+
+## Novedades: mejoras de Inicio y Buscar
+
+- Pantallas Inicio y Buscar con datos reales, filtros que funcionan y sin precios ni datos de ejemplo. Detalles en [`docs/MEJORAS_INICIO_Y_BUSCAR.md`](docs/MEJORAS_INICIO_Y_BUSCAR.md).
+
+## Novedades: modo oscuro en toda la aplicación
+
+- **`PaletaApp`:** cada color propio de las pantallas tiene su versión clara y oscura y cambia con el interruptor de Ajustes. Detalles en [`docs/MODO_OSCURO_GLOBAL.md`](docs/MODO_OSCURO_GLOBAL.md).
+
 ## Tecnologías
 
 | Área | Tecnología |
@@ -151,7 +166,11 @@ Detalles en [`docs/INVITACIONES.md`](docs/INVITACIONES.md).
 | Interfaz | Jetpack Compose con Material 3 |
 | Arquitectura | MVVM por capas (`ui`, `data`, `navegacion`, `util`) |
 | Navegación | Navigation Compose |
-| Base de datos local | Room (con KSP) |
+| Base de datos local | Room (con KSP), versión 3 |
+| Asincronía | Corrutinas y Flow |
+| Mapa | osmdroid (OpenStreetMap) |
+| Ubicación | Google Play Services Location |
+| Calidad | ktlint, detekt y pruebas unitarias e instrumentadas |
 | Seguridad de contraseñas | Hash PBKDF2 con sal (`ClaveHash`) |
 | Versiones | Centralizadas en `gradle/libs.versions.toml` |
 | Compatibilidad | Android 10 (API 29) o superior |
@@ -162,11 +181,11 @@ Detalles en [`docs/INVITACIONES.md`](docs/INVITACIONES.md).
 app/src/main/java/com/example/gestordeeventos/
   data/
     local/          AppDatabase y DAOs de Room
-    model/          Usuario, Evento, Participacion, Invitacion, Deporte
+    model/          Usuario, Evento, Participacion, Invitacion, Amistad, SalidaEvento, Deporte
     repositorio/    Repositorios (acceso a los datos desde los ViewModel)
     localizacion/   Ubicación del dispositivo
   navegacion/       Rutas y navegación entre pantallas
-  ui/               Pantallas, ViewModels, componentes y tema
+  ui/               Pantallas, ViewModels, componentes y tema (PaletaApp: colores claro/oscuro)
   util/             Utilidades (ClaveHash, validaciones, permisos, fechas, distancias...)
 docs/               Documentación técnica
 ```
@@ -176,16 +195,28 @@ docs/               Documentación técnica
 1. Clonar el repositorio y abrirlo con **Android Studio**.
 2. Esperar a que termine la sincronización de Gradle (*File → Sync Project with Gradle Files*).
 3. Ejecutar la app en un emulador o en un móvil con Android 10 o superior.
-4. Para pasar las pruebas de la base de datos, abrir `AppDatabaseTest` y pulsar el botón de ejecutar (necesita emulador o móvil conectado).
+4. Pruebas unitarias: `./gradlew test`. Pruebas con emulador o móvil (base de datos y pantallas): `./gradlew connectedAndroidTest`. Estilo: `./gradlew ktlintCheck detekt`.
+5. Para probar amigos e invitaciones hacen falta al menos dos cuentas; se cambia de una a otra cerrando sesión en Ajustes.
+
+## APK de entrega
+
+El APK se genera con `./gradlew assembleDebug` (queda en `app/build/outputs/apk/debug/app-debug.apk`) o desde Android Studio con *Build → Generate App Bundles or APKs*. Se publica en la sección *Releases* del repositorio. Al instalarlo sobre una versión anterior, desinstalar esta primero porque cambió la base de datos.
+
+## Documentación
+
+Notas técnicas por funcionalidad en [`docs/`](docs/), pruebas de aceptación en [`docs/PRUEBAS_ACEPTACION.md`](docs/PRUEBAS_ACEPTACION.md) y memoria técnica del proyecto entregada junto al APK.
 
 ## Forma de trabajo
 
-El proyecto se organiza en un GitHub Project con unas 80 Issues repartidas entre los tres miembros del equipo. Cada Issue se desarrolla en una rama propia y se incorpora a `main` mediante Pull Request, para ver el progreso paso a paso.
+El proyecto se organiza en un GitHub Project con unas 80 Issues repartidas entre los tres miembros del equipo. Cada Issue se desarrolla en una rama propia creada desde `dev` y se incorpora a `dev` mediante Pull Request, para ver el progreso paso a paso. La versión de entrega sale de `dev`.
 
 ## Posibles mejoras futuras
 
+- Servidor y base de datos en la nube para compartir usuarios, amigos y eventos entre dispositivos.
+- Migraciones de Room en lugar de recrear la base de datos al subir de versión.
+- Chat entre participantes y mensajes entre amigos.
+- Mapa general de eventos y pantalla de detalle del evento.
 - Notificaciones y recordatorios.
-- Chat entre participantes.
 - Valoraciones de eventos.
 - Calendario deportivo personal.
 
